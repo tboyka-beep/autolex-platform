@@ -64,3 +64,37 @@ országokban és milyen időszakban volt regisztrálva.
 Az importált rekord nem jelenik meg automatikusan teljes értékű műszaki
 adatlapként. A nyilvános oldalra csak a minimális mezők és a minőségi állapot
 ellenőrzése után kerülhet.
+
+## Motorváltozatok és karbantartási pontosság
+
+Egy modell vagy generáció nem tekinthető motorváltozatnak. Minden eltérő
+motorkód, üzemanyag, hengerűrtartalom, teljesítmény vagy gyártási időszak külön
+motorrekordot kap. A katalógussor és a motor között több-a-többhöz kapcsolat
+van, mert ugyanazt a modellt több motorral, ugyanazt a motort pedig több
+modellben is forgalmazhatták.
+
+A motorazonosítás első rétege az EEA típus–variáns–verzió, üzemanyag,
+hengerűrtartalom és teljesítmény kombinációja. A motorkódot és a
+karbantartási előírásokat a megfelelőségi dokumentum, a gyártó hivatalos
+kézikönyve, műszaki közleménye vagy alkatrész-katalógusa erősíti meg. Az EEA
+rekord önmagában nem bizonyít olajspecifikációt, feltöltési mennyiséget vagy
+alkatrész-illeszkedést.
+
+Minden műszaki állításhoz külön bizonyíték tartozik:
+
+- mezőnév és normalizált érték;
+- forrás kiadója, dokumentumazonosítója és közvetlen hivatkozása;
+- lekérés ideje és tartalmi ujjlenyomata;
+- elsődleges vagy megerősítő forrás minősítése;
+- ellenőrzési állapot: `pending`, `proposed`, `reviewed`, `verified`,
+  `vin_required` vagy `conflict`.
+
+Az olaj, hűtőfolyadék, fékfolyadék, szűrő és más illesztett termék csak akkor
+kap „ellenőrzött” jelölést, ha a motorváltozat és az adott műszaki mező is
+forrással igazolt. Ha a gyártó év közben módosított, vagy az adat csak
+alvázszám alapján dönthető el, a rendszer nem választ találomra: `vin_required`
+állapotot mutat, és csak biztonságos általános terméket ajánl.
+
+Az EU megfelelőségi nyilatkozat mintája az engine code, hengerelrendezés,
+hengerűrtartalom, üzemanyag és maximális teljesítmény mezőit is definiálja:
+https://eur-lex.europa.eu/eli/reg_impl/2020/683/oj
