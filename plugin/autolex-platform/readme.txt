@@ -2,7 +2,7 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.3.3
+Stable tag: 2.4.0
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
@@ -14,6 +14,11 @@ WordPress-belépési pontját. A járműadatbázis, a kereső, a SEO-rendszer é
 FrissAuto-integráció külön modulokban épülhet rá.
 
 == Changelog ==
+
+= 2.4.0 =
+* Normalizált karbantartási állítás-, forrásbizonyíték- és termékillesztési adatmodell.
+* BMW E87 118d / N47D20 többforrásos karbantartási pilot.
+* Specifikáció és motorkód alapján illesztett FrissAuto-keresések.
 
 = 2.3.3 =
 * A teljes katalógusblokk középre igazítása széles képernyőn és fehér katalóguscím.

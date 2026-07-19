@@ -270,6 +270,32 @@ body {
 }
 @media (max-width: 480px) { .alxp-catalog__grid { grid-template-columns: 1fr; } }
 
+/* Source-backed maintenance and fitment */
+.alxp-maintenance-grid,
+.alxp-source-list,
+.alxp-product-rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.alxp-maintenance-grid article,
+.alxp-source-list a,
+.alxp-product-rules a { padding: 22px; color: #fff; border: 1px solid var(--alxp-line); border-radius: 18px; background: linear-gradient(145deg, #142131, #0b121b); }
+.alxp-maintenance-grid article > span,
+.alxp-source-list a > span,
+.alxp-product-rules a > span { display: block; margin-bottom: 9px; color: #ffaaa6; font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.alxp-maintenance-grid strong,
+.alxp-source-list strong,
+.alxp-product-rules strong { display: block; color: #fff !important; font-size: 19px; }
+.alxp-maintenance-grid p,
+.alxp-source-list p { color: var(--alxp-muted); }
+.alxp-maintenance-grid small,
+.alxp-source-list small,
+.alxp-product-rules small { color: #cbd6e2; }
+.alxp-maintenance-grid small.is-needs_vin { color: #ffd38a; }
+.alxp-fitment-warning,
+.alxp-recommendation-intro { margin-top: 18px; padding: 14px 16px; color: #d6e0ea; border-left: 3px solid var(--alxp-accent); background: rgba(255,255,255,.04); }
+.alxp-product-rules em { display: block; margin-top: 18px; color: #ffaaa6; font-style: normal; font-weight: 800; }
+.alxp-source-list a:hover,
+.alxp-product-rules a:hover { color: #fff; border-color: rgba(255,77,71,.58); transform: translateY(-2px); }
+@media (max-width: 760px) { .alxp-maintenance-grid,.alxp-source-list,.alxp-product-rules { grid-template-columns: 1fr; } }
+
 .alx-front .alxbc-brands > a,
 .alx-front .alx-ui-vehicle-cards a,
 .alx-front .alxbc-products > a {
