@@ -153,3 +153,21 @@ jobs:
 
           upload_file "$entry_file"
           echo 'cPanel API deployment completed.'
+
+      - name: Verify live Autolex endpoint
+        run: |
+          set -euo pipefail
+
+          expected_version="$(sed -n "s/define('AUTOLEX_PLATFORM_VERSION', '\([^']*\)');/\1/p" plugin/autolex-platform/autolex-platform.php)"
+          response="$(curl --silent --show-error --fail \
+            --retry 4 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            'https://autolex.hu/wp-json/autolex/v1/status')"
+
+          jq -e \
+            --arg expected_version "$expected_version" \
+            '.service == "autolex-platform" and .status == "ok" and .version == $expected_version' \
+            <<<"$response" >/dev/null
+
+          echo "Autolex ${expected_version} is live."
