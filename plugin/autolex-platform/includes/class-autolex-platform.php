@@ -41,6 +41,7 @@ final class Autolex_Platform
     {
         update_option('autolex_platform_version', AUTOLEX_PLATFORM_VERSION, false);
         Autolex_EU_Catalog::install_schema();
+        Autolex_Engine_Catalog::install_schema();
     }
 
     /**
@@ -51,6 +52,7 @@ final class Autolex_Platform
         Autolex_EU_Catalog::instance();
         Autolex_EEA_Importer::register();
         Autolex_Catalog_Browser::instance();
+        Autolex_Engine_Catalog::instance();
         Autolex_Maintenance_Evidence::instance();
 
         add_action('admin_menu', array($this, 'register_admin_page'));
@@ -185,6 +187,24 @@ final class Autolex_Platform
             <p>
                 <a href="<?php echo esc_url(rest_url('autolex/v1/eu-coverage')); ?>" target="_blank" rel="noopener noreferrer">
                     <?php echo esc_html(rest_url('autolex/v1/eu-coverage')); ?>
+                </a>
+            </p>
+            <?php $engine_coverage = Autolex_Engine_Catalog::instance()->get_coverage(); ?>
+            <h2><?php echo esc_html__('Motorváltozat-lefedettség', 'autolex-platform'); ?></h2>
+            <p>
+                <?php
+                printf(
+                    /* translators: 1: catalogue rows, 2: identified engines, 3: verified variants. */
+                    esc_html__('%1$s katalógussor, %2$s meglévő motorazonosítás és %3$s forrással ellenőrzött motorváltozat.', 'autolex-platform'),
+                    esc_html(number_format_i18n($engine_coverage['catalog_vehicles'])),
+                    esc_html(number_format_i18n($engine_coverage['catalog_vehicles'] - $engine_coverage['rows_missing_engine'])),
+                    esc_html(number_format_i18n($engine_coverage['verified_variants']))
+                );
+                ?>
+            </p>
+            <p>
+                <a href="<?php echo esc_url(rest_url('autolex/v1/engine-coverage')); ?>" target="_blank" rel="noopener noreferrer">
+                    <?php echo esc_html(rest_url('autolex/v1/engine-coverage')); ?>
                 </a>
             </p>
         </div>
