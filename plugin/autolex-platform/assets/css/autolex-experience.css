@@ -297,6 +297,14 @@ body {
 .alxp-fallback-head h3 { margin: 7px 0; color: #fff !important; font-size: clamp(24px, 2.5vw, 34px); }
 .alxp-fallback-head p { max-width: 780px; color: var(--alxp-muted); }
 .alxp-product-rules--fallback a { background: linear-gradient(145deg, #172333, #101821); }
+.alxp-product-rules--visual { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.alxp-product-rules--visual a { overflow: hidden; padding: 0 20px 20px; }
+.alxp-product-rules--visual img { width: calc(100% + 40px); height: 190px; margin: 0 -20px 18px; object-fit: contain; border: 0 !important; background: #fff; box-shadow: none !important; }
+.alxp-product-rules--visual b { display: block; margin-top: 13px; color: #fff; font-size: 20px; }
+.alx-front .alxbc-products img { border: 0 !important; box-shadow: none !important; }
+.alx-front .alxbc-products em { box-shadow: none !important; }
+.alx-front .alxbc-products > a::before,
+.alx-front .alxbc-products > a::after { display: none !important; content: none !important; }
 .alxp-source-list a:hover,
 .alxp-product-rules a:hover { color: #fff; border-color: rgba(255,77,71,.58); transform: translateY(-2px); }
 @media (max-width: 760px) { .alxp-maintenance-grid,.alxp-source-list,.alxp-product-rules { grid-template-columns: 1fr; } }
