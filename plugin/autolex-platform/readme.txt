@@ -2,7 +2,7 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.2.0
+Stable tag: 2.3.0
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
