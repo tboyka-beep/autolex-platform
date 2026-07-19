@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 final class Autolex_EEA_Sync
 {
     /** Database schema version. */
-    const SCHEMA_VERSION = '1.0.0';
+    const SCHEMA_VERSION = '1.1.0';
 
     /** Official public SQL-to-JSON endpoint. */
     const API_URL = 'https://discodata.eea.europa.eu/sql';
@@ -20,9 +20,13 @@ final class Autolex_EEA_Sync
     /** Maximum aggregated records handled in one remote request. */
     const PAGE_SIZE = 2000;
 
-    /** Final EEA passenger-car reporting years processed by this pipeline. */
+    /** Smaller write batch for broad new-model discovery targets. */
+    const DISCOVERY_PAGE_SIZE = 100;
+
+    /** EEA passenger-car reporting years processed by this pipeline. */
     const FIRST_FINAL_YEAR = 2010;
-    const LAST_FINAL_YEAR  = 2021;
+    const LAST_FINAL_YEAR  = 2023;
+    const LAST_REPORTING_YEAR = 2025;
 
     /** @var Autolex_EEA_Sync|null */
     private static $instance = null;
@@ -50,6 +54,7 @@ final class Autolex_EEA_Sync
             "CREATE TABLE {$table} (
                 id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
                 target_fingerprint char(64) NOT NULL,
+                target_type varchar(30) NOT NULL DEFAULT 'commercial_name',
                 make varchar(120) NOT NULL DEFAULT '',
                 commercial_name varchar(191) NOT NULL DEFAULT '',
                 source_year smallint(5) unsigned NOT NULL,
@@ -71,6 +76,7 @@ final class Autolex_EEA_Sync
                 PRIMARY KEY  (id),
                 UNIQUE KEY target_fingerprint (target_fingerprint),
                 KEY queue_order (status, priority, id),
+                KEY target_type (target_type, status),
                 KEY make_year (make, source_year),
                 KEY next_run_at (next_run_at)
             ) {$charset_collate};"
@@ -88,18 +94,49 @@ final class Autolex_EEA_Sync
     }
 
     /**
+     * Returns only explicitly allowlisted official EEA passenger-car tables.
+     * Provisional years stay separate from final data until EEA publishes the
+     * corresponding final Discodata table.
+     *
+     * @return array<int,array<string,string|int>>
+     */
+    public static function source_configurations()
+    {
+        $sources = array();
+        $rank    = 15;
+        for ($year = self::FIRST_FINAL_YEAR; $year <= 2019; ++$year) {
+            $sources[$year] = array(
+                'table'  => 'co2cars',
+                'status' => 'F',
+                'quality'=> 'final',
+                'rank'   => $rank--,
+            );
+        }
+
+        $sources[2020] = array('table' => 'co2cars_2020Fv22', 'status' => 'F', 'quality' => 'final', 'rank' => 5);
+        $sources[2021] = array('table' => 'co2cars_2021Fv24', 'status' => 'F', 'quality' => 'final', 'rank' => 4);
+        $sources[2022] = array('table' => 'co2cars_2022Fv26', 'status' => 'F', 'quality' => 'final', 'rank' => 3);
+        $sources[2023] = array('table' => 'co2cars_2023Fv28', 'status' => 'F', 'quality' => 'final', 'rank' => 2);
+        $sources[2024] = array('table' => 'co2cars_2024Pv29', 'status' => 'P', 'quality' => 'provisional', 'rank' => 1);
+        $sources[2025] = array('table' => 'co2cars_2025Pv31', 'status' => 'P', 'quality' => 'provisional', 'rank' => 0);
+        return $sources;
+    }
+
+    /**
      * Builds the allowlisted, read-only T-SQL query used by Discodata.
      *
      * @param string $make            Exact EEA make candidate.
      * @param string $commercial_name Exact EEA commercial-name candidate.
-     * @param int    $year            Final reporting year.
+     * @param int    $year            Reporting year.
+     * @param string $target_type     commercial_name, make_discovery or make_index.
      * @return string
      */
-    public static function build_query($make, $commercial_name, $year)
+    public static function build_query($make, $commercial_name, $year, $target_type = 'commercial_name')
     {
         $year = (int) $year;
-        if ($year < self::FIRST_FINAL_YEAR || $year > self::LAST_FINAL_YEAR) {
-            throw new InvalidArgumentException('Unsupported EEA final reporting year.');
+        $sources = self::source_configurations();
+        if (!isset($sources[$year])) {
+            throw new InvalidArgumentException('Unsupported EEA reporting year.');
         }
 
         $clean = static function ($value, $length) {
@@ -111,20 +148,39 @@ final class Autolex_EEA_Sync
         };
         $make            = $clean($make, 120);
         $commercial_name = $clean($commercial_name, 191);
-        if ('' === $make || '' === $commercial_name) {
-            throw new InvalidArgumentException('EEA make and commercial name are required.');
+        if (!in_array($target_type, array('commercial_name', 'make_discovery', 'make_index'), true)) {
+            throw new InvalidArgumentException('Unsupported EEA source target type.');
+        }
+        if (('make_index' !== $target_type && '' === $make) ||
+            ('commercial_name' === $target_type && '' === $commercial_name)) {
+            throw new InvalidArgumentException('The EEA source target is incomplete.');
         }
 
         $make_sql  = str_replace("'", "''", $make);
         $model_sql = str_replace("'", "''", $commercial_name);
 
+        $source      = $sources[$year];
+        $table       = (string) $source['table'];
+        $status      = (string) $source['status'];
+        if ('make_index' === $target_type) {
+            return "SELECT [Mk] AS [mk], COUNT(*) AS [r] " .
+                "FROM [CO2Emission].[latest].[{$table}] " .
+                "WHERE [Year] = {$year} AND [Status] = '{$status}' " .
+                "AND NULLIF(LTRIM(RTRIM([Mk])), '') IS NOT NULL " .
+                "GROUP BY [Mk] ORDER BY [Mk]";
+        }
+
+        $model_where = 'commercial_name' === $target_type ? " AND [Cn] = '{$model_sql}'" : '';
+
         return "SELECT [Mk] AS [mk], [Cn] AS [cn], [T] AS [t], [Va] AS [va], " .
             "[Ve] AS [ve], [Ct] AS [ct], [Ft] AS [ft], [Fm] AS [fm], " .
             "[Ec (cm3)] AS [ec], [Ep (KW)] AS [ep], COUNT(*) AS [r] " .
-            "FROM [CO2Emission].[latest].[co2cars] " .
-            "WHERE [Year] = {$year} AND [Status] = 'F' " .
-            "AND [Mk] = '{$make_sql}' AND [Cn] = '{$model_sql}' " .
+            "FROM [CO2Emission].[latest].[{$table}] " .
+            "WHERE [Year] = {$year} AND [Status] = '{$status}' " .
+            "AND [Mk] = '{$make_sql}'{$model_where} " .
             "GROUP BY [Mk], [Cn], [T], [Va], [Ve], [Ct], [Ft], [Fm], " .
+            "[Ec (cm3)], [Ep (KW)] " .
+            "ORDER BY [Mk], [Cn], [T], [Va], [Ve], [Ct], [Ft], [Fm], " .
             "[Ec (cm3)], [Ep (KW)]";
     }
 
@@ -138,6 +194,43 @@ final class Autolex_EEA_Sync
         if (!wp_next_scheduled('autolex_eea_sync_batch')) {
             wp_schedule_single_event(time() + 20, 'autolex_eea_sync_batch');
         }
+    }
+
+    /**
+     * Performs a small hourly queue cleanup without deleting provenance.
+     * Completed rows are retained only as compact fingerprints and counters so
+     * they cannot be accidentally re-imported on the next seed pass.
+     */
+    public function maybe_maintain_queue()
+    {
+        global $wpdb;
+
+        $last_run = (int) get_option('autolex_eea_sync_last_maintenance', 0);
+        if ($last_run > (time() - HOUR_IN_SECONDS)) {
+            return;
+        }
+
+        $table = self::tasks_table();
+        $now   = current_time('mysql', true);
+        $stale = gmdate('Y-m-d H:i:s', time() - 15 * MINUTE_IN_SECONDS);
+        $wpdb->query(
+            $wpdb->prepare(
+                "UPDATE {$table}
+                SET status = 'retry', locked_at = NULL, next_run_at = %s,
+                    last_error = 'Recovered stale background lock.', updated_at = %s
+                WHERE status = 'running' AND locked_at < %s",
+                $now,
+                $now,
+                $stale
+            )
+        );
+        $wpdb->query(
+            "UPDATE {$table}
+            SET locked_at = NULL, next_run_at = NULL, last_error = NULL
+            WHERE status = 'completed'
+                AND (locked_at IS NOT NULL OR next_run_at IS NOT NULL OR last_error IS NOT NULL)"
+        );
+        update_option('autolex_eea_sync_last_maintenance', time(), false);
     }
 
     /**
@@ -158,8 +251,10 @@ final class Autolex_EEA_Sync
         }
 
         $year_parts = array();
-        for ($year = self::LAST_FINAL_YEAR; $year >= self::FIRST_FINAL_YEAR; --$year) {
-            $year_parts[] = 'SELECT ' . $year . ' AS source_year';
+        foreach (self::source_configurations() as $year => $source) {
+            $year_parts[] = 'SELECT ' . (int) $year . ' AS source_year, \'' .
+                (string) $source['status'] . '\' AS source_status, ' .
+                (int) $source['rank'] . ' AS source_rank';
         }
         $years_sql = implode(' UNION ALL ', $year_parts);
         $now       = current_time('mysql', true);
@@ -167,13 +262,14 @@ final class Autolex_EEA_Sync
         foreach (array('engine_label' => 10, 'model' => 100) as $field => $base_priority) {
             $sql = $wpdb->prepare(
                 'INSERT IGNORE INTO ' . self::tasks_table() . ' (
-                    target_fingerprint, make, commercial_name, source_year, source_status,
+                    target_fingerprint, target_type, make, commercial_name, source_year, source_status,
                     page_number, status, priority, attempts, created_at, updated_at
                 ) SELECT DISTINCT
-                    SHA2(LOWER(CONCAT_WS(\'|\', years.source_year, \'F\', TRIM(tasks.make), TRIM(tasks.`' . $field . '`))), 256),
+                    SHA2(LOWER(CONCAT_WS(\'|\', years.source_year, years.source_status, TRIM(tasks.make), TRIM(tasks.`' . $field . '`))), 256),
+                    \'commercial_name\',
                     LEFT(TRIM(tasks.make), 120), LEFT(TRIM(tasks.`' . $field . '`), 191),
-                    years.source_year, \'F\', 1, \'pending\',
-                    LEAST(65535, %d + ((' . self::LAST_FINAL_YEAR . ' - years.source_year) * 10)),
+                    years.source_year, years.source_status, 1, \'pending\',
+                    LEAST(65535, %d + (years.source_rank * 10)),
                     0, %s, %s
                 FROM ' . $engine_tasks . ' AS tasks
                 JOIN (' . $years_sql . ') AS years
@@ -189,7 +285,61 @@ final class Autolex_EEA_Sync
             }
         }
 
+        $discovery_years = array_filter(
+            self::source_configurations(),
+            static function ($source, $year) {
+                return $year >= 2022;
+            },
+            ARRAY_FILTER_USE_BOTH
+        );
+        $discovery_parts = array();
+        foreach ($discovery_years as $year => $source) {
+            $discovery_parts[] = 'SELECT ' . (int) $year . ' AS source_year, \'' .
+                (string) $source['status'] . '\' AS source_status, ' .
+                (int) $source['rank'] . ' AS source_rank';
+        }
+        $discovery_sql = $wpdb->prepare(
+            'INSERT IGNORE INTO ' . self::tasks_table() . ' (
+                target_fingerprint, target_type, make, commercial_name, source_year, source_status,
+                page_number, status, priority, attempts, created_at, updated_at
+            ) SELECT DISTINCT
+                SHA2(LOWER(CONCAT_WS(\'|\', years.source_year, years.source_status, \'make_discovery\', TRIM(tasks.make))), 256),
+                \'make_discovery\', LEFT(TRIM(tasks.make), 120), \'\',
+                years.source_year, years.source_status, 1, \'pending\',
+                LEAST(65535, years.source_rank), 0, %s, %s
+            FROM ' . $engine_tasks . ' AS tasks
+            CROSS JOIN (' . implode(' UNION ALL ', $discovery_parts) . ') AS years
+            WHERE TRIM(tasks.make) <> \'\'',
+            $now,
+            $now
+        );
+        if (false === $wpdb->query($discovery_sql)) {
+            throw new RuntimeException('EEA new-model discovery seeding failed: ' . $wpdb->last_error);
+        }
+
+        $index_rows = array();
+        foreach ($discovery_years as $year => $source) {
+            $fingerprint = hash('sha256', strtolower(implode('|', array($year, $source['status'], 'make_index'))));
+            $index_rows[] = $wpdb->prepare(
+                '(%s, \'make_index\', \'\', \'\', %d, %s, 1, \'pending\', %d, 0, %s, %s)',
+                $fingerprint,
+                $year,
+                $source['status'],
+                $source['rank'],
+                $now,
+                $now
+            );
+        }
+        $index_sql = 'INSERT IGNORE INTO ' . self::tasks_table() . ' (
+            target_fingerprint, target_type, make, commercial_name, source_year, source_status,
+            page_number, status, priority, attempts, created_at, updated_at
+        ) VALUES ' . implode(', ', $index_rows);
+        if (false === $wpdb->query($index_sql)) {
+            throw new RuntimeException('EEA make-index seeding failed: ' . $wpdb->last_error);
+        }
+
         update_option('autolex_eea_sync_seeded', 1, false);
+        update_option('autolex_eea_sync_last_seeded_at', time(), false);
         return (int) $wpdb->get_var('SELECT COUNT(*) FROM ' . self::tasks_table());
     }
 
@@ -199,7 +349,7 @@ final class Autolex_EEA_Sync
         global $wpdb;
 
         if (!$this->acquire_lock()) {
-            $this->schedule_next(60);
+            $this->schedule_next(30);
             return;
         }
 
@@ -252,28 +402,33 @@ final class Autolex_EEA_Sync
                 $links    = 0;
 
                 $wpdb->query('START TRANSACTION');
-                foreach ($rows as $row) {
-                    $row = array_change_key_case((array) $row, CASE_LOWER);
-                    $row['status'] = 'F';
-                    $vehicle = Autolex_EEA_Importer::normalize_vehicle(
-                        $row,
-                        (int) $task['source_year'],
-                        'M1'
-                    );
-                    if (!$vehicle) {
-                        continue;
+                if ('make_index' === ($task['target_type'] ?? '')) {
+                    $this->enqueue_discovered_makes($rows, $task);
+                } else {
+                    foreach ($rows as $row) {
+                        $row = array_change_key_case((array) $row, CASE_LOWER);
+                        $row['status'] = (string) $task['source_status'];
+                        $vehicle = Autolex_EEA_Importer::normalize_vehicle(
+                            $row,
+                            (int) $task['source_year'],
+                            'M1'
+                        );
+                        if (!$vehicle) {
+                            continue;
+                        }
+                        $eu_vehicle_id = Autolex_EEA_Importer::upsert_vehicle_snapshot($vehicle);
+                        $proposal      = Autolex_Engine_Catalog::instance()->ingest_eea_vehicle($vehicle, $eu_vehicle_id);
+                        ++$vehicles;
+                        if (!empty($proposal['engine_variant_id'])) {
+                            ++$engines;
+                        }
+                        $links += (int) ($proposal['links'] ?? 0);
                     }
-                    $eu_vehicle_id = Autolex_EEA_Importer::upsert_vehicle_snapshot($vehicle);
-                    $proposal      = Autolex_Engine_Catalog::instance()->ingest_eea_vehicle($vehicle, $eu_vehicle_id);
-                    ++$vehicles;
-                    if (!empty($proposal['engine_variant_id'])) {
-                        ++$engines;
-                    }
-                    $links += (int) ($proposal['links'] ?? 0);
                 }
                 $wpdb->query('COMMIT');
 
-                $finished = $read < self::PAGE_SIZE;
+                $page_size = $this->page_size_for_task($task);
+                $finished = $read < $page_size;
                 $overflow = !$finished && (int) $task['page_number'] >= 500;
                 $wpdb->update(
                     $table,
@@ -315,19 +470,24 @@ final class Autolex_EEA_Sync
             }
         } finally {
             $this->release_lock();
-            $this->schedule_next(60);
+            $this->schedule_next(30);
         }
     }
 
     /** @return array<int,array<string,mixed>> */
     private function fetch_page($task)
     {
-        $query = self::build_query($task['make'], $task['commercial_name'], (int) $task['source_year']);
+        $query = self::build_query(
+            $task['make'],
+            $task['commercial_name'],
+            (int) $task['source_year'],
+            $task['target_type'] ?? 'commercial_name'
+        );
         $url   = add_query_arg(
             array(
                 'query'    => $query,
                 'p'        => max(1, (int) $task['page_number']),
-                'nrOfHits' => self::PAGE_SIZE,
+                'nrOfHits' => $this->page_size_for_task($task),
             ),
             self::API_URL
         );
@@ -360,6 +520,70 @@ final class Autolex_EEA_Sync
         return array_values(array_filter($rows, 'is_array'));
     }
 
+    /**
+     * Turns the compact official make index into bounded per-make discovery targets.
+     *
+     * @param array<int,array<string,mixed>> $rows Official make-index rows.
+     * @param array<string,mixed>             $task Current make-index task.
+     * @return void
+     */
+    private function enqueue_discovered_makes($rows, $task)
+    {
+        global $wpdb;
+
+        $year   = (int) $task['source_year'];
+        $status = (string) $task['source_status'];
+        $sources = self::source_configurations();
+        if (!isset($sources[$year])) {
+            throw new RuntimeException('EEA make-index source is no longer allowlisted.');
+        }
+
+        $makes = array();
+        foreach ($rows as $row) {
+            $row  = array_change_key_case((array) $row, CASE_LOWER);
+            $make = trim(wp_strip_all_tags((string) ($row['mk'] ?? '')));
+            $make = function_exists('mb_substr') ? mb_substr($make, 0, 120) : substr($make, 0, 120);
+            if ('' !== $make) {
+                $makes[$make] = true;
+            }
+        }
+        if (!$makes) {
+            return;
+        }
+
+        $now = current_time('mysql', true);
+        $values = array();
+        foreach (array_keys($makes) as $make) {
+            $identity = implode('|', array($year, $status, 'make_discovery', $make));
+            $identity = function_exists('mb_strtolower') ? mb_strtolower($identity) : strtolower($identity);
+            $values[] = $wpdb->prepare(
+                '(%s, \'make_discovery\', %s, \'\', %d, %s, 1, \'pending\', %d, 0, %s, %s)',
+                hash('sha256', $identity),
+                $make,
+                $year,
+                $status,
+                (int) $sources[$year]['rank'],
+                $now,
+                $now
+            );
+        }
+        $sql = 'INSERT IGNORE INTO ' . self::tasks_table() . ' (
+            target_fingerprint, target_type, make, commercial_name, source_year, source_status,
+            page_number, status, priority, attempts, created_at, updated_at
+        ) VALUES ' . implode(', ', $values);
+        if (false === $wpdb->query($sql)) {
+            throw new RuntimeException('EEA discovered-make target insert failed: ' . $wpdb->last_error);
+        }
+    }
+
+    /** @return int */
+    private function page_size_for_task($task)
+    {
+        return in_array(($task['target_type'] ?? ''), array('make_discovery', 'make_index'), true)
+            ? self::DISCOVERY_PAGE_SIZE
+            : self::PAGE_SIZE;
+    }
+
     /** @return array<string,int|string|null> */
     public function get_status()
     {
@@ -367,10 +591,15 @@ final class Autolex_EEA_Sync
 
         $empty = array(
             'schema_version'       => self::SCHEMA_VERSION,
-            'source'               => 'EEA Discodata / CO2Emission.latest.co2cars',
+            'source'               => 'EEA Discodata / allowlisted annual passenger-car tables',
             'first_final_year'     => self::FIRST_FINAL_YEAR,
             'latest_final_year'    => self::LAST_FINAL_YEAR,
+            'latest_reporting_year'=> self::LAST_REPORTING_YEAR,
+            'provisional_years'    => array(2024, 2025),
             'targets'              => 0,
+            'discovery_targets'    => 0,
+            'make_index_targets'   => 0,
+            'provisional_targets'  => 0,
             'completed_targets'    => 0,
             'pending_targets'      => 0,
             'failed_targets'       => 0,
@@ -386,6 +615,9 @@ final class Autolex_EEA_Sync
 
         $row = $wpdb->get_row(
             'SELECT COUNT(*) AS targets,
+                SUM(target_type = \'make_discovery\') AS discovery_targets,
+                SUM(target_type = \'make_index\') AS make_index_targets,
+                SUM(source_status = \'P\') AS provisional_targets,
                 SUM(status = \'completed\') AS completed_targets,
                 SUM(status IN (\'pending\', \'retry\', \'running\')) AS pending_targets,
                 SUM(status = \'failed\') AS failed_targets,
@@ -401,7 +633,7 @@ final class Autolex_EEA_Sync
             return $empty;
         }
 
-        foreach (array('targets', 'completed_targets', 'pending_targets', 'failed_targets', 'rows_read', 'vehicles_imported', 'engine_proposals', 'link_proposals') as $field) {
+        foreach (array('targets', 'discovery_targets', 'make_index_targets', 'provisional_targets', 'completed_targets', 'pending_targets', 'failed_targets', 'rows_read', 'vehicles_imported', 'engine_proposals', 'link_proposals') as $field) {
             $row[$field] = (int) ($row[$field] ?? 0);
         }
         return array_merge($empty, $row);
@@ -415,8 +647,8 @@ final class Autolex_EEA_Sync
                 array(
                     'service'         => 'autolex-eea-sync',
                     'status'          => 'ok',
-                    'source_policy'   => 'official_final_first',
-                    'matching_policy' => 'exact_make_commercial_name_year_proposal',
+                    'source_policy'   => 'official_final_then_provisional',
+                    'matching_policy' => 'exact_name_year_proposal_plus_full_make_discovery',
                     'generated_at'    => gmdate('c'),
                 ),
                 $this->get_status()
@@ -456,7 +688,7 @@ final class Autolex_EEA_Sync
             );
             if (!$pending && get_option('autolex_eea_sync_seeded')) {
                 update_option('autolex_eea_sync_seeded', 0, false);
-                $delay = 6 * HOUR_IN_SECONDS;
+                $delay = DAY_IN_SECONDS;
             }
         }
         if (!wp_next_scheduled('autolex_eea_sync_batch')) {
@@ -468,6 +700,7 @@ final class Autolex_EEA_Sync
     private function __construct()
     {
         add_action('init', array($this, 'maybe_schedule'), 7);
+        add_action('init', array($this, 'maybe_maintain_queue'), 8);
         add_action('autolex_eea_sync_batch', array($this, 'run_batch'));
         add_action('rest_api_init', array($this, 'register_routes'));
     }

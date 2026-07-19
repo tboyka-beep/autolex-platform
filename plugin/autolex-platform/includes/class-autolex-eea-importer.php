@@ -330,7 +330,10 @@ final class Autolex_EEA_Importer
                 last_seen_year = GREATEST(last_seen_year, VALUES(last_seen_year)),
                 mass_kg = COALESCE(VALUES(mass_kg), mass_kg),
                 co2_wltp = COALESCE(VALUES(co2_wltp), co2_wltp),
-                source_status = VALUES(source_status),
+                source_status = CASE
+                    WHEN source_status = 'F' OR VALUES(source_status) = 'F' THEN 'F'
+                    ELSE VALUES(source_status)
+                END,
                 updated_at = VALUES(updated_at)",
             $vehicle['fingerprint'],
             $vehicle['manufacturer'],
@@ -420,7 +423,10 @@ final class Autolex_EEA_Importer
                 id = LAST_INSERT_ID(id),
                 first_seen_year = LEAST(first_seen_year, VALUES(first_seen_year)),
                 last_seen_year = GREATEST(last_seen_year, VALUES(last_seen_year)),
-                source_status = VALUES(source_status),
+                source_status = CASE
+                    WHEN source_status = 'F' OR VALUES(source_status) = 'F' THEN 'F'
+                    ELSE VALUES(source_status)
+                END,
                 updated_at = VALUES(updated_at)",
             $vehicle['fingerprint'],
             $vehicle['manufacturer'],

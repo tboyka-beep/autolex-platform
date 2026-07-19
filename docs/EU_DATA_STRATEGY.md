@@ -84,14 +84,25 @@ kézikönyve, műszaki közleménye vagy alkatrész-katalógusa erősíti meg. A
 rekord önmagában nem bizonyít olajspecifikációt, feltöltési mennyiséget vagy
 alkatrész-illeszkedést.
 
-Az automatikus szinkron a Discodata `CO2Emission.latest.co2cars` táblájából
-először a legfrissebb lezárt, 2021-es `F` állományt, majd a 2010–2020 közötti
-lezárt éveket dolgozza fel. A 2022-es `P` állomány előzetes, ezért nem kerül a
-végleges adatfolyamba. A lekérdezések márka + kereskedelmi név + év szerint
-elkülönülnek, és a típus, variáns, verzió, üzemanyag, hengerűrtartalom és
-teljesítmény kombinációját aggregálják. Egy újrapróbált lap nem növeli meg
-tévesen a regisztrációszámot, mert minden forrásmegfigyelés stabil
-ujjlenyomatot kap.
+Az automatikus szinkron kizárólag engedélyezett, évhez kötött Discodata
+táblaneveket használ. A 2010–2023-as állományok végleges (`F`) források; a
+2024-es `co2cars_2024Pv29` és a 2025-ös `co2cars_2025Pv31` állomány előzetes
+(`P`). Az előzetes adat külön minőségi állapotot kap, alacsonyabb illesztési
+bizalmat használ, és nem írhat felül végleges vagy ellenőrzött állítást.
+
+A lekérdezések márka + kereskedelmi név + év szerint elkülönülnek, és a típus,
+variáns, verzió, üzemanyag, hengerűrtartalom és teljesítmény kombinációját
+aggregálják. A 2022–2025-ös éveknél a teljes hivatalos márkaindexből induló,
+külön márkaszintű felderítés gyűjti be azokat az új márkákat és
+kereskedelmi modellneveket is, amelyek még nem szerepelnek az örökölt
+katalógusban. Egy újrapróbált lap nem növeli meg tévesen a regisztrációszámot,
+mert minden forrásmegfigyelés stabil ujjlenyomatot kap.
+
+A feldolgozási sor nem tárol nyers API-válaszokat. Csak stabil ujjlenyomatot,
+összesített számlálókat és a normalizált műszaki rekordokat őrzi meg. Az óránkénti
+karbantartás helyreállítja a beragadt feladatokat, és eltávolítja a befejezett
+feladatok felesleges zárolási és hibaadatait; így a bizonyíthatóság megmarad,
+miközben a tárhely nem telik ideiglenes adatokkal.
 
 Az EEA-egyezés mindig `proposed`: pontos EU piaci jelenlétet és műszaki
 alapmezőket igazol, de motorkódot nem. `verified` csak külön OEM/CoC vagy más
@@ -103,7 +114,7 @@ Minden műszaki állításhoz külön bizonyíték tartozik:
 - forrás kiadója, dokumentumazonosítója és közvetlen hivatkozása;
 - lekérés ideje és tartalmi ujjlenyomata;
 - elsődleges vagy megerősítő forrás minősítése;
-- ellenőrzési állapot: `pending`, `proposed`, `reviewed`, `verified`,
+- ellenőrzési állapot: `pending`, `provisional`, `proposed`, `reviewed`, `verified`,
   `vin_required` vagy `conflict`.
 
 Az olaj, hűtőfolyadék, fékfolyadék, szűrő és más illesztett termék csak akkor

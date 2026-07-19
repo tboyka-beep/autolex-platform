@@ -121,8 +121,11 @@ https://autolex.hu/wp-json/autolex/v1/eu-coverage
 
 Az EEA Discodata háttérszinkron az örökölt katalógus minden márka + modell- és
 motorjelöléséhez célokat készít, majd kis, újrapróbálható adagokban dolgozza fel
-a 2010–2021 közötti végleges (`F`) jelentési éveket. A szinkron és a
-konzervatív motorillesztések állapota itt követhető:
+a 2010–2023 közötti végleges (`F`) jelentési éveket. A 2024-es és 2025-ös
+adatok külön, előzetes (`P`) állapotban kerülnek be. A teljes hivatalos
+márkaindexből induló felderítés azokat az új márkákat és kereskedelmi
+modellneveket is eltárolja, amelyek még nem szerepelnek az örökölt
+katalógusban. A szinkron és az illesztések állapota itt követhető:
 
 ```text
 https://autolex.hu/wp-json/autolex/v1/eea-sync-status

@@ -240,15 +240,19 @@ jobs:
             fi
           done
 
-          jq '{service, status, targets, completed_targets, pending_targets, failed_targets, engine_proposals, link_proposals}' \
+          jq '{service, status, targets, make_index_targets, discovery_targets, provisional_targets, completed_targets, pending_targets, failed_targets, engine_proposals, link_proposals}' \
             <<<"$eea_sync"
 
           jq -e '
             .service == "autolex-eea-sync" and
             .status == "ok" and
-            .source_policy == "official_final_first" and
-            .matching_policy == "exact_make_commercial_name_year_proposal" and
-            .latest_final_year == 2021 and
+            .source_policy == "official_final_then_provisional" and
+            .matching_policy == "exact_name_year_proposal_plus_full_make_discovery" and
+            .latest_final_year == 2023 and
+            .latest_reporting_year == 2025 and
+            (.discovery_targets | type == "number" and . > 0) and
+            (.make_index_targets | type == "number" and . > 0) and
+            (.provisional_targets | type == "number" and . > 0) and
             (.targets | type == "number" and . > 0)
           ' <<<"$eea_sync" >/dev/null
 
