@@ -42,6 +42,7 @@ final class Autolex_Platform
         update_option('autolex_platform_version', AUTOLEX_PLATFORM_VERSION, false);
         Autolex_EU_Catalog::install_schema();
         Autolex_Engine_Catalog::install_schema();
+        Autolex_EEA_Sync::install_schema();
     }
 
     /**
@@ -53,6 +54,7 @@ final class Autolex_Platform
         Autolex_EEA_Importer::register();
         Autolex_Catalog_Browser::instance();
         Autolex_Engine_Catalog::instance();
+        Autolex_EEA_Sync::instance();
         Autolex_Maintenance_Evidence::instance();
 
         add_action('admin_menu', array($this, 'register_admin_page'));
@@ -205,6 +207,25 @@ final class Autolex_Platform
             <p>
                 <a href="<?php echo esc_url(rest_url('autolex/v1/engine-coverage')); ?>" target="_blank" rel="noopener noreferrer">
                     <?php echo esc_html(rest_url('autolex/v1/engine-coverage')); ?>
+                </a>
+            </p>
+            <?php $eea_sync = Autolex_EEA_Sync::instance()->get_status(); ?>
+            <h2><?php echo esc_html__('Hivatalos EEA-szinkron', 'autolex-platform'); ?></h2>
+            <p>
+                <?php
+                printf(
+                    /* translators: 1: completed targets, 2: all targets, 3: engine proposals, 4: link proposals. */
+                    esc_html__('%1$s/%2$s forráscél feldolgozva, %3$s motorváltozat- és %4$s járműkapcsolati javaslat.', 'autolex-platform'),
+                    esc_html(number_format_i18n($eea_sync['completed_targets'])),
+                    esc_html(number_format_i18n($eea_sync['targets'])),
+                    esc_html(number_format_i18n($eea_sync['engine_proposals'])),
+                    esc_html(number_format_i18n($eea_sync['link_proposals']))
+                );
+                ?>
+            </p>
+            <p>
+                <a href="<?php echo esc_url(rest_url('autolex/v1/eea-sync-status')); ?>" target="_blank" rel="noopener noreferrer">
+                    <?php echo esc_html(rest_url('autolex/v1/eea-sync-status')); ?>
                 </a>
             </p>
         </div>
