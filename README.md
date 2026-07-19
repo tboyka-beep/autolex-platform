@@ -8,6 +8,9 @@ cPaneles telepítési folyamatot tartalmazza.
 ```text
 .github/workflows/deploy-autolex.yml
 plugin/autolex-platform/
+├── assets/
+│   └── css/
+│       └── autolex-experience.css
 ├── autolex-platform.php
 ├── readme.txt
 └── includes/
@@ -49,6 +52,9 @@ Pull request és a `main` ágra történő push esetén a GitHub Actions:
 1. PHP 8.3 alatt szintaktikailag ellenőrzi az összes PHP-fájlt;
 2. elkészíti az `autolex-platform.zip` telepítőcsomagot;
 3. feltölti a ZIP-et workflow artifactként.
+
+Az éles telepítés végén a workflow az Autolex állapotvégpontján azt is
+ellenőrzi, hogy pontosan az aktuális pluginverzió töltődött-e be.
 
 Aktivált bővítmény esetén a telepített verzió nyilvánosan, érzékeny adatok
 nélkül ellenőrizhető:
