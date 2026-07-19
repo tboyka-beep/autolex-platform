@@ -214,6 +214,7 @@ body {
 .page-id-423 .entry-content {
   width: min(100% - 32px, 1480px) !important;
   max-width: none !important;
+  margin-inline: auto !important;
 }
 
 .page-id-423 .hero-section,
@@ -240,7 +241,7 @@ body {
 }
 
 .alxp-catalog__header span { color: #ffaaa6; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.alxp-catalog__header h2 { margin: 8px 0 0; font-size: clamp(34px, 4vw, 58px); line-height: 1; letter-spacing: -.04em; }
+.alxp-catalog__header h2 { margin: 8px 0 0; color: #fff !important; font-size: clamp(34px, 4vw, 58px); line-height: 1; letter-spacing: -.04em; }
 .alxp-catalog__header > strong { color: var(--alxp-muted); white-space: nowrap; }
 
 .alxp-catalog__search { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 30px; }
