@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const match = location.pathname.match(/\/auto-adatlap\/(\d+)\//);
   if (!match) return;
   try {
-    const response = await fetch(`${AutolexMaintenance.endpoint}${match[1]}`);
+    const response = await fetch(`${AutolexMaintenance.endpoint}${match[1]}?v=${encodeURIComponent(AutolexMaintenance.version)}`);
     if (!response.ok) return;
     const data = await response.json();
     if (data.status !== 'ok') return;
