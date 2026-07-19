@@ -248,10 +248,11 @@ body {
 .alxp-catalog__search button { min-height: 60px; padding-inline: 26px; border-radius: 16px; background: var(--alxp-accent); font-weight: 800; }
 
 .alxp-catalog__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-.alxp-vehicle-card { min-height: 190px; padding: 24px; color: var(--alxp-text); border: 1px solid var(--alxp-line); border-radius: 20px; background: linear-gradient(145deg, #142131, #0b121b); transition: transform 180ms ease, border-color 180ms ease; }
+.alxp-vehicle-card { display: flex; min-height: 190px; padding: 24px; align-items: center; justify-content: center; flex-direction: column; color: var(--alxp-text); text-align: center; border: 1px solid var(--alxp-line); border-radius: 20px; background: linear-gradient(145deg, #142131, #0b121b); transition: transform 180ms ease, border-color 180ms ease; }
 .alxp-vehicle-card:hover { color: #fff; border-color: rgba(255,77,71,.6); transform: translateY(-3px); }
 .alxp-vehicle-card > span { color: #ffaaa6; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
-.alxp-vehicle-card h3 { margin: 12px 0 8px; font-size: 22px; line-height: 1.12; }
+.alxp-vehicle-card h3,
+.alxp-vehicle-card:hover h3 { margin: 12px 0 8px; color: #fff !important; font-size: 22px; line-height: 1.12; }
 .alxp-vehicle-card p { margin: 0 0 18px; color: var(--alxp-muted); }
 .alxp-vehicle-card small { color: #dce4ec; }
 .alxp-pagination { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 32px; }
