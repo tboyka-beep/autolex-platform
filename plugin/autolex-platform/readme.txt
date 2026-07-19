@@ -2,7 +2,7 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.4.0
+Stable tag: 2.4.1
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
@@ -14,6 +14,9 @@ WordPress-belépési pontját. A járműadatbázis, a kereső, a SEO-rendszer é
 FrissAuto-integráció külön modulokban épülhet rá.
 
 == Changelog ==
+
+= 2.4.1 =
+* A VIN-ellenőrzést igénylő állítások státuszának pontos tárolása és újravetése.
 
 = 2.4.0 =
 * Normalizált karbantartási állítás-, forrásbizonyíték- és termékillesztési adatmodell.
