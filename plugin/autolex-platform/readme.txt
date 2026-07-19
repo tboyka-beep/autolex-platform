@@ -2,7 +2,7 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.4.2
+Stable tag: 2.4.3
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
@@ -14,6 +14,10 @@ WordPress-belépési pontját. A járműadatbázis, a kereső, a SEO-rendszer é
 FrissAuto-integráció külön modulokban épülhet rá.
 
 == Changelog ==
+
+= 2.4.3 =
+* Általános FrissAuto-ajánlások, ha nincs megfelelő specifikáció- vagy motorkód-találat.
+* Ablaktörlő/szélvédőápolás, kormányvédő és autóápolás biztonsági méretjelöléssel.
 
 = 2.4.2 =
 * Verziózott karbantartási REST-válaszok az azonnali adatfrissítéshez.
