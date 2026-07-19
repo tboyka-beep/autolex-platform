@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configure PHP 8.3
         uses: shivammathur/setup-php@v2
@@ -50,7 +50,7 @@ jobs:
             -x '*/.DS_Store'
 
       - name: Upload plugin ZIP
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: autolex-platform-${{ github.sha }}
           path: autolex-platform.zip
@@ -71,7 +71,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Check deployment configuration
         env:
@@ -122,6 +122,11 @@ jobs:
             fi
 
             curl --silent --show-error --fail-with-body --get \
+              --retry 4 \
+              --retry-delay 3 \
+              --retry-all-errors \
+              --connect-timeout 15 \
+              --max-time 60 \
               --header "$auth_header" \
               --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
               --data-urlencode 'cpanel_jsonapi_apiversion=2' \
@@ -142,12 +147,20 @@ jobs:
               remote_dir="${remote_dir}/$(dirname "$relative_file")"
             fi
 
-            response="$(curl --silent --show-error --fail-with-body \
+            if ! response="$(curl --silent --show-error --fail-with-body \
+              --retry 4 \
+              --retry-delay 3 \
+              --retry-all-errors \
+              --connect-timeout 15 \
+              --max-time 90 \
               --header "$auth_header" \
               --form "dir=${remote_dir}" \
               --form 'overwrite=1' \
               --form "file-1=@${local_file};filename=$(basename "$local_file")" \
-              "${api_base}/execute/Fileman/upload_files")"
+              "${api_base}/execute/Fileman/upload_files")"; then
+              echo "cPanel upload request failed for ${relative_file}"
+              return 1
+            fi
 
             if ! jq -e '.status == 1' <<<"$response" >/dev/null; then
               echo "cPanel rejected upload of ${relative_file}"
