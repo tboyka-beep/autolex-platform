@@ -3,7 +3,7 @@
  * Plugin Name: Autolex Platform
  * Plugin URI: https://autolex.hu/
  * Description: Az Autolex autós adatplatform központi WordPress-bővítménye.
- * Version: 2.3.0
+ * Version: 2.3.1
  * Author: BCS / Autolex
  * Requires at least: 6.4
  * Requires PHP: 8.1
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('AUTOLEX_PLATFORM_VERSION', '2.3.0');
+define('AUTOLEX_PLATFORM_VERSION', '2.3.1');
 define('AUTOLEX_PLATFORM_FILE', __FILE__);
 define('AUTOLEX_PLATFORM_DIR', plugin_dir_path(__FILE__));
 
