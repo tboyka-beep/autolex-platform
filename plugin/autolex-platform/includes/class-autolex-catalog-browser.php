@@ -245,11 +245,14 @@ final class Autolex_Catalog_Browser
             $params[] = str_replace('-', ' ', strtolower($make));
         }
         if ($query) {
-            $like       = '%' . $wpdb->esc_like($query) . '%';
             $searchable = array_filter(array($map['make'], $map['model'], $map['generation'], $map['engine']));
-            $where[]    = '(' . implode(' OR ', array_map(static function ($column) { return "`{$column}` LIKE %s"; }, $searchable)) . ')';
-            foreach ($searchable as $unused) {
-                $params[] = $like;
+            $tokens     = preg_split('/\s+/', trim($query), 6, PREG_SPLIT_NO_EMPTY);
+            foreach ($tokens as $token) {
+                $where[] = '(' . implode(' OR ', array_map(static function ($column) { return "`{$column}` LIKE %s"; }, $searchable)) . ')';
+                $like    = '%' . $wpdb->esc_like($token) . '%';
+                foreach ($searchable as $unused) {
+                    $params[] = $like;
+                }
             }
         }
         $where_sql = implode(' AND ', $where);
