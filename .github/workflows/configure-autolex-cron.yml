@@ -1,0 +1,126 @@
+name: Configure Autolex Data Import Cron
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/configure-autolex-cron.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  configure-cron:
+    name: Configure cPanel data cron
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: autolex-data-cron-configuration
+      cancel-in-progress: false
+
+    steps:
+      - name: Check cPanel configuration
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+        run: |
+          test -n "$CPANEL_API_HOST" || { echo 'Missing CPANEL_API_HOST secret'; exit 1; }
+          test -n "$CPANEL_API_USER" || { echo 'Missing CPANEL_API_USER secret'; exit 1; }
+          test -n "$CPANEL_API_TOKEN" || { echo 'Missing CPANEL_API_TOKEN secret'; exit 1; }
+          case "$CPANEL_API_HOST" in
+            *://*|*/*|*:*) echo 'CPANEL_API_HOST must be a hostname without a protocol, port, or path'; exit 1 ;;
+          esac
+          case "$CPANEL_API_USER" in
+            *[!A-Za-z0-9._-]*) echo 'CPANEL_API_USER contains unsupported characters'; exit 1 ;;
+          esac
+
+      - name: Install idempotent WordPress cron trigger
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          api_url="https://${CPANEL_API_HOST}:2083/json-api/cpanel"
+          auth_header="Authorization: cpanel ${CPANEL_API_USER}:${CPANEL_API_TOKEN}"
+          cron_command="/usr/bin/curl --silent --show-error --fail --max-time 50 'https://autolex.hu/wp-cron.php?doing_wp_cron=autolex-server-cron' >/dev/null 2>&1"
+
+          existing="$(curl --silent --show-error --fail-with-body --get \
+            --retry 4 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            --connect-timeout 15 \
+            --max-time 60 \
+            --header "$auth_header" \
+            --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
+            --data-urlencode 'cpanel_jsonapi_apiversion=2' \
+            --data-urlencode 'cpanel_jsonapi_module=Cron' \
+            --data-urlencode 'cpanel_jsonapi_func=listcron' \
+            "$api_url")"
+
+          jq -e '.cpanelresult.event.result == 1' <<<"$existing" >/dev/null
+          if jq -e --arg command "$cron_command" \
+            'any(.cpanelresult.data[]?; (.command // .cmd // "") == $command)' \
+            <<<"$existing" >/dev/null; then
+            echo 'Autolex data cron already exists.'
+            exit 0
+          fi
+
+          created="$(curl --silent --show-error --fail-with-body --get \
+            --retry 4 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            --connect-timeout 15 \
+            --max-time 60 \
+            --header "$auth_header" \
+            --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
+            --data-urlencode 'cpanel_jsonapi_apiversion=2' \
+            --data-urlencode 'cpanel_jsonapi_module=Cron' \
+            --data-urlencode 'cpanel_jsonapi_func=add_line' \
+            --data-urlencode "command=${cron_command}" \
+            --data-urlencode 'minute=*' \
+            --data-urlencode 'hour=*' \
+            --data-urlencode 'day=*' \
+            --data-urlencode 'month=*' \
+            --data-urlencode 'weekday=*' \
+            "$api_url")"
+
+          jq -e '
+            .cpanelresult.event.result == 1 and
+            any(.cpanelresult.data[]?; (.status // 0) == 1)
+          ' <<<"$created" >/dev/null
+          echo 'Autolex minute-by-minute data cron installed.'
+
+      - name: Wake and verify the EEA import queue
+        run: |
+          set -euo pipefail
+
+          curl --silent --show-error --fail \
+            --retry 4 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            --connect-timeout 15 \
+            --max-time 60 \
+            "https://autolex.hu/wp-cron.php?doing_wp_cron=${GITHUB_RUN_ID}-configure" >/dev/null
+          sleep 12
+
+          status="$(curl --silent --show-error --fail \
+            --retry 4 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            --connect-timeout 15 \
+            --max-time 60 \
+            "https://autolex.hu/wp-json/autolex/v1/eea-sync-status?run=${GITHUB_RUN_ID}")"
+
+          jq -e '
+            .service == "autolex-eea-sync" and
+            .status == "ok" and
+            (.targets | type == "number" and . > 0) and
+            (.pending_targets | type == "number") and
+            (.failed_targets | type == "number")
+          ' <<<"$status" >/dev/null
+          jq '{targets, make_index_targets, discovery_targets, provisional_targets, completed_targets, pending_targets, failed_targets, rows_read, vehicles_imported}' <<<"$status"
