@@ -2,7 +2,7 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.3.0
+Stable tag: 2.3.1
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
@@ -14,6 +14,11 @@ WordPress-belépési pontját. A járműadatbázis, a kereső, a SEO-rendszer é
 FrissAuto-integráció külön modulokban épülhet rá.
 
 == Changelog ==
+
+= 2.3.1 =
+* Gyors, lapozott autókatalógus márka- és szöveges szűréssel.
+* Többszavas élő keresés és stabil járműadatlap-linkek.
+* Rövid keresési gyorsítótár és reszponzív találati kártyák.
 
 = 2.2.0 =
 * Elkülönített, normalizált EU-járműkatalógus márka-, modell-, változat- és piaci táblákkal.
