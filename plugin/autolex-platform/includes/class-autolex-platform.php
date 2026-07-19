@@ -50,6 +50,7 @@ final class Autolex_Platform
     {
         Autolex_EU_Catalog::instance();
         Autolex_EEA_Importer::register();
+        Autolex_Catalog_Browser::instance();
 
         add_action('admin_menu', array($this, 'register_admin_page'));
         add_action('rest_api_init', array($this, 'register_rest_routes'));
