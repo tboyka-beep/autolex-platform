@@ -49,7 +49,7 @@ foreach ($expected as $key => $value) {
     }
 }
 
-if (Autolex_Engine_Catalog::SCHEMA_VERSION !== '1.0.0') {
+if (Autolex_Engine_Catalog::SCHEMA_VERSION !== '1.1.0') {
     fwrite(STDERR, "Unexpected engine schema version.\n");
     exit(1);
 }

@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 final class Autolex_EU_Catalog
 {
     /** Database schema version. */
-    const SCHEMA_VERSION = '1.0.0';
+    const SCHEMA_VERSION = '1.1.0';
 
     /** @var Autolex_EU_Catalog|null */
     private static $instance = null;
@@ -46,6 +46,7 @@ final class Autolex_EU_Catalog
         $vehicles_table  = self::vehicles_table();
         $markets_table   = self::markets_table();
         $imports_table   = self::imports_table();
+        $observations_table = self::observations_table();
 
         dbDelta(
             "CREATE TABLE {$vehicles_table} (
@@ -119,6 +120,27 @@ final class Autolex_EU_Catalog
             ) {$charset_collate};"
         );
 
+        dbDelta(
+            "CREATE TABLE {$observations_table} (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                vehicle_id bigint(20) unsigned NOT NULL,
+                source_fingerprint char(64) NOT NULL,
+                source_code varchar(40) NOT NULL DEFAULT 'EEA_CO2',
+                source_year smallint(5) unsigned NOT NULL,
+                source_status varchar(30) NOT NULL DEFAULT '',
+                country_code char(2) NOT NULL DEFAULT '',
+                registration_count bigint(20) unsigned NOT NULL DEFAULT 0,
+                content_hash char(64) NOT NULL DEFAULT '',
+                imported_at datetime NOT NULL,
+                updated_at datetime NOT NULL,
+                PRIMARY KEY  (id),
+                UNIQUE KEY source_fingerprint (source_fingerprint),
+                KEY vehicle_year (vehicle_id, source_year),
+                KEY country_year (country_code, source_year),
+                KEY source_status (source_code, source_status)
+            ) {$charset_collate};"
+        );
+
         update_option('autolex_eu_schema_version', self::SCHEMA_VERSION, false);
     }
 
@@ -140,6 +162,7 @@ final class Autolex_EU_Catalog
                 'countries'        => 0,
                 'registrations'    => 0,
                 'latest_data_year' => null,
+                'source_observations' => 0,
             );
         }
 
@@ -163,6 +186,7 @@ final class Autolex_EU_Catalog
                 'models'           => 0,
                 'registrations'    => 0,
                 'latest_data_year' => null,
+                'source_observations' => 0,
             ),
             is_array($vehicle_counts) ? $vehicle_counts : array()
         );
@@ -177,6 +201,7 @@ final class Autolex_EU_Catalog
             'countries'        => $countries,
             'registrations'    => (int) $vehicle_counts['registrations'],
             'latest_data_year' => $vehicle_counts['latest_data_year'] ? (int) $vehicle_counts['latest_data_year'] : null,
+            'source_observations' => (int) $wpdb->get_var('SELECT COUNT(*) FROM ' . self::observations_table()),
         );
     }
 
@@ -220,6 +245,13 @@ final class Autolex_EU_Catalog
     {
         global $wpdb;
         return $wpdb->prefix . 'autolex_eu_imports';
+    }
+
+    /** @return string */
+    public static function observations_table()
+    {
+        global $wpdb;
+        return $wpdb->prefix . 'autolex_eu_observations';
     }
 
     /**

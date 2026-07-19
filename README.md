@@ -119,5 +119,14 @@ A nyilvános lefedettségi végpont csak összesített számokat közöl:
 https://autolex.hu/wp-json/autolex/v1/eu-coverage
 ```
 
+Az EEA Discodata háttérszinkron az örökölt katalógus minden márka + modell- és
+motorjelöléséhez célokat készít, majd kis, újrapróbálható adagokban dolgozza fel
+a 2010–2021 közötti végleges (`F`) jelentési éveket. A szinkron és a
+konzervatív motorillesztések állapota itt követhető:
+
+```text
+https://autolex.hu/wp-json/autolex/v1/eea-sync-status
+```
+
 A részletes forrás- és minőségi szabályokat a `docs/EU_DATA_STRATEGY.md`
 tartalmazza.

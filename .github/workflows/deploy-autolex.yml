@@ -34,6 +34,9 @@ jobs:
       - name: Test EEA field normalization
         run: php tests/eea-importer-smoke.php
 
+      - name: Test EEA live-sync query
+        run: php tests/eea-sync-smoke.php
+
       - name: Test engine catalogue mapping
         run: php tests/engine-catalog-smoke.php
 
@@ -204,3 +207,31 @@ jobs:
             "\(.rows_with_engine_code) rows already have an engine code; " +
             "\(.rows_missing_engine) rows need engine identity enrichment."
           ' <<<"$engine_coverage"
+
+          sleep 18
+          curl --silent --show-error --fail \
+            --retry 4 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            "https://autolex.hu/wp-cron.php?doing_wp_cron=${GITHUB_RUN_ID}-eea" >/dev/null
+          sleep 8
+
+          eea_sync="$(curl --silent --show-error --fail \
+            --retry 4 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            'https://autolex.hu/wp-json/autolex/v1/eea-sync-status')"
+
+          jq -e '
+            .service == "autolex-eea-sync" and
+            .status == "ok" and
+            .source_policy == "official_final_first" and
+            .matching_policy == "exact_make_commercial_name_year_proposal" and
+            .latest_final_year == 2021 and
+            (.targets | type == "number" and . > 0)
+          ' <<<"$eea_sync" >/dev/null
+
+          jq -r '
+            "EEA sync: \(.completed_targets)/\(.targets) source targets completed; " +
+            "\(.engine_proposals) engine proposals; \(.link_proposals) conservative links."
+          ' <<<"$eea_sync"

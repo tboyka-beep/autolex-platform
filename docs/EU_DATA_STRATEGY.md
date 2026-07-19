@@ -33,6 +33,10 @@ Elsődleges hivatkozások:
 
 - EEA passenger-car monitoring:
   https://co2cars.apps.eea.europa.eu/
+- EEA Discodata SQL/JSON API leírás:
+  https://discodata.eea.europa.eu/Help.html
+- EEA CO2 passenger-car dataset metadata:
+  https://sdi.eea.europa.eu/catalogue/srv/api/records/fa8b1229-3db6-495d-b18e-9c9b3267c02b
 - EEA Datahub:
   https://www.eea.europa.eu/en/datahub/
 - Regulation (EU) 2019/631:
@@ -79,6 +83,19 @@ karbantartási előírásokat a megfelelőségi dokumentum, a gyártó hivatalos
 kézikönyve, műszaki közleménye vagy alkatrész-katalógusa erősíti meg. Az EEA
 rekord önmagában nem bizonyít olajspecifikációt, feltöltési mennyiséget vagy
 alkatrész-illeszkedést.
+
+Az automatikus szinkron a Discodata `CO2Emission.latest.co2cars` táblájából
+először a legfrissebb lezárt, 2021-es `F` állományt, majd a 2010–2020 közötti
+lezárt éveket dolgozza fel. A 2022-es `P` állomány előzetes, ezért nem kerül a
+végleges adatfolyamba. A lekérdezések márka + kereskedelmi név + év szerint
+elkülönülnek, és a típus, variáns, verzió, üzemanyag, hengerűrtartalom és
+teljesítmény kombinációját aggregálják. Egy újrapróbált lap nem növeli meg
+tévesen a regisztrációszámot, mert minden forrásmegfigyelés stabil
+ujjlenyomatot kap.
+
+Az EEA-egyezés mindig `proposed`: pontos EU piaci jelenlétet és műszaki
+alapmezőket igazol, de motorkódot nem. `verified` csak külön OEM/CoC vagy más
+elsődleges gyártói dokumentum után lehet.
 
 Minden műszaki állításhoz külön bizonyíték tartozik:
 
