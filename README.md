@@ -40,8 +40,9 @@ public_html/wp-content/plugins/autolex-platform
 Ezzel a fiókkal a workflow `server-dir` értéke biztonságosan `./` maradhat, így
 az FTPS-hozzáférés csak az Autolex bővítmény könyvtárára korlátozható. A hostot
 protokoll nélkül kell megadni, az explicit FTPS alapértelmezett portja általában
-`21`. A jelszót és a tárhelyadatokat soha nem szabad a repository fájljaiba
-írni.
+`21`. A tárhely hiányos TLS-tanúsítványlánca miatt a kapcsolat titkosított, de
+a tanúsítvány hitelességének ellenőrzése ki van kapcsolva. A jelszót és a
+tárhelyadatokat soha nem szabad a repository fájljaiba írni.
 
 ## Ellenőrzés
 

@@ -95,5 +95,5 @@ jobs:
           state-name: .autolex-ftps-sync-state.json
           dangerous-clean-slate: false
           log-level: minimal
-          security: strict
+          security: loose
           timeout: 60000
