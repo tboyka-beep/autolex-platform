@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 
 final class Autolex_Maintenance_Evidence
 {
-    const SCHEMA_VERSION = '1.0.1';
+    const SCHEMA_VERSION = '1.1.0';
 
     /** @var Autolex_Maintenance_Evidence|null */
     private static $instance = null;
@@ -102,6 +102,8 @@ final class Autolex_Maintenance_Evidence
             label varchar(191) NOT NULL,
             required_spec varchar(191) NOT NULL DEFAULT '',
             search_query varchar(191) NOT NULL,
+            rule_type varchar(30) NOT NULL DEFAULT 'exact_search',
+            fallback_reason varchar(255) NOT NULL DEFAULT '',
             priority tinyint(3) unsigned NOT NULL DEFAULT 50,
             PRIMARY KEY (id),
             UNIQUE KEY vehicle_category (legacy_vehicle_id, engine_code, category_key),
@@ -165,7 +167,7 @@ final class Autolex_Maintenance_Evidence
             );
         }
         $rules = $wpdb->get_results($wpdb->prepare(
-            'SELECT category_key, label, required_spec, search_query FROM ' . self::rules_table() . ' WHERE legacy_vehicle_id = %d ORDER BY priority DESC',
+            'SELECT category_key, label, required_spec, search_query, rule_type, fallback_reason FROM ' . self::rules_table() . ' WHERE legacy_vehicle_id = %d ORDER BY priority DESC',
             $vehicle_id
         ), ARRAY_A);
         foreach ($rules as &$rule) {
@@ -230,12 +232,15 @@ final class Autolex_Maintenance_Evidence
             }
         }
         $rules = array(
-            array('engine_oil','Motorolaj','BMW Longlife-04 / 5W-30','BMW Longlife-04 5W-30',100),
-            array('coolant','Hűtőfolyadék','BMW-kompatibilis G48','G48 fagyálló hűtőfolyadék',90),
-            array('oil_filter','Olajszűrő','BMW E87 118d / N47D20','BMW E87 118d olajszűrő',80),
+            array('engine_oil','Motorolaj','BMW Longlife-04 / 5W-30','BMW Longlife-04 5W-30','exact_search','Elsődleges, specifikáció szerinti keresés.',100),
+            array('coolant','Hűtőfolyadék','BMW-kompatibilis G48','G48 fagyálló hűtőfolyadék','exact_search','Elsődleges, specifikáció szerinti keresés.',90),
+            array('oil_filter','Olajszűrő','BMW E87 118d / N47D20','BMW E87 118d olajszűrő','exact_search','Elsődleges, motorkód szerinti keresés.',80),
+            array('wiper_care','Ablaktörlő és szélvédőápolás','Méret és csatlakozás ellenőrzendő','ablaktörlő szélvédőápolás','fallback','Ha nincs megfelelő folyadék vagy szűrő, biztonságos általános alternatíva.',60),
+            array('steering_cover','Kormányvédő','Kormányátmérő alapján választható','kormányvédő','fallback','Univerzális termék, de az átmérőt vásárlás előtt ellenőrizni kell.',50),
+            array('car_care','Autóápolás','Külső és belső ápolási termékek','autóápolás','fallback','Járműspecifikus alkatrészillesztést nem igénylő ajánlat.',40),
         );
         foreach ($rules as $r) {
-            $wpdb->replace(self::rules_table(), array('legacy_vehicle_id'=>1,'engine_code'=>'N47D20','category_key'=>$r[0],'label'=>$r[1],'required_spec'=>$r[2],'search_query'=>$r[3],'priority'=>$r[4]), array('%d','%s','%s','%s','%s','%s','%d'));
+            $wpdb->replace(self::rules_table(), array('legacy_vehicle_id'=>1,'engine_code'=>'N47D20','category_key'=>$r[0],'label'=>$r[1],'required_spec'=>$r[2],'search_query'=>$r[3],'rule_type'=>$r[4],'fallback_reason'=>$r[5],'priority'=>$r[6]), array('%d','%s','%s','%s','%s','%s','%s','%s','%d'));
         }
     }
 
