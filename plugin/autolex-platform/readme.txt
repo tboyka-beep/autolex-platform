@@ -2,7 +2,7 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.5.1
+Stable tag: 2.6.0
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
@@ -14,6 +14,12 @@ WordPress-belépési pontját. A járműadatbázis, a kereső, a SEO-rendszer é
 FrissAuto-integráció külön modulokban épülhet rá.
 
 == Changelog ==
+
+= 2.6.0 =
+* Külön motorváltozat-, járműkapcsolat- és forrásbizonyíték-adatréteg.
+* Automatikus, teljes katalógusra kiterjedő motoradat-feldolgozási sor.
+* Nyilvános, márkánkénti motoradat-lefedettségi és minőségellenőrzési végpont.
+* A motoradatok állapotai elkülönítik a függő, ellenőrzött, VIN-köteles és ellentmondásos adatokat.
 
 = 2.5.1 =
 * A konkrét FrissAuto-termékképek hivatalos 500×500-as kiszolgálási URL-jei.
