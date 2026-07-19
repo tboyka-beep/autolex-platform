@@ -70,12 +70,14 @@ jobs:
           CPANEL_USER: ${{ secrets.CPANEL_USER }}
           CPANEL_PORT: ${{ secrets.CPANEL_PORT }}
           CPANEL_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
+          CPANEL_SSH_PASSPHRASE: ${{ secrets.CPANEL_SSH_PASSPHRASE }}
           WP_PLUGIN_PATH: ${{ secrets.WP_PLUGIN_PATH }}
         run: |
           test -n "$CPANEL_HOST" || { echo 'Missing CPANEL_HOST secret'; exit 1; }
           test -n "$CPANEL_USER" || { echo 'Missing CPANEL_USER secret'; exit 1; }
           test -n "$CPANEL_PORT" || { echo 'Missing CPANEL_PORT secret'; exit 1; }
           test -n "$CPANEL_SSH_KEY" || { echo 'Missing CPANEL_SSH_KEY secret'; exit 1; }
+          test -n "$CPANEL_SSH_PASSPHRASE" || { echo 'Missing CPANEL_SSH_PASSPHRASE secret'; exit 1; }
           test -n "$WP_PLUGIN_PATH" || { echo 'Missing WP_PLUGIN_PATH secret'; exit 1; }
           case "$CPANEL_PORT" in
             *[!0-9]*) echo 'CPANEL_PORT must be numeric'; exit 1 ;;
@@ -91,6 +93,7 @@ jobs:
           host: ${{ secrets.CPANEL_HOST }}
           username: ${{ secrets.CPANEL_USER }}
           key: ${{ secrets.CPANEL_SSH_KEY }}
+          passphrase: ${{ secrets.CPANEL_SSH_PASSPHRASE }}
           port: ${{ secrets.CPANEL_PORT }}
           source: 'plugin/autolex-platform/*'
           target: ${{ secrets.WP_PLUGIN_PATH }}
