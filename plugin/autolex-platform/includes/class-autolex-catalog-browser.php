@@ -184,7 +184,7 @@ final class Autolex_Catalog_Browser
     private function discover_legacy_table()
     {
         global $wpdb;
-        $cached = get_transient('autolex_catalog_table_v1');
+        $cached = get_transient('autolex_catalog_table_v2');
         if (is_array($cached)) {
             return $cached;
         }
@@ -200,12 +200,12 @@ final class Autolex_Catalog_Browser
             $map     = $this->map_columns($columns);
             if ($map) {
                 $map['table'] = $table;
-                set_transient('autolex_catalog_table_v1', $map, DAY_IN_SECONDS);
+                set_transient('autolex_catalog_table_v2', $map, DAY_IN_SECONDS);
                 return $map;
             }
         }
 
-        set_transient('autolex_catalog_table_v1', array(), HOUR_IN_SECONDS);
+        set_transient('autolex_catalog_table_v2', array(), HOUR_IN_SECONDS);
         return false;
     }
 
@@ -226,11 +226,151 @@ final class Autolex_Catalog_Browser
             'model'      => $pick(array('model', 'modell')),
             'generation' => $pick(array('generation', 'generation_name', 'generacio')),
             'engine'     => $pick(array('engine', 'engine_name', 'motor')),
+            'engine_code' => $pick(array('engine_code', 'motor_code', 'motor_kod', 'motorkod')),
+            'fuel_type'   => $pick(array('fuel_type', 'fuel', 'uzemanyag')),
+            'capacity_cc' => $pick(array('engine_capacity_cc', 'capacity_cc', 'displacement_cc', 'hengerurtartalom')),
+            'power_kw'    => $pick(array('engine_power_kw', 'power_kw', 'teljesitmeny_kw')),
+            'power_ps'    => $pick(array('engine_power_ps', 'power_ps', 'power_hp', 'horsepower', 'teljesitmeny_le')),
             'year_from'  => $pick(array('year_from', 'production_start', 'evjarat_tol')),
             'year_to'    => $pick(array('year_to', 'production_end', 'evjarat_ig')),
             'slug'       => $pick(array('slug', 'post_slug')),
         );
         return $map['id'] && $map['make'] && ($map['model'] || $map['generation']) ? $map : false;
+    }
+
+    /**
+     * Returns the validated legacy mapping for internal enrichment jobs.
+     *
+     * @return array<string,string>|false
+     */
+    public function get_legacy_mapping()
+    {
+        return $this->discover_legacy_table();
+    }
+
+    /**
+     * Audits how much engine identity is already present in the legacy catalogue.
+     * Only aggregate figures are returned; physical table names stay private.
+     *
+     * @return array<string,mixed>
+     */
+    public function get_engine_coverage()
+    {
+        global $wpdb;
+
+        $cached = get_transient('autolex_engine_coverage_v1');
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        $map = $this->discover_legacy_table();
+        if (!$map) {
+            return array(
+                'catalog_source'          => 'wordpress',
+                'catalog_vehicles'        => 0,
+                'rows_with_engine_label'  => 0,
+                'rows_with_engine_code'   => 0,
+                'rows_with_engine_specs'  => 0,
+                'rows_missing_engine'     => 0,
+                'engine_identity_percent' => 0.0,
+                'multi_engine_models'     => 0,
+                'makes'                   => array(),
+                'detected_fields'         => array(),
+            );
+        }
+
+        $table = '`' . $map['table'] . '`';
+        $filled = static function ($column) {
+            return $column ? "TRIM(COALESCE(`{$column}`, '')) <> ''" : '0=1';
+        };
+        $engine_label = $filled($map['engine']);
+        $engine_code  = $filled($map['engine_code']);
+        $engine_any   = '(' . $engine_label . ' OR ' . $engine_code . ')';
+        $spec_parts   = array($engine_any);
+        foreach (array('fuel_type', 'capacity_cc', 'power_kw', 'power_ps') as $field) {
+            if (!empty($map[$field])) {
+                $spec_parts[] = $filled($map[$field]);
+            }
+        }
+        $specification = count($spec_parts) > 1 ? '(' . implode(' AND ', $spec_parts) . ')' : '0=1';
+
+        $counts = $wpdb->get_row(
+            "SELECT COUNT(*) AS total,
+                SUM({$engine_label}) AS with_label,
+                SUM({$engine_code}) AS with_code,
+                SUM({$specification}) AS with_specs,
+                SUM(NOT {$engine_any}) AS missing_engine
+            FROM {$table}",
+            ARRAY_A
+        );
+        $counts = is_array($counts) ? $counts : array();
+        $total  = (int) ($counts['total'] ?? 0);
+
+        $identity_parts = array_filter(array($map['engine'], $map['engine_code'], $map['capacity_cc'], $map['power_kw'], $map['power_ps']));
+        $multi_engine_models = 0;
+        if ($identity_parts) {
+            $identity_sql = "CONCAT_WS('|', " . implode(', ', array_map(static function ($column) {
+                return "TRIM(COALESCE(`{$column}`, ''))";
+            }, $identity_parts)) . ')';
+            $group_columns = array_filter(array($map['make'], $map['model'], $map['generation']));
+            $group_sql     = implode(', ', array_map(static function ($column) {
+                return "`{$column}`";
+            }, $group_columns));
+            $multi_engine_models = (int) $wpdb->get_var(
+                "SELECT COUNT(*) FROM (
+                    SELECT 1 FROM {$table}
+                    WHERE {$engine_any}
+                    GROUP BY {$group_sql}
+                    HAVING COUNT(DISTINCT {$identity_sql}) > 1
+                ) AS autolex_multi_engine_models"
+            );
+        }
+
+        $make_rows = $wpdb->get_results(
+            "SELECT `{$map['make']}` AS make,
+                COUNT(*) AS vehicles,
+                SUM({$engine_any}) AS identified,
+                SUM({$engine_code}) AS coded,
+                SUM({$specification}) AS specified
+            FROM {$table}
+            GROUP BY `{$map['make']}`
+            ORDER BY vehicles DESC, make ASC
+            LIMIT 100",
+            ARRAY_A
+        );
+        $makes = array_map(static function ($row) {
+            $vehicles  = (int) $row['vehicles'];
+            $identified = (int) $row['identified'];
+            return array(
+                'make'             => (string) $row['make'],
+                'vehicles'         => $vehicles,
+                'identified'       => $identified,
+                'engine_codes'     => (int) $row['coded'],
+                'specified'        => (int) $row['specified'],
+                'coverage_percent' => $vehicles ? round(($identified / $vehicles) * 100, 2) : 0.0,
+            );
+        }, (array) $make_rows);
+
+        $detected = array();
+        foreach (array('engine', 'engine_code', 'fuel_type', 'capacity_cc', 'power_kw', 'power_ps') as $field) {
+            $detected[$field] = !empty($map[$field]);
+        }
+
+        $identified = $total - (int) ($counts['missing_engine'] ?? 0);
+        $result = array(
+            'catalog_source'          => 'legacy',
+            'catalog_vehicles'        => $total,
+            'rows_with_engine_label'  => (int) ($counts['with_label'] ?? 0),
+            'rows_with_engine_code'   => (int) ($counts['with_code'] ?? 0),
+            'rows_with_engine_specs'  => (int) ($counts['with_specs'] ?? 0),
+            'rows_missing_engine'     => (int) ($counts['missing_engine'] ?? 0),
+            'engine_identity_percent' => $total ? round(($identified / $total) * 100, 2) : 0.0,
+            'multi_engine_models'     => $multi_engine_models,
+            'makes'                   => $makes,
+            'detected_fields'         => $detected,
+        );
+        set_transient('autolex_engine_coverage_v1', $result, 15 * MINUTE_IN_SECONDS);
+        return $result;
     }
 
     /** @return array<string,mixed> */
