@@ -26,22 +26,22 @@ Beállítási hely:
 
 Szükséges secret értékek:
 
-- `CPANEL_HOST`
-- `CPANEL_USER`
-- `CPANEL_PORT`
-- `CPANEL_SSH_KEY`
-- `CPANEL_SSH_PASSPHRASE`
-- `WP_PLUGIN_PATH`
+- `CPANEL_FTP_HOST`
+- `CPANEL_FTP_USER`
+- `CPANEL_FTP_PASSWORD`
+- `CPANEL_FTP_PORT`
 
-Példa a `WP_PLUGIN_PATH` értékére:
+Az ajánlott beállítás egy külön cPanel FTP-fiók, amelynek gyökérkönyvtára:
 
 ```text
-/home/CPANELUSER/public_html/wp-content/plugins/autolex-platform/
+public_html/wp-content/plugins/autolex-platform
 ```
 
-A `CPANEL_SSH_PASSPHRASE` értéke a jelszóval védett privát kulcs jelszava.
-A privát kulcsot, a kulcs jelszavát és a tárhelyadatokat soha nem szabad a
-repository fájljaiba írni.
+Ezzel a fiókkal a workflow `server-dir` értéke biztonságosan `./` maradhat, így
+az FTPS-hozzáférés csak az Autolex bővítmény könyvtárára korlátozható. A hostot
+protokoll nélkül kell megadni, az explicit FTPS alapértelmezett portja általában
+`21`. A jelszót és a tárhelyadatokat soha nem szabad a repository fájljaiba
+írni.
 
 ## Ellenőrzés
 
@@ -60,9 +60,10 @@ https://autolex.hu/wp-json/autolex/v1/status
 
 ## Telepítés cPanelre
 
-Az ellenőrzött kód `main` ágba történő összevonása után a cPanel deployment
-automatikusan elindul. A telepítés csak a PHP-ellenőrzés és a ZIP összeállítása
-után futhat le.
+Az ellenőrzött kód `main` ágba történő összevonása után a titkosított FTPS
+deployment automatikusan elindul. A telepítés csak a PHP-ellenőrzés és a ZIP
+összeállítása után futhat le. A távoli könyvtár teljes törlése nincs
+engedélyezve; a szinkronizálás csak a verziókövetett bővítményfájlokat kezeli.
 
 Szükség esetén kézzel is indítható:
 
