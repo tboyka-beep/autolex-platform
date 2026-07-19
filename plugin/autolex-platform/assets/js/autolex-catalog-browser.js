@@ -1,9 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const input = document.getElementById('alxbc-search-input');
+  const legacyInput = document.getElementById('alxbc-search-input');
   const flyout = document.getElementById('alxbc-search-flyout');
+  let input = legacyInput;
   let timer;
 
-  if (input && flyout && window.AutolexCatalog) {
+  if (legacyInput && flyout && window.AutolexCatalog) {
+    input = legacyInput.cloneNode(true);
+    legacyInput.replaceWith(input);
     input.addEventListener('input', () => {
       window.clearTimeout(timer);
       const query = input.value.trim();
