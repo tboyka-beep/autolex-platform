@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 
 final class Autolex_Maintenance_Evidence
 {
-    const SCHEMA_VERSION = '1.1.0';
+    const SCHEMA_VERSION = '1.2.0';
 
     /** @var Autolex_Maintenance_Evidence|null */
     private static $instance = null;
@@ -104,6 +104,10 @@ final class Autolex_Maintenance_Evidence
             search_query varchar(191) NOT NULL,
             rule_type varchar(30) NOT NULL DEFAULT 'exact_search',
             fallback_reason varchar(255) NOT NULL DEFAULT '',
+            product_title varchar(255) NOT NULL DEFAULT '',
+            product_url text DEFAULT NULL,
+            image_url text DEFAULT NULL,
+            price_text varchar(80) NOT NULL DEFAULT '',
             priority tinyint(3) unsigned NOT NULL DEFAULT 50,
             PRIMARY KEY (id),
             UNIQUE KEY vehicle_category (legacy_vehicle_id, engine_code, category_key),
@@ -167,14 +171,19 @@ final class Autolex_Maintenance_Evidence
             );
         }
         $rules = $wpdb->get_results($wpdb->prepare(
-            'SELECT category_key, label, required_spec, search_query, rule_type, fallback_reason FROM ' . self::rules_table() . ' WHERE legacy_vehicle_id = %d ORDER BY priority DESC',
+            'SELECT category_key, label, required_spec, search_query, rule_type, fallback_reason, product_title, product_url, image_url, price_text FROM ' . self::rules_table() . ' WHERE legacy_vehicle_id = %d ORDER BY priority DESC',
             $vehicle_id
         ), ARRAY_A);
         foreach ($rules as &$rule) {
-            $rule['url'] = add_query_arg(array(
-                'search' => $rule['search_query'], 'utm_source' => 'autolex', 'utm_medium' => 'vehicle-fitment',
+            $target = $rule['product_url'] ?: 'https://www.frissauto.hu/shop_search.php';
+            $args   = array(
+                'utm_source' => 'autolex', 'utm_medium' => 'vehicle-fitment',
                 'utm_campaign' => 'maintenance-evidence',
-            ), 'https://www.frissauto.hu/shop_search.php');
+            );
+            if (!$rule['product_url']) {
+                $args['search'] = $rule['search_query'];
+            }
+            $rule['url'] = add_query_arg($args, $target);
         }
         unset($rule);
         $unique_sources = array();
@@ -232,15 +241,15 @@ final class Autolex_Maintenance_Evidence
             }
         }
         $rules = array(
-            array('engine_oil','Motorolaj','BMW Longlife-04 / 5W-30','BMW Longlife-04 5W-30','exact_search','Elsődleges, specifikáció szerinti keresés.',100),
-            array('coolant','Hűtőfolyadék','BMW-kompatibilis G48','G48 fagyálló hűtőfolyadék','exact_search','Elsődleges, specifikáció szerinti keresés.',90),
-            array('oil_filter','Olajszűrő','BMW E87 118d / N47D20','BMW E87 118d olajszűrő','exact_search','Elsődleges, motorkód szerinti keresés.',80),
-            array('wiper_care','Ablaktörlő és szélvédőápolás','Méret és csatlakozás ellenőrzendő','ablaktörlő szélvédőápolás','fallback','Ha nincs megfelelő folyadék vagy szűrő, biztonságos általános alternatíva.',60),
-            array('steering_cover','Kormányvédő','Kormányátmérő alapján választható','kormányvédő','fallback','Univerzális termék, de az átmérőt vásárlás előtt ellenőrizni kell.',50),
-            array('car_care','Autóápolás','Külső és belső ápolási termékek','autóápolás','fallback','Járműspecifikus alkatrészillesztést nem igénylő ajánlat.',40),
+            array('engine_oil','Motorolaj','BMW Longlife-04 / 5W-30','BMW Longlife-04 5W-30','exact_search','Elsődleges, specifikáció szerinti keresés.','','','','',100),
+            array('coolant','Hűtőfolyadék','BMW-kompatibilis G48','G48 fagyálló hűtőfolyadék','exact_search','Elsődleges, specifikáció szerinti keresés.','','','','',90),
+            array('oil_filter','Olajszűrő','BMW E87 118d / N47D20','BMW E87 118d olajszűrő','exact_search','Elsődleges, motorkód szerinti keresés.','','','','',80),
+            array('wiper_care','Ablaktörlő-ápolás','Univerzális lapátjavító','ablaktörlő lapát javító','fallback','Nem igényel motorillesztést. Kopott vagy sérült lapátnál a teljes csere lehet szükséges.','Ablaktörlő lapát javító','https://www.frissauto.hu/Ablaktorlo-lapat-javito','https://www.frissauto.hu/img/86821/VRGG-1652/VRGG-1652.jpg','1 896 Ft',60),
+            array('steering_cover','Kormányvédő','37–39 cm-es kormányhoz','kormányvédő','fallback','Az átmérőt vásárlás előtt ellenőrizni kell.','Valódi bőr kormányvédő huzat fekete – 37–39 cm','https://www.frissauto.hu/Valodi-bor-Kormanyvedo-huzat-fekete-37-39cm','https://www.frissauto.hu/img/86821/VRGG-1463/VRGG-1463.jpg','5 266 Ft',50),
+            array('car_care','Autóápolás','20 darabos univerzális csomag','autóápolás','fallback','Járműspecifikus alkatrészillesztést nem igénylő ajánlat.','Autóápoló csomag – 20 darabos','https://www.frissauto.hu/Autoapolo-csomag-20-darabos','https://www.frissauto.hu/img/86821/PTBL-BAL-30008/PTBL-BAL-30008.jpg','13 830 Ft',40),
         );
         foreach ($rules as $r) {
-            $wpdb->replace(self::rules_table(), array('legacy_vehicle_id'=>1,'engine_code'=>'N47D20','category_key'=>$r[0],'label'=>$r[1],'required_spec'=>$r[2],'search_query'=>$r[3],'rule_type'=>$r[4],'fallback_reason'=>$r[5],'priority'=>$r[6]), array('%d','%s','%s','%s','%s','%s','%s','%s','%d'));
+            $wpdb->replace(self::rules_table(), array('legacy_vehicle_id'=>1,'engine_code'=>'N47D20','category_key'=>$r[0],'label'=>$r[1],'required_spec'=>$r[2],'search_query'=>$r[3],'rule_type'=>$r[4],'fallback_reason'=>$r[5],'product_title'=>$r[6],'product_url'=>$r[7],'image_url'=>$r[8],'price_text'=>$r[9],'priority'=>$r[10]), array('%d','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%d'));
         }
     }
 
