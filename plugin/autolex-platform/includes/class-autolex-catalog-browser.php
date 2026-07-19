@@ -184,7 +184,7 @@ final class Autolex_Catalog_Browser
     private function discover_legacy_table()
     {
         global $wpdb;
-        $cached = get_transient('autolex_catalog_table_v2');
+        $cached = get_transient('autolex_catalog_table_v3');
         if (is_array($cached)) {
             return $cached;
         }
@@ -192,20 +192,22 @@ final class Autolex_Catalog_Browser
         $tables = $wpdb->get_col($wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($wpdb->prefix) . '%'));
         foreach ($tables as $table) {
             $is_autolex_table = false !== stripos($table, 'autolex') || false !== stripos($table, 'alx');
-            $is_new_eu_table  = false !== stripos($table, 'autolex_eu_');
-            if (!preg_match('/^[A-Za-z0-9_]+$/', $table) || !$is_autolex_table || $is_new_eu_table) {
+            $is_normalized_table = false !== stripos($table, 'autolex_eu_') ||
+                false !== stripos($table, 'autolex_engine_') ||
+                false !== stripos($table, 'autolex_eea_');
+            if (!preg_match('/^[A-Za-z0-9_]+$/', $table) || !$is_autolex_table || $is_normalized_table) {
                 continue;
             }
             $columns = $wpdb->get_col("SHOW COLUMNS FROM `{$table}`", 0); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             $map     = $this->map_columns($columns);
             if ($map) {
                 $map['table'] = $table;
-                set_transient('autolex_catalog_table_v2', $map, DAY_IN_SECONDS);
+                set_transient('autolex_catalog_table_v3', $map, DAY_IN_SECONDS);
                 return $map;
             }
         }
 
-        set_transient('autolex_catalog_table_v2', array(), HOUR_IN_SECONDS);
+        set_transient('autolex_catalog_table_v3', array(), HOUR_IN_SECONDS);
         return false;
     }
 
