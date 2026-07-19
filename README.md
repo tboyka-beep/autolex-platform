@@ -85,3 +85,39 @@ ellenőrzött tartalommal kerülhet változás a `main` ágba.
 3. Automatikus ellenőrzések lefuttatása pull requestben.
 4. Ellenőrzött pull request összevonása a `main` ágba.
 5. Automatikus production deployment a `main` ágról.
+
+## EU-járműkatalógus
+
+Az új katalógus kizárólag igazolható EU/EGT piaci jelenléttel rendelkező
+személyautókat (`M1`) és kishaszonjárműveket (`N1`) fogad. A jármű műszaki
+változata és az országonkénti piaci jelenlét külön táblában tárolódik, ezért
+ugyanaz a típus nem sokszorozódik meg a tagállami regisztrációk miatt.
+
+Az elsődleges importforrás az Európai Környezetvédelmi Ügynökség (EEA)
+Regulation (EU) 2019/631 szerinti nyilvántartása. Nagy CSV-fájl importálása
+WP-CLI-ből:
+
+```bash
+wp autolex eu import-eea /secure/eea-2024.csv --year=2024
+```
+
+Korlátozott próbaimport:
+
+```bash
+wp autolex eu import-eea /secure/eea-2024.csv --year=2024 --limit=1000
+```
+
+Kishaszonjármű-adatfájlnál, ha a forrás nem tartalmaz külön kategóriaoszlopot:
+
+```bash
+wp autolex eu import-eea /secure/eea-vans-2024.csv --year=2024 --category=N1
+```
+
+A nyilvános lefedettségi végpont csak összesített számokat közöl:
+
+```text
+https://autolex.hu/wp-json/autolex/v1/eu-coverage
+```
+
+A részletes forrás- és minőségi szabályokat a `docs/EU_DATA_STRATEGY.md`
+tartalmazza.
