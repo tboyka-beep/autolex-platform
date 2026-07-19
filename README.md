@@ -26,23 +26,21 @@ Beállítási hely:
 
 Szükséges secret értékek:
 
-- `CPANEL_FTP_HOST`
-- `CPANEL_FTP_USER`
-- `CPANEL_FTP_PASSWORD`
-- `CPANEL_FTP_PORT`
+- `CPANEL_API_HOST`
+- `CPANEL_API_USER`
+- `CPANEL_API_TOKEN`
+- `CPANEL_PLUGIN_DIR`
 
-Az ajánlott beállítás egy külön cPanel FTP-fiók, amelynek gyökérkönyvtára:
+Példa a `CPANEL_PLUGIN_DIR` értékére:
 
 ```text
 public_html/wp-content/plugins/autolex-platform
 ```
 
-Ezzel a fiókkal a workflow `server-dir` értéke biztonságosan `./` maradhat, így
-az FTPS-hozzáférés csak az Autolex bővítmény könyvtárára korlátozható. A hostot
-protokoll nélkül kell megadni, az explicit FTPS alapértelmezett portja általában
-`21`. A tárhely hiányos TLS-tanúsítványlánca miatt a kapcsolat titkosított, de
-a tanúsítvány hitelességének ellenőrzése ki van kapcsolva. A jelszót és a
-tárhelyadatokat soha nem szabad a repository fájljaiba írni.
+A `CPANEL_API_HOST` a cPanel bejelentkezési oldal szerver-hostname értéke,
+protokoll és port nélkül. A workflow HTTPS-en, a cPanel `2083`-as portján hívja
+a hivatalos Fileman API-t. A tokent és a tárhelyadatokat soha nem szabad a
+repository fájljaiba írni.
 
 ## Ellenőrzés
 
@@ -61,10 +59,10 @@ https://autolex.hu/wp-json/autolex/v1/status
 
 ## Telepítés cPanelre
 
-Az ellenőrzött kód `main` ágba történő összevonása után a titkosított FTPS
+Az ellenőrzött kód `main` ágba történő összevonása után a HTTPS-alapú cPanel API
 deployment automatikusan elindul. A telepítés csak a PHP-ellenőrzés és a ZIP
-összeállítása után futhat le. A távoli könyvtár teljes törlése nincs
-engedélyezve; a szinkronizálás csak a verziókövetett bővítményfájlokat kezeli.
+összeállítása után futhat le. A workflow először a kiegészítő fájlokat, majd
+utolsóként a bővítmény belépési pontját írja felül, és nem töröl távoli fájlokat.
 
 Szükség esetén kézzel is indítható:
 
