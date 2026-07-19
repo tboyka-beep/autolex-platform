@@ -49,19 +49,21 @@ function renderSources(data) {
 function renderRecommendations(data) {
   const section = sectionsByTitle('Kapcsolódó FrissAuto ajánlatok');
   if (!section || !data.recommendations.length) return;
-  const exact = data.recommendations.filter((rule) => rule.rule_type !== 'fallback');
+  const exact = data.recommendations.filter((rule) => rule.rule_type !== 'fallback' && rule.product_url);
   const fallback = data.recommendations.filter((rule) => rule.rule_type === 'fallback');
   section.innerHTML = `<div class="alxbc-section-head"><h2>Illesztett FrissAuto ajánlatok</h2></div>
-    <p class="alxp-recommendation-intro">A keresések a jármű motorkódjához és az előírt specifikációhoz igazodnak; nem általános márkaajánlatok.</p>
-    <div class="alxp-product-rules">${exact.map((rule) => productRule(rule)).join('')}</div>
-    ${fallback.length ? `<div class="alxp-fallback-head"><span>Nincs megfelelő illesztett termék?</span><h3>Általános FrissAuto-ajánlatok</h3><p>Ezek nem motoralkatrészek, ezért pontos motorillesztés nélkül is hasznos alternatívák. A feltüntetett méretet ettől még ellenőrizni kell.</p></div>
-    <div class="alxp-product-rules alxp-product-rules--fallback">${fallback.map((rule) => productRule(rule)).join('')}</div>` : ''}
+    <p class="alxp-recommendation-intro">${exact.length ? 'Az alábbi termékek a jármű motorkódjához és az előírt specifikációhoz igazodnak.' : 'Jelenleg nincs eltárolt, pontosan illesztett FrissAuto-termék ehhez a motorhoz, ezért biztonságos általános ajánlatokat mutatunk.'}</p>
+    ${exact.length ? `<div class="alxp-product-rules alxp-product-rules--visual">${exact.map((rule) => productRule(rule)).join('')}</div>` : ''}
+    ${fallback.length ? `<div class="alxp-fallback-head"><span>Konkrét, általános termékek</span><h3>FrissAuto-ajánlatok</h3><p>Ezek nem motoralkatrészek, ezért pontos motorillesztés nélkül is hasznos alternatívák. A feltüntetett méretet ettől még ellenőrizni kell.</p></div>
+    <div class="alxp-product-rules alxp-product-rules--fallback alxp-product-rules--visual">${fallback.map((rule) => productRule(rule)).join('')}</div>` : ''}
     <p class="alxp-fitment-warning">Vásárlás előtt ellenőrizd a termék adatlapján a BMW-jóváhagyást, a motorkód-kompatibilitást vagy az univerzális termék méretét.</p>`;
 }
 
 function productRule(rule) {
   return `<a href="${escapeAttribute(rule.url)}" target="_blank" rel="nofollow sponsored noopener">
-      <span>${escapeHtml(rule.label)}</span><strong>${escapeHtml(rule.required_spec)}</strong><small>Keresés a FrissAuto kínálatában</small><em>Megnézem →</em>
+      ${rule.image_url ? `<img loading="lazy" src="${escapeAttribute(rule.image_url)}" alt="${escapeAttribute(rule.product_title || rule.label)}">` : ''}
+      <span>${escapeHtml(rule.label)}</span><strong>${escapeHtml(rule.product_title || rule.required_spec)}</strong>
+      ${rule.price_text ? `<b>${escapeHtml(rule.price_text)}</b>` : `<small>${escapeHtml(rule.required_spec)}</small>`}<em>Megnézem →</em>
     </a>`;
 }
 
