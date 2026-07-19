@@ -133,3 +133,7 @@ https://autolex.hu/wp-json/autolex/v1/eea-sync-status
 
 A részletes forrás- és minőségi szabályokat a `docs/EU_DATA_STRATEGY.md`
 tartalmazza.
+
+Az adatbetöltést egy percenkénti, idempotens cPanel-cron ébreszti fel. A cron
+nem tárol nyers adatfájlt és nem indít párhuzamos importot: a WordPress-oldali
+zárolás egyszerre legfeljebb egy kis EEA-adag feldolgozását engedi.
