@@ -50,7 +50,9 @@ jobs:
 
   deploy-production:
     name: Deploy to cPanel
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: validate-build
     runs-on: ubuntu-latest
     timeout-minutes: 10
