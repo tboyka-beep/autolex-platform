@@ -1,0 +1,97 @@
+name: Validate and Deploy Autolex Plugin
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-build:
+    name: Validate and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Validate PHP syntax
+        run: find plugin/autolex-platform -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Create plugin ZIP
+        run: |
+          cd plugin
+          zip -rq ../autolex-platform.zip autolex-platform \
+            -x '*/.git/*' \
+            -x '*/node_modules/*' \
+            -x '*/vendor/*' \
+            -x '*/.DS_Store'
+
+      - name: Upload plugin ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: autolex-platform-${{ github.sha }}
+          path: autolex-platform.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  deploy-production:
+    name: Deploy to cPanel
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: validate-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: autolex-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check deployment configuration
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_USER: ${{ secrets.CPANEL_USER }}
+          CPANEL_PORT: ${{ secrets.CPANEL_PORT }}
+          CPANEL_SSH_KEY: ${{ secrets.CPANEL_SSH_KEY }}
+          WP_PLUGIN_PATH: ${{ secrets.WP_PLUGIN_PATH }}
+        run: |
+          test -n "$CPANEL_HOST" || { echo 'Missing CPANEL_HOST secret'; exit 1; }
+          test -n "$CPANEL_USER" || { echo 'Missing CPANEL_USER secret'; exit 1; }
+          test -n "$CPANEL_PORT" || { echo 'Missing CPANEL_PORT secret'; exit 1; }
+          test -n "$CPANEL_SSH_KEY" || { echo 'Missing CPANEL_SSH_KEY secret'; exit 1; }
+          test -n "$WP_PLUGIN_PATH" || { echo 'Missing WP_PLUGIN_PATH secret'; exit 1; }
+          case "$CPANEL_PORT" in
+            *[!0-9]*) echo 'CPANEL_PORT must be numeric'; exit 1 ;;
+          esac
+          case "$WP_PLUGIN_PATH" in
+            */wp-content/plugins/autolex-platform|*/wp-content/plugins/autolex-platform/) ;;
+            *) echo 'WP_PLUGIN_PATH must end with /wp-content/plugins/autolex-platform/'; exit 1 ;;
+          esac
+
+      - name: Deploy plugin via SFTP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.CPANEL_HOST }}
+          username: ${{ secrets.CPANEL_USER }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ secrets.CPANEL_PORT }}
+          source: 'plugin/autolex-platform/*'
+          target: ${{ secrets.WP_PLUGIN_PATH }}
+          strip_components: 2
+          overwrite: true
+          rm: false
