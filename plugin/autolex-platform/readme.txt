@@ -2,7 +2,7 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.8.0
+Stable tag: 2.8.1
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
@@ -14,6 +14,10 @@ WordPress-belépési pontját. A járműadatbázis, a kereső, a SEO-rendszer é
 FrissAuto-integráció külön modulokban épülhet rá.
 
 == Changelog ==
+
+= 2.8.1 =
+* EEA-kompatibilis teljes márkaindex-lekérdezés az API saját lapozójához.
+* Kompakt ütemezési, újrapróbálási és zárolási diagnosztika.
 
 = 2.8.0 =
 * A 2022-es és 2023-as végleges EEA személyautó-táblák bevonása.

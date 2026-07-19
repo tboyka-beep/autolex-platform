@@ -23,6 +23,9 @@ final class Autolex_EEA_Sync
     /** Smaller write batch for broad new-model discovery targets. */
     const DISCOVERY_PAGE_SIZE = 100;
 
+    /** The compact annual make index comfortably fits in one request. */
+    const MAKE_INDEX_PAGE_SIZE = 2000;
+
     /** EEA passenger-car reporting years processed by this pipeline. */
     const FIRST_FINAL_YEAR = 2010;
     const LAST_FINAL_YEAR  = 2023;
@@ -167,7 +170,7 @@ final class Autolex_EEA_Sync
                 "FROM [CO2Emission].[latest].[{$table}] " .
                 "WHERE [Year] = {$year} AND [Status] = '{$status}' " .
                 "AND NULLIF(LTRIM(RTRIM([Mk])), '') IS NOT NULL " .
-                "GROUP BY [Mk] ORDER BY [Mk]";
+                "GROUP BY [Mk]";
         }
 
         $model_where = 'commercial_name' === $target_type ? " AND [Cn] = '{$model_sql}'" : '';
@@ -179,8 +182,6 @@ final class Autolex_EEA_Sync
             "WHERE [Year] = {$year} AND [Status] = '{$status}' " .
             "AND [Mk] = '{$make_sql}'{$model_where} " .
             "GROUP BY [Mk], [Cn], [T], [Va], [Ve], [Ct], [Ft], [Fm], " .
-            "[Ec (cm3)], [Ep (KW)] " .
-            "ORDER BY [Mk], [Cn], [T], [Va], [Ve], [Ct], [Ft], [Fm], " .
             "[Ec (cm3)], [Ep (KW)]";
     }
 
@@ -579,7 +580,10 @@ final class Autolex_EEA_Sync
     /** @return int */
     private function page_size_for_task($task)
     {
-        return in_array(($task['target_type'] ?? ''), array('make_discovery', 'make_index'), true)
+        if ('make_index' === ($task['target_type'] ?? '')) {
+            return self::MAKE_INDEX_PAGE_SIZE;
+        }
+        return 'make_discovery' === ($task['target_type'] ?? '')
             ? self::DISCOVERY_PAGE_SIZE
             : self::PAGE_SIZE;
     }
@@ -603,11 +607,17 @@ final class Autolex_EEA_Sync
             'completed_targets'    => 0,
             'pending_targets'      => 0,
             'failed_targets'       => 0,
+            'retry_targets'        => 0,
+            'running_targets'      => 0,
             'rows_read'            => 0,
             'vehicles_imported'    => 0,
             'engine_proposals'     => 0,
             'link_proposals'       => 0,
             'last_completed_at'    => null,
+            'last_attempt_at'      => null,
+            'next_run_at'          => null,
+            'next_scheduled_at'    => null,
+            'queue_lock_age_seconds'=> 0,
         );
         if (self::SCHEMA_VERSION !== get_option('autolex_eea_sync_schema_version')) {
             return $empty;
@@ -621,11 +631,18 @@ final class Autolex_EEA_Sync
                 SUM(status = \'completed\') AS completed_targets,
                 SUM(status IN (\'pending\', \'retry\', \'running\')) AS pending_targets,
                 SUM(status = \'failed\') AS failed_targets,
+                SUM(status = \'retry\') AS retry_targets,
+                SUM(status = \'running\') AS running_targets,
                 COALESCE(SUM(rows_read), 0) AS rows_read,
                 COALESCE(SUM(vehicles_imported), 0) AS vehicles_imported,
                 COALESCE(SUM(engines_proposed), 0) AS engine_proposals,
                 COALESCE(SUM(links_proposed), 0) AS link_proposals,
-                MAX(completed_at) AS last_completed_at
+                MAX(completed_at) AS last_completed_at,
+                MAX(updated_at) AS last_attempt_at,
+                MIN(CASE
+                    WHEN status IN (\'pending\', \'retry\') THEN COALESCE(next_run_at, updated_at)
+                    ELSE NULL
+                END) AS next_run_at
             FROM ' . self::tasks_table(),
             ARRAY_A
         );
@@ -633,9 +650,13 @@ final class Autolex_EEA_Sync
             return $empty;
         }
 
-        foreach (array('targets', 'discovery_targets', 'make_index_targets', 'provisional_targets', 'completed_targets', 'pending_targets', 'failed_targets', 'rows_read', 'vehicles_imported', 'engine_proposals', 'link_proposals') as $field) {
+        foreach (array('targets', 'discovery_targets', 'make_index_targets', 'provisional_targets', 'completed_targets', 'pending_targets', 'failed_targets', 'retry_targets', 'running_targets', 'rows_read', 'vehicles_imported', 'engine_proposals', 'link_proposals') as $field) {
             $row[$field] = (int) ($row[$field] ?? 0);
         }
+        $scheduled = wp_next_scheduled('autolex_eea_sync_batch');
+        $lock      = (int) get_option('autolex_eea_sync_lock', 0);
+        $row['next_scheduled_at'] = $scheduled ? gmdate('c', $scheduled) : null;
+        $row['queue_lock_age_seconds'] = $lock ? max(0, time() - $lock) : 0;
         return array_merge($empty, $row);
     }
 

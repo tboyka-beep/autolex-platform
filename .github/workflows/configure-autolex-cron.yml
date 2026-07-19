@@ -123,4 +123,4 @@ jobs:
             (.pending_targets | type == "number") and
             (.failed_targets | type == "number")
           ' <<<"$status" >/dev/null
-          jq '{targets, make_index_targets, discovery_targets, provisional_targets, completed_targets, pending_targets, failed_targets, rows_read, vehicles_imported}' <<<"$status"
+          jq '{targets, make_index_targets, discovery_targets, provisional_targets, completed_targets, pending_targets, failed_targets, retry_targets, running_targets, rows_read, vehicles_imported, last_attempt_at, next_run_at, next_scheduled_at, queue_lock_age_seconds}' <<<"$status"
