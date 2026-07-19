@@ -140,6 +140,7 @@ final class Autolex_Maintenance_Evidence
         wp_enqueue_script('autolex-maintenance-evidence', plugins_url('assets/js/autolex-maintenance-evidence.js', AUTOLEX_PLATFORM_FILE), array(), AUTOLEX_PLATFORM_VERSION, true);
         wp_localize_script('autolex-maintenance-evidence', 'AutolexMaintenance', array(
             'endpoint' => esc_url_raw(rest_url('autolex/v1/maintenance/')),
+            'version'  => AUTOLEX_PLATFORM_VERSION,
         ));
     }
 
