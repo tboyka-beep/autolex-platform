@@ -300,7 +300,9 @@ final class Autolex_Catalog_Browser
         $items = array();
         foreach ((array) $rows as $row) {
             $id   = absint($row['id'] ?? 0);
-            $slug = sanitize_title($row['slug'] ?? trim(($row['make'] ?? '') . '-' . ($row['generation'] ?? '') . '-' . ($row['model'] ?? '')));
+            $stored_slug = trim((string) ($row['slug'] ?? ''));
+            $slug_source = $stored_slug ?: trim(($row['make'] ?? '') . '-' . ($row['generation'] ?? '') . '-' . ($row['model'] ?? ''));
+            $slug = sanitize_title($slug_source);
             $url  = $row['url'] ?? home_url('/auto-adatlap/' . $id . '/' . $slug . '/');
             $from = trim((string) ($row['year_from'] ?? ''));
             $to   = trim((string) ($row['year_to'] ?? ''));
