@@ -388,6 +388,160 @@ final class Autolex_EEA_Importer
         }
     }
 
+    /**
+     * Idempotently stores one aggregated official-source observation.
+     *
+     * Unlike the streaming CSV path, this method never increments the same
+     * source snapshot twice. It is therefore safe for retried WP-Cron batches.
+     *
+     * @param array<string,int|float|string|null> $vehicle Normalized EEA row.
+     * @return int Normalized EU vehicle ID.
+     */
+    public static function upsert_vehicle_snapshot($vehicle)
+    {
+        global $wpdb;
+
+        $vehicles_table     = Autolex_EU_Catalog::vehicles_table();
+        $markets_table      = Autolex_EU_Catalog::markets_table();
+        $observations_table = Autolex_EU_Catalog::observations_table();
+        $now                = current_time('mysql', true);
+
+        $sql = $wpdb->prepare(
+            "INSERT INTO {$vehicles_table} (
+                fingerprint, manufacturer, make, model, type_approval, variant, version,
+                vehicle_category, fuel_type, fuel_mode, engine_capacity_cc, engine_power_kw,
+                mass_kg, co2_wltp, wheelbase_mm, track_width_front_mm, track_width_rear_mm,
+                registration_count, first_seen_year, last_seen_year, source_code,
+                source_status, created_at, updated_at
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d, %f, %f, %f, %f, %f, %f,
+                0, %d, %d, 'EEA_CO2', %s, %s, %s
+            ) ON DUPLICATE KEY UPDATE
+                id = LAST_INSERT_ID(id),
+                first_seen_year = LEAST(first_seen_year, VALUES(first_seen_year)),
+                last_seen_year = GREATEST(last_seen_year, VALUES(last_seen_year)),
+                source_status = VALUES(source_status),
+                updated_at = VALUES(updated_at)",
+            $vehicle['fingerprint'],
+            $vehicle['manufacturer'],
+            $vehicle['make'],
+            $vehicle['model'],
+            $vehicle['type_approval'],
+            $vehicle['variant'],
+            $vehicle['version'],
+            $vehicle['vehicle_category'],
+            $vehicle['fuel_type'],
+            $vehicle['fuel_mode'],
+            $vehicle['engine_capacity_cc'],
+            $vehicle['engine_power_kw'],
+            $vehicle['mass_kg'],
+            $vehicle['co2_wltp'],
+            $vehicle['wheelbase_mm'],
+            $vehicle['track_width_front_mm'],
+            $vehicle['track_width_rear_mm'],
+            $vehicle['source_year'],
+            $vehicle['source_year'],
+            $vehicle['source_status'],
+            $now,
+            $now
+        );
+
+        if (false === $wpdb->query($sql)) {
+            throw new RuntimeException('EEA snapshot vehicle upsert failed: ' . $wpdb->last_error);
+        }
+
+        $vehicle_id = (int) $wpdb->insert_id;
+        if (!$vehicle_id) {
+            throw new RuntimeException('EEA snapshot vehicle ID was not resolved.');
+        }
+
+        $observation_identity = array(
+            $vehicle['fingerprint'],
+            'EEA_CO2',
+            (int) $vehicle['source_year'],
+            (string) $vehicle['source_status'],
+            (string) $vehicle['country_code'],
+        );
+        $source_fingerprint = hash('sha256', strtolower(implode('|', $observation_identity)));
+        $content_hash       = hash('sha256', wp_json_encode($vehicle));
+
+        $observation_sql = $wpdb->prepare(
+            "INSERT INTO {$observations_table} (
+                vehicle_id, source_fingerprint, source_code, source_year, source_status,
+                country_code, registration_count, content_hash, imported_at, updated_at
+            ) VALUES (%d, %s, 'EEA_CO2', %d, %s, %s, %d, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                vehicle_id = VALUES(vehicle_id),
+                registration_count = VALUES(registration_count),
+                content_hash = VALUES(content_hash),
+                updated_at = VALUES(updated_at)",
+            $vehicle_id,
+            $source_fingerprint,
+            $vehicle['source_year'],
+            $vehicle['source_status'],
+            $vehicle['country_code'],
+            $vehicle['registration_count'],
+            $content_hash,
+            $now,
+            $now
+        );
+
+        if (false === $wpdb->query($observation_sql)) {
+            throw new RuntimeException('EEA source observation upsert failed: ' . $wpdb->last_error);
+        }
+
+        $total = (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COALESCE(SUM(registration_count), 0)
+                FROM {$observations_table}
+                WHERE vehicle_id = %d",
+                $vehicle_id
+            )
+        );
+        $wpdb->update(
+            $vehicles_table,
+            array('registration_count' => $total, 'updated_at' => $now),
+            array('id' => $vehicle_id),
+            array('%d', '%s'),
+            array('%d')
+        );
+
+        if ($vehicle['country_code']) {
+            $market = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT COALESCE(SUM(registration_count), 0) AS registrations,
+                        MIN(source_year) AS first_year, MAX(source_year) AS last_year
+                    FROM {$observations_table}
+                    WHERE vehicle_id = %d AND country_code = %s",
+                    $vehicle_id,
+                    $vehicle['country_code']
+                ),
+                ARRAY_A
+            );
+            $market_sql = $wpdb->prepare(
+                "INSERT INTO {$markets_table} (
+                    vehicle_id, country_code, registration_count, first_seen_year, last_seen_year, updated_at
+                ) VALUES (%d, %s, %d, %d, %d, %s)
+                ON DUPLICATE KEY UPDATE
+                    registration_count = VALUES(registration_count),
+                    first_seen_year = VALUES(first_seen_year),
+                    last_seen_year = VALUES(last_seen_year),
+                    updated_at = VALUES(updated_at)",
+                $vehicle_id,
+                $vehicle['country_code'],
+                (int) ($market['registrations'] ?? 0),
+                (int) ($market['first_year'] ?? $vehicle['source_year']),
+                (int) ($market['last_year'] ?? $vehicle['source_year']),
+                $now
+            );
+            if (false === $wpdb->query($market_sql)) {
+                throw new RuntimeException('EEA snapshot market upsert failed: ' . $wpdb->last_error);
+            }
+        }
+
+        return $vehicle_id;
+    }
+
     /** @return array<string,int|string> */
     private static function error_result($message)
     {
