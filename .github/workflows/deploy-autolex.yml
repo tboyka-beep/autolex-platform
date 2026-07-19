@@ -221,19 +221,27 @@ jobs:
             "\(.rows_missing_engine) rows need engine identity enrichment."
           ' <<<"$engine_coverage"
 
-          sleep 18
-          curl --silent --show-error --fail \
-            --retry 4 \
-            --retry-delay 3 \
-            --retry-all-errors \
-            "https://autolex.hu/wp-cron.php?doing_wp_cron=${GITHUB_RUN_ID}-eea" >/dev/null
-          sleep 8
+          eea_sync=''
+          for attempt in $(seq 1 12); do
+            curl --silent --show-error --fail \
+              --retry 4 \
+              --retry-delay 3 \
+              --retry-all-errors \
+              "https://autolex.hu/wp-cron.php?doing_wp_cron=${GITHUB_RUN_ID}-eea-${attempt}" >/dev/null
+            sleep 10
 
-          eea_sync="$(curl --silent --show-error --fail \
-            --retry 4 \
-            --retry-delay 3 \
-            --retry-all-errors \
-            'https://autolex.hu/wp-json/autolex/v1/eea-sync-status')"
+            eea_sync="$(curl --silent --show-error --fail \
+              --retry 4 \
+              --retry-delay 3 \
+              --retry-all-errors \
+              "https://autolex.hu/wp-json/autolex/v1/eea-sync-status?attempt=${attempt}")"
+            if jq -e '(.targets | type == "number" and . > 0)' <<<"$eea_sync" >/dev/null; then
+              break
+            fi
+          done
+
+          jq '{service, status, targets, completed_targets, pending_targets, failed_targets, engine_proposals, link_proposals}' \
+            <<<"$eea_sync"
 
           jq -e '
             .service == "autolex-eea-sync" and
