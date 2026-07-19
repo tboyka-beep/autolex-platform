@@ -49,6 +49,25 @@ final class Autolex_Platform
     {
         add_action('admin_menu', array($this, 'register_admin_page'));
         add_action('rest_api_init', array($this, 'register_rest_routes'));
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_public_assets'), 30);
+    }
+
+    /**
+     * Loads the shared Autolex visual layer after the legacy Blocksy styles.
+     *
+     * The selectors in this stylesheet are deliberately scoped to existing
+     * Autolex components so regular WordPress and Blocksy screens stay intact.
+     *
+     * @return void
+     */
+    public function enqueue_public_assets()
+    {
+        wp_enqueue_style(
+            'autolex-platform-experience',
+            plugins_url('assets/css/autolex-experience.css', AUTOLEX_PLATFORM_FILE),
+            array(),
+            AUTOLEX_PLATFORM_VERSION
+        );
     }
 
     /**
