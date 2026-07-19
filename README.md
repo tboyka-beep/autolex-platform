@@ -30,6 +30,7 @@ Szükséges secret értékek:
 - `CPANEL_USER`
 - `CPANEL_PORT`
 - `CPANEL_SSH_KEY`
+- `CPANEL_SSH_PASSPHRASE`
 - `WP_PLUGIN_PATH`
 
 Példa a `WP_PLUGIN_PATH` értékére:
@@ -38,8 +39,9 @@ Példa a `WP_PLUGIN_PATH` értékére:
 /home/CPANELUSER/public_html/wp-content/plugins/autolex-platform/
 ```
 
-A privát kulcsot és a tárhelyadatokat soha nem szabad a repository fájljaiba
-írni.
+A `CPANEL_SSH_PASSPHRASE` értéke a jelszóval védett privát kulcs jelszava.
+A privát kulcsot, a kulcs jelszavát és a tárhelyadatokat soha nem szabad a
+repository fájljaiba írni.
 
 ## Ellenőrzés
 
