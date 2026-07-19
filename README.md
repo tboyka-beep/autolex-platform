@@ -58,13 +58,17 @@ https://autolex.hu/wp-json/autolex/v1/status
 
 ## Telepítés cPanelre
 
-Az éles telepítés szándékosan csak kézzel indítható:
+Az ellenőrzött kód `main` ágba történő összevonása után a cPanel deployment
+automatikusan elindul. A telepítés csak a PHP-ellenőrzés és a ZIP összeállítása
+után futhat le.
+
+Szükség esetén kézzel is indítható:
 
 `Actions → Validate and Deploy Autolex Plugin → Run workflow`
 
-Egy pull request összevonása önmagában nem módosítja az élő webhelyet. Az első
-éles futtatás előtt ellenőrizni kell a `WP_PLUGIN_PATH` értékét, és mentést kell
-készíteni a jelenlegi Autolex bővítménykönyvtárról.
+Egy nyitott pull request nem módosítja az élő webhelyet. Az összevonás viszont
+automatikus production deploymentet indít, ezért csak sikeres ellenőrzéssel és
+ellenőrzött tartalommal kerülhet változás a `main` ágba.
 
 ## Fejlesztési folyamat
 
@@ -72,4 +76,4 @@ készíteni a jelenlegi Autolex bővítménykönyvtárról.
 2. Kód és dokumentáció módosítása.
 3. Automatikus ellenőrzések lefuttatása pull requestben.
 4. Ellenőrzött pull request összevonása a `main` ágba.
-5. Kézi production deployment.
+5. Automatikus production deployment a `main` ágról.
