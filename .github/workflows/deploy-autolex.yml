@@ -177,3 +177,30 @@ jobs:
             <<<"$response" >/dev/null
 
           echo "Autolex ${expected_version} is live."
+
+          sleep 6
+          curl --silent --show-error --fail \
+            --retry 4 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            "https://autolex.hu/wp-cron.php?doing_wp_cron=${GITHUB_RUN_ID}" >/dev/null
+
+          engine_coverage="$(curl --silent --show-error --fail \
+            --retry 4 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            'https://autolex.hu/wp-json/autolex/v1/engine-coverage')"
+
+          jq -e '
+            .service == "autolex-engine-catalog" and
+            .status == "ok" and
+            .accuracy_policy == "source_required" and
+            (.catalog_vehicles | type == "number" and . > 0) and
+            (.queued_vehicles == .catalog_vehicles)
+          ' <<<"$engine_coverage" >/dev/null
+
+          jq -r '
+            "Engine coverage: \(.queued_vehicles)/\(.catalog_vehicles) queued; " +
+            "\(.rows_with_engine_code) rows already have an engine code; " +
+            "\(.rows_missing_engine) rows need engine identity enrichment."
+          ' <<<"$engine_coverage"
