@@ -224,7 +224,7 @@ final class Autolex_Engine_Catalog
                     'status'              => 'ok',
                     'market'              => 'EU/EEA',
                     'accuracy_policy'     => 'source_required',
-                    'verification_states' => array('pending', 'proposed', 'reviewed', 'verified', 'vin_required', 'conflict'),
+                    'verification_states' => array('pending', 'provisional', 'proposed', 'reviewed', 'verified', 'vin_required', 'conflict'),
                     'generated_at'        => gmdate('c'),
                 ),
                 $this->get_coverage()
@@ -317,6 +317,8 @@ final class Autolex_Engine_Catalog
         $capacity = (int) ($vehicle['engine_capacity_cc'] ?? 0);
         $power_kw = (float) ($vehicle['engine_power_kw'] ?? 0);
         $year     = (int) ($vehicle['source_year'] ?? 0);
+        $source_status = strtoupper(substr(trim((string) ($vehicle['source_status'] ?? 'F')), 0, 1));
+        $is_provisional = 'P' === $source_status;
 
         if (!$make || !$model || (!$fuel && !$capacity && !$power_kw) || $year < 2000) {
             return array('engine_variant_id' => 0, 'links' => 0, 'sources' => 0);
@@ -351,6 +353,11 @@ final class Autolex_Engine_Catalog
                 engine_capacity_cc = NULLIF(VALUES(engine_capacity_cc), 0),
                 engine_power_kw = NULLIF(VALUES(engine_power_kw), 0),
                 engine_power_ps = NULLIF(VALUES(engine_power_ps), 0),
+                verification_status = IF(
+                    verification_status IN (\'verified\', \'reviewed\'),
+                    verification_status,
+                    IF(VALUES(verification_status) = \'proposed\', \'proposed\', verification_status)
+                ),
                 updated_at = VALUES(updated_at)',
             $fingerprint,
             $make,
@@ -362,7 +369,7 @@ final class Autolex_Engine_Catalog
             $capacity,
             $power_kw,
             $power_ps,
-            'proposed',
+            $is_provisional ? 'provisional' : 'proposed',
             $now,
             $now
         );
@@ -376,11 +383,17 @@ final class Autolex_Engine_Catalog
                 engine_variant_id, eu_vehicle_id, source_year, status, created_at, updated_at
             ) VALUES (%d, %d, %d, %s, %s, %s)
             ON DUPLICATE KEY UPDATE
-                source_year = VALUES(source_year), status = VALUES(status), updated_at = VALUES(updated_at)',
+                source_year = GREATEST(source_year, VALUES(source_year)),
+                status = CASE
+                    WHEN status = \'official_observation\' THEN status
+                    WHEN VALUES(status) = \'official_observation\' THEN VALUES(status)
+                    ELSE status
+                END,
+                updated_at = VALUES(updated_at)',
             $engine_variant_id,
             (int) $eu_vehicle_id,
             $year,
-            'official_observation',
+            $is_provisional ? 'official_provisional_observation' : 'official_observation',
             $now,
             $now
         );
@@ -391,7 +404,7 @@ final class Autolex_Engine_Catalog
         $document_id = sprintf(
             'EEA-CO2-CARS-%d-%s',
             $year,
-            strtoupper(substr((string) ($vehicle['source_status'] ?? 'F'), 0, 8))
+            $source_status
         );
         $source_url = 'https://sdi.eea.europa.eu/catalogue/srv/api/records/fa8b1229-3db6-495d-b18e-9c9b3267c02b';
         $evidence = array(
@@ -424,7 +437,7 @@ final class Autolex_Engine_Catalog
                 'EEA_CO2',
                 'EEA CO2 monitoring – passenger cars',
                 $source_url,
-                'official_registry',
+                $is_provisional ? 'official_registry_provisional' : 'official_registry',
                 'European Environment Agency',
                 $document_id,
                 $now,
@@ -479,14 +492,18 @@ final class Autolex_Engine_Catalog
                 ON DUPLICATE KEY UPDATE
                     eu_vehicle_id = VALUES(eu_vehicle_id),
                     match_confidence = GREATEST(match_confidence, VALUES(match_confidence)),
-                    status = IF(status = \'verified\', status, VALUES(status)),
+                    status = CASE
+                        WHEN status = \'verified\' THEN status
+                        WHEN status = \'proposed\' AND VALUES(status) = \'provisional\' THEN status
+                        ELSE VALUES(status)
+                    END,
                     updated_at = VALUES(updated_at)',
                 (int) $candidate['legacy_vehicle_id'],
                 $engine_variant_id,
                 (int) $eu_vehicle_id,
                 'eea_commercial_name_year',
-                (float) $candidate['confidence'],
-                'proposed',
+                max(0, (float) $candidate['confidence'] - ($is_provisional ? 15 : 0)),
+                $is_provisional ? 'provisional' : 'proposed',
                 $now,
                 $now
             );
@@ -501,7 +518,7 @@ final class Autolex_Engine_Catalog
             $legacy_ids = array_filter(array_unique($legacy_ids));
             if ($legacy_ids) {
                 $wpdb->query(
-                    'UPDATE ' . self::tasks_table() . " SET status = 'proposed', updated_at = '" . esc_sql($now) . "'
+                    'UPDATE ' . self::tasks_table() . " SET status = '" . ($is_provisional ? 'provisional' : 'proposed') . "', updated_at = '" . esc_sql($now) . "'
                     WHERE status = 'pending' AND legacy_vehicle_id IN (" . implode(',', $legacy_ids) . ')'
                 );
             }
