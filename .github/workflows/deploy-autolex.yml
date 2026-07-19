@@ -66,34 +66,90 @@ jobs:
 
       - name: Check deployment configuration
         env:
-          CPANEL_FTP_HOST: ${{ secrets.CPANEL_FTP_HOST }}
-          CPANEL_FTP_USER: ${{ secrets.CPANEL_FTP_USER }}
-          CPANEL_FTP_PASSWORD: ${{ secrets.CPANEL_FTP_PASSWORD }}
-          CPANEL_FTP_PORT: ${{ secrets.CPANEL_FTP_PORT }}
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_PLUGIN_DIR: ${{ secrets.CPANEL_PLUGIN_DIR }}
         run: |
-          test -n "$CPANEL_FTP_HOST" || { echo 'Missing CPANEL_FTP_HOST secret'; exit 1; }
-          test -n "$CPANEL_FTP_USER" || { echo 'Missing CPANEL_FTP_USER secret'; exit 1; }
-          test -n "$CPANEL_FTP_PASSWORD" || { echo 'Missing CPANEL_FTP_PASSWORD secret'; exit 1; }
-          test -n "$CPANEL_FTP_PORT" || { echo 'Missing CPANEL_FTP_PORT secret'; exit 1; }
-          case "$CPANEL_FTP_PORT" in
-            *[!0-9]*) echo 'CPANEL_FTP_PORT must be numeric'; exit 1 ;;
+          test -n "$CPANEL_API_HOST" || { echo 'Missing CPANEL_API_HOST secret'; exit 1; }
+          test -n "$CPANEL_API_USER" || { echo 'Missing CPANEL_API_USER secret'; exit 1; }
+          test -n "$CPANEL_API_TOKEN" || { echo 'Missing CPANEL_API_TOKEN secret'; exit 1; }
+          test -n "$CPANEL_PLUGIN_DIR" || { echo 'Missing CPANEL_PLUGIN_DIR secret'; exit 1; }
+          case "$CPANEL_API_HOST" in
+            *://*|*/*|*:*) echo 'CPANEL_API_HOST must be a hostname without a protocol, port, or path'; exit 1 ;;
           esac
-          case "$CPANEL_FTP_HOST" in
-            *://*|*/*) echo 'CPANEL_FTP_HOST must be a hostname without a protocol or path'; exit 1 ;;
+          case "$CPANEL_API_USER" in
+            *[!A-Za-z0-9._-]*) echo 'CPANEL_API_USER contains unsupported characters'; exit 1 ;;
+          esac
+          case "$CPANEL_PLUGIN_DIR" in
+            /*|*..*|*[^A-Za-z0-9._/-]*) echo 'CPANEL_PLUGIN_DIR must be a safe path relative to the cPanel home directory'; exit 1 ;;
+          esac
+          case "$CPANEL_PLUGIN_DIR" in
+            */wp-content/plugins/autolex-platform) ;;
+            *) echo 'CPANEL_PLUGIN_DIR must end with /wp-content/plugins/autolex-platform'; exit 1 ;;
           esac
 
-      - name: Deploy plugin via FTPS
-        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
-        with:
-          server: ${{ secrets.CPANEL_FTP_HOST }}
-          username: ${{ secrets.CPANEL_FTP_USER }}
-          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
-          port: ${{ secrets.CPANEL_FTP_PORT }}
-          protocol: ftps
-          local-dir: ./plugin/autolex-platform/
-          server-dir: ./
-          state-name: .autolex-ftps-sync-state.json
-          dangerous-clean-slate: false
-          log-level: minimal
-          security: loose
-          timeout: 60000
+      - name: Deploy plugin through the cPanel API
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_PLUGIN_DIR: ${{ secrets.CPANEL_PLUGIN_DIR }}
+        run: |
+          set -euo pipefail
+
+          api_base="https://${CPANEL_API_HOST}:2083"
+          auth_header="Authorization: cpanel ${CPANEL_API_USER}:${CPANEL_API_TOKEN}"
+          local_root='plugin/autolex-platform'
+          entry_file="${local_root}/autolex-platform.php"
+
+          while IFS= read -r -d '' local_dir; do
+            relative_dir="${local_dir#${local_root}/}"
+            parent_dir="$(dirname "$relative_dir")"
+            directory_name="$(basename "$relative_dir")"
+            remote_parent="$CPANEL_PLUGIN_DIR"
+            if [ "$parent_dir" != '.' ]; then
+              remote_parent="${remote_parent}/${parent_dir}"
+            fi
+
+            curl --silent --show-error --fail-with-body --get \
+              --header "$auth_header" \
+              --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
+              --data-urlencode 'cpanel_jsonapi_apiversion=2' \
+              --data-urlencode 'cpanel_jsonapi_module=Fileman' \
+              --data-urlencode 'cpanel_jsonapi_func=mkdir' \
+              --data-urlencode "path=${remote_parent}" \
+              --data-urlencode "name=${directory_name}" \
+              --data-urlencode 'permissions=0755' \
+              "${api_base}/json-api/cpanel" >/dev/null || true
+          done < <(find "$local_root" -mindepth 1 -type d -print0)
+
+          upload_file() {
+            local local_file="$1"
+            local relative_file remote_dir response
+            relative_file="${local_file#${local_root}/}"
+            remote_dir="$CPANEL_PLUGIN_DIR"
+            if [ "$(dirname "$relative_file")" != '.' ]; then
+              remote_dir="${remote_dir}/$(dirname "$relative_file")"
+            fi
+
+            response="$(curl --silent --show-error --fail-with-body \
+              --header "$auth_header" \
+              --form "dir=${remote_dir}" \
+              --form 'overwrite=1' \
+              --form "file-1=@${local_file};filename=$(basename "$local_file")" \
+              "${api_base}/execute/Fileman/upload_files")"
+
+            if ! jq -e '.status == 1' <<<"$response" >/dev/null; then
+              echo "cPanel rejected upload of ${relative_file}"
+              jq -r '.errors[]? // .messages[]? // "Unknown cPanel API error"' <<<"$response"
+              return 1
+            fi
+          }
+
+          while IFS= read -r -d '' local_file; do
+            upload_file "$local_file"
+          done < <(find "$local_root" -type f ! -path "$entry_file" -print0)
+
+          upload_file "$entry_file"
+          echo 'cPanel API deployment completed.'
