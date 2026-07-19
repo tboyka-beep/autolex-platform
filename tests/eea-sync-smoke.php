@@ -49,7 +49,8 @@ if (false === strpos($provisional_2025, '[co2cars_2025Pv31]') ||
 
 $make_index_2025 = Autolex_EEA_Sync::build_query('', '', 2025, 'make_index');
 if (false === strpos($make_index_2025, 'SELECT [Mk] AS [mk]') ||
-    false === strpos($make_index_2025, 'GROUP BY [Mk] ORDER BY [Mk]') ||
+    false === strpos($make_index_2025, 'GROUP BY [Mk]') ||
+    false !== strpos($make_index_2025, 'ORDER BY') ||
     false !== strpos($make_index_2025, "[Mk] =")) {
     fwrite(STDERR, "The all-make discovery query is invalid.\n");
     exit(1);
