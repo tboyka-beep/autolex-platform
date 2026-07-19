@@ -49,11 +49,20 @@ function renderSources(data) {
 function renderRecommendations(data) {
   const section = sectionsByTitle('Kapcsolódó FrissAuto ajánlatok');
   if (!section || !data.recommendations.length) return;
+  const exact = data.recommendations.filter((rule) => rule.rule_type !== 'fallback');
+  const fallback = data.recommendations.filter((rule) => rule.rule_type === 'fallback');
   section.innerHTML = `<div class="alxbc-section-head"><h2>Illesztett FrissAuto ajánlatok</h2></div>
     <p class="alxp-recommendation-intro">A keresések a jármű motorkódjához és az előírt specifikációhoz igazodnak; nem általános márkaajánlatok.</p>
-    <div class="alxp-product-rules">${data.recommendations.map((rule) => `<a href="${escapeAttribute(rule.url)}" target="_blank" rel="nofollow sponsored noopener">
+    <div class="alxp-product-rules">${exact.map((rule) => productRule(rule)).join('')}</div>
+    ${fallback.length ? `<div class="alxp-fallback-head"><span>Nincs megfelelő illesztett termék?</span><h3>Általános FrissAuto-ajánlatok</h3><p>Ezek nem motoralkatrészek, ezért pontos motorillesztés nélkül is hasznos alternatívák. A feltüntetett méretet ettől még ellenőrizni kell.</p></div>
+    <div class="alxp-product-rules alxp-product-rules--fallback">${fallback.map((rule) => productRule(rule)).join('')}</div>` : ''}
+    <p class="alxp-fitment-warning">Vásárlás előtt ellenőrizd a termék adatlapján a BMW-jóváhagyást, a motorkód-kompatibilitást vagy az univerzális termék méretét.</p>`;
+}
+
+function productRule(rule) {
+  return `<a href="${escapeAttribute(rule.url)}" target="_blank" rel="nofollow sponsored noopener">
       <span>${escapeHtml(rule.label)}</span><strong>${escapeHtml(rule.required_spec)}</strong><small>Keresés a FrissAuto kínálatában</small><em>Megnézem →</em>
-    </a>`).join('')}</div><p class="alxp-fitment-warning">Vásárlás előtt ellenőrizd a termék adatlapján a BMW-jóváhagyást és a motorkód-kompatibilitást.</p>`;
+    </a>`;
 }
 
 function statusLabel(status) { return status === 'verified' ? 'Megerősített' : status === 'needs_vin' ? 'VIN szükséges' : 'Több forrásból felülvizsgálva'; }
