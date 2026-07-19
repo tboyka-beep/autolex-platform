@@ -292,6 +292,11 @@ body {
 .alxp-fitment-warning,
 .alxp-recommendation-intro { margin-top: 18px; padding: 14px 16px; color: #d6e0ea; border-left: 3px solid var(--alxp-accent); background: rgba(255,255,255,.04); }
 .alxp-product-rules em { display: block; margin-top: 18px; color: #ffaaa6; font-style: normal; font-weight: 800; }
+.alxp-fallback-head { margin: 34px 0 16px; }
+.alxp-fallback-head > span { color: #ffaaa6; font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.alxp-fallback-head h3 { margin: 7px 0; color: #fff !important; font-size: clamp(24px, 2.5vw, 34px); }
+.alxp-fallback-head p { max-width: 780px; color: var(--alxp-muted); }
+.alxp-product-rules--fallback a { background: linear-gradient(145deg, #172333, #101821); }
 .alxp-source-list a:hover,
 .alxp-product-rules a:hover { color: #fff; border-color: rgba(255,77,71,.58); transform: translateY(-2px); }
 @media (max-width: 760px) { .alxp-maintenance-grid,.alxp-source-list,.alxp-product-rules { grid-template-columns: 1fr; } }
