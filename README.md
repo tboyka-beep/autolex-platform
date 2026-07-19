@@ -49,6 +49,13 @@ Pull request és a `main` ágra történő push esetén a GitHub Actions:
 2. elkészíti az `autolex-platform.zip` telepítőcsomagot;
 3. feltölti a ZIP-et workflow artifactként.
 
+Aktivált bővítmény esetén a telepített verzió nyilvánosan, érzékeny adatok
+nélkül ellenőrizhető:
+
+```text
+https://autolex.hu/wp-json/autolex/v1/status
+```
+
 ## Telepítés cPanelre
 
 Az éles telepítés szándékosan csak kézzel indítható:
