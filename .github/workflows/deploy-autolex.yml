@@ -31,6 +31,9 @@ jobs:
       - name: Validate PHP syntax
         run: find plugin/autolex-platform -type f -name '*.php' -print0 | xargs -0 -n1 php -l
 
+      - name: Test EEA field normalization
+        run: php tests/eea-importer-smoke.php
+
       - name: Create plugin ZIP
         run: |
           cd plugin

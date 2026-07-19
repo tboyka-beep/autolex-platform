@@ -40,6 +40,7 @@ final class Autolex_Platform
     public static function activate()
     {
         update_option('autolex_platform_version', AUTOLEX_PLATFORM_VERSION, false);
+        Autolex_EU_Catalog::install_schema();
     }
 
     /**
@@ -47,6 +48,9 @@ final class Autolex_Platform
      */
     private function __construct()
     {
+        Autolex_EU_Catalog::instance();
+        Autolex_EEA_Importer::register();
+
         add_action('admin_menu', array($this, 'register_admin_page'));
         add_action('rest_api_init', array($this, 'register_rest_routes'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_public_assets'), 30);
@@ -83,6 +87,16 @@ final class Autolex_Platform
             array(
                 'methods'             => 'GET',
                 'callback'            => array($this, 'get_platform_status'),
+                'permission_callback' => '__return_true',
+            )
+        );
+
+        register_rest_route(
+            'autolex/v1',
+            '/eu-coverage',
+            array(
+                'methods'             => 'GET',
+                'callback'            => array(Autolex_EU_Catalog::instance(), 'get_coverage_response'),
                 'permission_callback' => '__return_true',
             )
         );
@@ -151,6 +165,24 @@ final class Autolex_Platform
                 <?php echo esc_html__('Rendszerállapot:', 'autolex-platform'); ?>
                 <a href="<?php echo esc_url(rest_url('autolex/v1/status')); ?>" target="_blank" rel="noopener noreferrer">
                     <?php echo esc_html(rest_url('autolex/v1/status')); ?>
+                </a>
+            </p>
+            <?php $coverage = Autolex_EU_Catalog::instance()->get_coverage(); ?>
+            <h2><?php echo esc_html__('EU-katalógus', 'autolex-platform'); ?></h2>
+            <p>
+                <?php
+                printf(
+                    /* translators: 1: vehicle count, 2: make count, 3: model count. */
+                    esc_html__('%1$s járműváltozat, %2$s márka és %3$s modell az új, ellenőrzött EU-adatmagban.', 'autolex-platform'),
+                    esc_html(number_format_i18n($coverage['vehicles'])),
+                    esc_html(number_format_i18n($coverage['makes'])),
+                    esc_html(number_format_i18n($coverage['models']))
+                );
+                ?>
+            </p>
+            <p>
+                <a href="<?php echo esc_url(rest_url('autolex/v1/eu-coverage')); ?>" target="_blank" rel="noopener noreferrer">
+                    <?php echo esc_html(rest_url('autolex/v1/eu-coverage')); ?>
                 </a>
             </p>
         </div>
