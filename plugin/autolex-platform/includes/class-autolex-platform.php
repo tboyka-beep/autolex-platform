@@ -48,6 +48,42 @@ final class Autolex_Platform
     private function __construct()
     {
         add_action('admin_menu', array($this, 'register_admin_page'));
+        add_action('rest_api_init', array($this, 'register_rest_routes'));
+    }
+
+    /**
+     * Registers public, read-only platform endpoints.
+     *
+     * @return void
+     */
+    public function register_rest_routes()
+    {
+        register_rest_route(
+            'autolex/v1',
+            '/status',
+            array(
+                'methods'             => 'GET',
+                'callback'            => array($this, 'get_platform_status'),
+                'permission_callback' => '__return_true',
+            )
+        );
+    }
+
+    /**
+     * Returns a minimal health response without exposing sensitive data.
+     *
+     * @return WP_REST_Response
+     */
+    public function get_platform_status()
+    {
+        return rest_ensure_response(
+            array(
+                'service'      => 'autolex-platform',
+                'status'       => 'ok',
+                'version'      => AUTOLEX_PLATFORM_VERSION,
+                'generated_at' => gmdate('c'),
+            )
+        );
     }
 
     /**
@@ -91,6 +127,12 @@ final class Autolex_Platform
                     esc_html(AUTOLEX_PLATFORM_VERSION)
                 );
                 ?>
+            </p>
+            <p>
+                <?php echo esc_html__('Rendszerállapot:', 'autolex-platform'); ?>
+                <a href="<?php echo esc_url(rest_url('autolex/v1/status')); ?>" target="_blank" rel="noopener noreferrer">
+                    <?php echo esc_html(rest_url('autolex/v1/status')); ?>
+                </a>
             </p>
         </div>
         <?php
