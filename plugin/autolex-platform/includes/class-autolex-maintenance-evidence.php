@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 
 final class Autolex_Maintenance_Evidence
 {
-    const SCHEMA_VERSION = '1.0.0';
+    const SCHEMA_VERSION = '1.0.1';
 
     /** @var Autolex_Maintenance_Evidence|null */
     private static $instance = null;
@@ -220,7 +220,7 @@ final class Autolex_Maintenance_Evidence
             'oil_capacity' => array('Motorolaj feltöltési mennyiség', 'VIN alapján ellenőrizendő', 'A N47D20 kivitelek között lehet eltérés; ellenőrizetlen literadat nem jelenhet meg kész értékként.', 'needs_vin', 45, array('bmw_manuals')),
         );
         foreach ($claims as $key => $c) {
-            $wpdb->replace(self::claims_table(), array('legacy_vehicle_id' => 1, 'engine_code' => 'N47D20', 'field_key' => $key, 'label' => $c[0], 'value_text' => $c[1], 'note_text' => $c[2], 'status' => $c[3], 'confidence' => $c[4], 'checked_at' => $today, 'updated_at' => current_time('mysql', true)), array('%d','%s','%s','%s','%s','%s','%d','%s','%s'));
+            $wpdb->replace(self::claims_table(), array('legacy_vehicle_id' => 1, 'engine_code' => 'N47D20', 'field_key' => $key, 'label' => $c[0], 'value_text' => $c[1], 'note_text' => $c[2], 'status' => $c[3], 'confidence' => $c[4], 'checked_at' => $today, 'updated_at' => current_time('mysql', true)), array('%d','%s','%s','%s','%s','%s','%s','%d','%s','%s'));
             $claim_id = (int) $wpdb->get_var($wpdb->prepare('SELECT id FROM ' . self::claims_table() . ' WHERE legacy_vehicle_id=1 AND engine_code=%s AND field_key=%s', 'N47D20', $key));
             $wpdb->delete(self::links_table(), array('claim_id' => $claim_id), array('%d'));
             foreach ($c[5] as $source_key) {
