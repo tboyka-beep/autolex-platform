@@ -1,0 +1,35 @@
+name: Validate Autolex Portal 3
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portal-smoke:
+    name: Portal design and data smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Configure PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Validate portal PHP syntax
+        run: php -l plugin/autolex-platform/includes/class-autolex-portal.php
+
+      - name: Validate portal JavaScript syntax
+        run: node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
+
+      - name: Test data quality and free-source policy
+        run: php tests/portal-smoke.php
