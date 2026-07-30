@@ -1,16 +1,17 @@
 name: Autolex Home Server Quality
 
 on:
-  pull_request:
+  push:
     branches:
       - main
+      - 'agent/**'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: autolex-home-server-${{ github.event.pull_request.number || github.ref }}
+  group: autolex-home-server-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
