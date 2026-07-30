@@ -10,15 +10,18 @@ if (!defined('ABSPATH')) {
 }
 
 require_once __DIR__ . '/trait-autolex-portal-query.php';
-require_once __DIR__ . '/trait-autolex-portal-render.php';
+require_once __DIR__ . '/trait-autolex-portal-home.php';
+require_once __DIR__ . '/trait-autolex-portal-catalog.php';
+require_once __DIR__ . '/trait-autolex-portal-utilities.php';
 
 final class Autolex_Portal
 {
     private static $instance = null;
 
-
     use Autolex_Portal_Query_Trait;
-    use Autolex_Portal_Render_Trait;
+    use Autolex_Portal_Home_Trait;
+    use Autolex_Portal_Catalog_Trait;
+    use Autolex_Portal_Utilities_Trait;
 
     public static function instance()
     {
@@ -302,6 +305,4 @@ final class Autolex_Portal
         }
         return $content;
     }
-
-    /** @return string */
 }
