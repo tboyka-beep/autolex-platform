@@ -41,3 +41,11 @@ Szűrők:
 
 A betűfokozat nem azonos a forrásellenőrzési státusszal. Egy A minőségű,
 részletes rekord is maradhat `proposed`, amíg nincs elég független bizonyítéka.
+
+## Safety Gate visszahívások
+
+A 3.0-s adatmag fail-closed importert tartalmaz az EU Safety Gate járműriasztásaihoz.
+Az aktuális heti XML-cím nem kerül beégetésre: a rendszer a hivatalos data.europa
+metaadatból oldja fel, kizárólag allowlistes EU-hostot fogad el, és sikertelen
+lekérés vagy ismeretlen XML-séma esetén a korábbi adatokat érintetlenül hagyja.
+A nyilvános `/autolex/v1/recalls` végpont márka és modell szerint szűrhető.
