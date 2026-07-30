@@ -36,9 +36,11 @@ hozzáférés engedélyezését.
 ### 4. EU Safety Gate
 
 - Hivatalos veszélyestermék- és visszahívási riasztások.
-- Nyilvános heti XML és Excel formátum.
-- Jármű-visszahívások külön biztonsági rétegként kapcsolhatók a márkához,
-  modellhez, gyártási időszakhoz és kockázathoz.
+- A heti XML aktuális URL-jét a hivatalos data.europa metaadatból oldja fel.
+- Az importer csak EU-s allowlistes HTTPS hostot fogad el, és hiba esetén nem ír
+  felül korábbi rekordot.
+- Jármű-visszahívások márka, modell, típus, kockázat és intézkedés szerint
+  normalizált, kereshető biztonsági rétegbe kerülnek.
 
 ### 5. Type Approval Register
 
@@ -59,7 +61,7 @@ engedély nélküli tömeges scraping és fórumállítás nem lehet ellenőrzö
 
 ## Következő adatfázisok
 
-1. Safety Gate jármű-visszahívási XML importer.
+1. Safety Gate éles első importjának és heti frissülésének production ellenőrzése.
 2. Eurostat járműállomány és regisztrációs trendek.
 3. EAFO alternatívhajtás-adatok és magyar országprofil.
 4. Típusjóváhagyási dokumentum-kapcsolatok.
