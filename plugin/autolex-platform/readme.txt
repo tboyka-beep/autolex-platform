@@ -2,18 +2,28 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.8.1
+Stable tag: 3.0.0
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
 
 == Description ==
 
-Ez a fejlesztési váz biztosítja az Autolex Platform biztonságosan bővíthető
-WordPress-belépési pontját. A járműadatbázis, a kereső, a SEO-rendszer és a
-FrissAuto-integráció külön modulokban épülhet rá.
+Az Autolex Platform EU/EGT fókuszú, forrásállapotot és adatminőséget kezelő
+autóadat-rendszer. A nyilvános portál, a szűrhető katalógus, a jármű- és
+motoradatok, a forrásbizonyítékok, valamint a FrissAuto-integráció elkülönített
+modulokból épül fel.
 
 == Changelog ==
+
+= 3.0.0 =
+* Teljesen új, sötét és matt, infrastruktúra-hangulatú nyilvános portáldizájn.
+* Külső fizetős sablon, képbank, betűkészlet vagy JavaScript-könyvtár nélküli megvalósítás.
+* Új információgazdag főoldal valós katalógus-, motor-, forrás- és EEA-számlálókkal.
+* Márka, modell, üzemanyag, évjárat, teljesítmény, motorkód és adatminőség szerinti szűrés.
+* A járműkártyákon A/B/C adatminőség, ellenőrzési állapot, forrásbizonyíték és EU-megfigyelés.
+* Nyilvános, géppel olvasható forrásjegyzék kizárólag ingyenes és hivatalos forrásokkal.
+* EEA, Eurostat, EAFO, Safety Gate, EU típusjóváhagyási és CoC forrásstratégia.
 
 = 2.8.1 =
 * EEA-kompatibilis teljes márkaindex-lekérdezés az API saját lapozójához.
