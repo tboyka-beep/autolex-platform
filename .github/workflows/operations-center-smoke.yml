@@ -1,0 +1,35 @@
+name: Validate Autolex Operations Center
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  operations-center-smoke:
+    name: Operations center smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Configure PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Validate operations center PHP syntax
+        run: php -l plugin/autolex-platform/includes/class-autolex-operations-center.php
+
+      - name: Test operations center health model
+        run: php tests/operations-center-smoke.php
