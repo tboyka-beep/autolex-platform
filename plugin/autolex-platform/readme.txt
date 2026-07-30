@@ -2,7 +2,7 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.8.1
+Stable tag: 2.9.0
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
@@ -14,6 +14,12 @@ WordPress-belépési pontját. A járműadatbázis, a kereső, a SEO-rendszer é
 FrissAuto-integráció külön modulokban épülhet rá.
 
 == Changelog ==
+
+= 2.9.0 =
+* WordPress-admin műveleti központ az EEA-import, az EU-katalógus és a motorváltozat-lefedettség követéséhez.
+* Gépi állapotjelzés, előrehaladási sáv és a legfrissebb hibás forrásfeladatok diagnosztikája.
+* Nonce- és jogosultságvédett sorébresztés, beragadt feladat-helyreállítás és kézi hibáscél-újrapróbálás.
+* Külön smoke teszt a műveleti központ állapotmodelljéhez.
 
 = 2.8.1 =
 * EEA-kompatibilis teljes márkaindex-lekérdezés az API saját lapozójához.
