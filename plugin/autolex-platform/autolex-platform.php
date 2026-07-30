@@ -25,6 +25,7 @@ require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-catalog-browser.php'
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-engine-catalog.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eea-sync.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-maintenance-evidence.php';
+require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-safety-gate.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-portal.php';
 
 register_activation_hook(__FILE__, array('Autolex_Platform', 'activate'));
@@ -37,6 +38,7 @@ register_activation_hook(__FILE__, array('Autolex_Platform', 'activate'));
 function autolex_platform()
 {
     $platform = Autolex_Platform::instance();
+    Autolex_Safety_Gate::instance();
     Autolex_Portal::instance();
     return $platform;
 }
