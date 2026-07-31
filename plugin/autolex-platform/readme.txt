@@ -2,7 +2,7 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 3.0.0
+Stable tag: 3.2.0
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
@@ -16,8 +16,24 @@ modulokból épül fel.
 
 == Changelog ==
 
+= 3.2.0 =
+* Teljes prémium világos designrendszer a főoldal és a katalógus minden komponensére.
+* Új forráskártya-, adatfolyam-, módszertan-, CTA-, járműkártya- és találati toolbar megjelenés.
+* Sticky asztali szűrő és mobil drawer, reszponzív 3/2/1 oszlopos járműrács.
+* Generáció- és ellenőrzésiállapot-szűrés, JavaScript nélküli rendezés és stabil márka–modell váltás.
+* Akadálymentes fókuszállapotok, Escape-bezárás, aria-expanded kezelés és csökkentett mozgás támogatása.
+* Eurostat és EAFO tesztelt adapterállapot, élő Safety Gate forrásvalidálás túlállítás nélkül.
+* Külön design- és katalógusszerződés-regressziós tesztek.
+
+= 3.1.0 =
+* Világos, szerkesztőségi Autolex portál törtfehér háttérrel és grafit tipográfiával.
+* Biztonságos Műveleti központ az EEA-feldolgozás felügyeletéhez.
+* Eurostat JSON-stat 2.0 és EAFO forrásmanifeszt-adapteralap.
+* Élő, read-only Safety Gate XML-felderítés és fail-closed validálás.
+* Same-repo PR-re korlátozott self-hosted quality gate.
+
 = 3.0.0 =
-* Teljesen új, sötét és matt, infrastruktúra-hangulatú nyilvános portáldizájn.
+* Teljesen új, adatportál-központú nyilvános felület.
 * Külső fizetős sablon, képbank, betűkészlet vagy JavaScript-könyvtár nélküli megvalósítás.
 * Új információgazdag főoldal valós katalógus-, motor-, forrás- és EEA-számlálókkal.
 * Márka, modell, üzemanyag, évjárat, teljesítmény, motorkód és adatminőség szerinti szűrés.
