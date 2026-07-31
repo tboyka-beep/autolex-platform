@@ -41,7 +41,7 @@ jobs:
               exit 1
             }
           done
-          php -r 'if (PHP_VERSION_ID < 80300) { fwrite(STDERR, "PHP 8.3 or newer is required.\n"); exit(1); }'
+          php -r 'if (PHP_VERSION_ID < 80300) { fwrite(STDERR, "PHP 8.3 or newer is required.\n"); exit(1); } if (!extension_loaded("simplexml")) { fwrite(STDERR, "PHP SimpleXML is required.\n"); exit(1); }'
           echo "Runner: ${RUNNER_NAME:-unknown}"
           echo "Host: $(hostname)"
           php --version | head -n 1
@@ -60,12 +60,14 @@ jobs:
 
       - name: Run portal and Safety Gate smoke tests
         run: |
-          test ! -f tests/portal-smoke.php || php tests/portal-smoke.php
-          test ! -f tests/safety-gate-smoke.php || php tests/safety-gate-smoke.php
-          test ! -f plugin/autolex-platform/assets/js/autolex-portal-3.js || node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
+          php tests/portal-smoke.php
+          php tests/catalog-filter-smoke.php
+          php tests/safety-gate-smoke.php
+          php tests/safety-gate-live-smoke.php
+          node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
 
-      - name: Run operations center smoke test when present
-        run: test ! -f tests/operations-center-smoke.php || php tests/operations-center-smoke.php
+      - name: Run operations center smoke test
+        run: php tests/operations-center-smoke.php
 
       - name: Build deployable plugin ZIP
         run: |
