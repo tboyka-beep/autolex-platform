@@ -31,6 +31,7 @@ if (count($sources) < 6) {
     fwrite(STDERR, "The free source registry is incomplete.\n");
     exit(1);
 }
+$by_code = array();
 foreach ($sources as $source) {
     foreach (array('code', 'name', 'publisher', 'url', 'access', 'scope', 'automation', 'confidence', 'cost') as $field) {
         if (empty($source[$field])) {
@@ -44,6 +45,22 @@ foreach ($sources as $source) {
     }
     if (0 !== strpos($source['url'], 'https://')) {
         fwrite(STDERR, "Source registry URL must use HTTPS.\n");
+        exit(1);
+    }
+    $by_code[$source['code']] = $source;
+}
+
+$expected_states = array(
+    'eea_co2'             => 'active',
+    'eurostat_transport'  => 'adapter_ready',
+    'eafo'                => 'adapter_ready',
+    'safety_gate'         => 'live_validated',
+    'type_approval_register' => 'reference_only',
+    'eu_coc_schema'       => 'active_reference',
+);
+foreach ($expected_states as $code => $state) {
+    if (($by_code[$code]['automation'] ?? '') !== $state) {
+        fwrite(STDERR, "Source readiness state is inaccurate for {$code}.\n");
         exit(1);
     }
 }
