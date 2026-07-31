@@ -12,19 +12,21 @@ trait Autolex_Portal_Query_Trait
 
         return $this->normalize_filters(
             array(
-                'q'           => sanitize_text_field($get('q') ?: $get('kereses')),
-                'make'        => sanitize_text_field($get('make') ?: $get('marka')),
-                'model'       => sanitize_text_field($get('model')),
-                'fuel'        => sanitize_text_field($get('fuel')),
-                'engine_code' => sanitize_text_field($get('engine_code')),
-                'year_min'    => absint($get('year_min')),
-                'year_max'    => absint($get('year_max')),
-                'power_min'   => absint($get('power_min')),
-                'power_max'   => absint($get('power_max')),
-                'grade'       => sanitize_key($get('grade')),
-                'sort'        => sanitize_key($get('sort') ?: 'data_desc'),
-                'page'        => absint($get('page') ?: $get('oldal') ?: 1),
-                'limit'       => 24,
+                'q'            => sanitize_text_field($get('q') ?: $get('kereses')),
+                'make'         => sanitize_text_field($get('make') ?: $get('marka')),
+                'model'        => sanitize_text_field($get('model')),
+                'generation'   => sanitize_text_field($get('generation')),
+                'fuel'         => sanitize_text_field($get('fuel')),
+                'engine_code'  => sanitize_text_field($get('engine_code')),
+                'year_min'     => absint($get('year_min')),
+                'year_max'     => absint($get('year_max')),
+                'power_min'    => absint($get('power_min')),
+                'power_max'    => absint($get('power_max')),
+                'grade'        => sanitize_key($get('grade')),
+                'verification' => sanitize_key($get('verification')),
+                'sort'         => sanitize_key($get('sort') ?: 'data_desc'),
+                'page'         => absint($get('page') ?: $get('oldal') ?: 1),
+                'limit'        => 24,
             )
         );
     }
@@ -33,21 +35,26 @@ trait Autolex_Portal_Query_Trait
     private function normalize_filters($filters)
     {
         $allowed_sorts = array('data_desc', 'make_asc', 'year_desc', 'power_desc');
+        $allowed_verifications = array('verified', 'reviewed', 'vin_required', 'conflict', 'proposed', 'provisional', 'unverified', 'imported');
         $grade = strtoupper((string) ($filters['grade'] ?? ''));
+        $verification = strtolower(trim((string) ($filters['verification'] ?? '')));
+
         return array(
-            'q'           => trim((string) ($filters['q'] ?? '')),
-            'make'        => trim((string) ($filters['make'] ?? '')),
-            'model'       => trim((string) ($filters['model'] ?? '')),
-            'fuel'        => trim((string) ($filters['fuel'] ?? '')),
-            'engine_code' => trim((string) ($filters['engine_code'] ?? '')),
-            'year_min'    => max(0, (int) ($filters['year_min'] ?? 0)),
-            'year_max'    => max(0, (int) ($filters['year_max'] ?? 0)),
-            'power_min'   => max(0, (int) ($filters['power_min'] ?? 0)),
-            'power_max'   => max(0, (int) ($filters['power_max'] ?? 0)),
-            'grade'       => in_array($grade, array('A', 'B', 'C'), true) ? $grade : '',
-            'sort'        => in_array((string) ($filters['sort'] ?? ''), $allowed_sorts, true) ? (string) $filters['sort'] : 'data_desc',
-            'page'        => max(1, (int) ($filters['page'] ?? 1)),
-            'limit'       => min(48, max(1, (int) ($filters['limit'] ?? 24))),
+            'q'            => trim((string) ($filters['q'] ?? '')),
+            'make'         => trim((string) ($filters['make'] ?? '')),
+            'model'        => trim((string) ($filters['model'] ?? '')),
+            'generation'   => trim((string) ($filters['generation'] ?? '')),
+            'fuel'         => trim((string) ($filters['fuel'] ?? '')),
+            'engine_code'  => trim((string) ($filters['engine_code'] ?? '')),
+            'year_min'     => max(0, (int) ($filters['year_min'] ?? 0)),
+            'year_max'     => max(0, (int) ($filters['year_max'] ?? 0)),
+            'power_min'    => max(0, (int) ($filters['power_min'] ?? 0)),
+            'power_max'    => max(0, (int) ($filters['power_max'] ?? 0)),
+            'grade'        => in_array($grade, array('A', 'B', 'C'), true) ? $grade : '',
+            'verification' => in_array($verification, $allowed_verifications, true) ? $verification : '',
+            'sort'         => in_array((string) ($filters['sort'] ?? ''), $allowed_sorts, true) ? (string) $filters['sort'] : 'data_desc',
+            'page'         => max(1, (int) ($filters['page'] ?? 1)),
+            'limit'        => min(48, max(1, (int) ($filters['limit'] ?? 24))),
         );
     }
 
@@ -95,7 +102,7 @@ trait Autolex_Portal_Query_Trait
                 }
             }
         }
-        foreach (array('make' => 'make', 'model' => 'model', 'fuel' => 'fuel_type') as $filter_key => $field) {
+        foreach (array('make' => 'make', 'model' => 'model', 'generation' => 'generation', 'fuel' => 'fuel_type') as $filter_key => $field) {
             if ('' !== $filters[$filter_key] && $column($field)) {
                 $where[] = 'LOWER(TRIM(COALESCE(' . $column($field) . ", ''))) = LOWER(%s)";
                 $params[] = $filters[$filter_key];
@@ -140,6 +147,16 @@ trait Autolex_Portal_Query_Trait
             $params[] = $filters['grade'];
         }
 
+        $verification_expr = $this->verification_status_expression($column('id'));
+        if ($filters['verification']) {
+            if ('imported' === $filters['verification']) {
+                $where[] = '(' . $verification_expr . ") = ''";
+            } else {
+                $where[] = '(' . $verification_expr . ') = %s';
+                $params[] = $filters['verification'];
+            }
+        }
+
         $where_sql = implode(' AND ', $where);
         $count_sql = "SELECT COUNT(*) FROM {$table} AS {$alias} WHERE {$where_sql}";
         $total = (int) $wpdb->get_var($params ? $wpdb->prepare($count_sql, $params) : $count_sql); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -181,6 +198,22 @@ trait Autolex_Portal_Query_Trait
         );
     }
 
+    /** @param string $legacy_id_sql Validated legacy ID expression. @return string */
+    private function verification_status_expression($legacy_id_sql)
+    {
+        if (!$legacy_id_sql || !class_exists('Autolex_Engine_Catalog')) {
+            return "''";
+        }
+        $links    = $this->safe_table(Autolex_Engine_Catalog::links_table());
+        $variants = $this->safe_table(Autolex_Engine_Catalog::variants_table());
+        if (!$links || !$variants) {
+            return "''";
+        }
+
+        $id = 'CAST(' . $legacy_id_sql . ' AS UNSIGNED)';
+        return "COALESCE((SELECT v.verification_status FROM {$links} l INNER JOIN {$variants} v ON v.id = l.engine_variant_id WHERE l.legacy_vehicle_id = {$id} ORDER BY CASE v.verification_status WHEN 'verified' THEN 8 WHEN 'reviewed' THEN 7 WHEN 'vin_required' THEN 6 WHEN 'conflict' THEN 5 WHEN 'proposed' THEN 4 WHEN 'provisional' THEN 3 WHEN 'unverified' THEN 2 ELSE 1 END DESC LIMIT 1), '')";
+    }
+
     /** @param string $legacy_id_sql Validated legacy ID expression. @return string[] */
     private function evidence_selects($legacy_id_sql)
     {
@@ -191,16 +224,24 @@ trait Autolex_Portal_Query_Trait
         $variants = $this->safe_table(Autolex_Engine_Catalog::variants_table());
         $sources  = $this->safe_table(Autolex_Engine_Catalog::sources_table());
         $eu_links = $this->safe_table(Autolex_Engine_Catalog::eu_links_table());
-        if (!$links || !$variants || !$sources || !$eu_links) {
+        if (!$links || !$variants) {
             return array("'' AS verification_status", '0 AS source_count', '0 AS evidence_count', '0 AS eu_observations');
         }
 
         $id = 'CAST(' . $legacy_id_sql . ' AS UNSIGNED)';
+        $verification = $this->verification_status_expression($legacy_id_sql);
+        $evidence_count = $sources
+            ? "COALESCE((SELECT COUNT(*) FROM {$links} l INNER JOIN {$sources} s ON s.engine_variant_id = l.engine_variant_id WHERE l.legacy_vehicle_id = {$id}), 0)"
+            : '0';
+        $eu_observations = $eu_links
+            ? "COALESCE((SELECT COUNT(*) FROM {$links} l INNER JOIN {$eu_links} e ON e.engine_variant_id = l.engine_variant_id WHERE l.legacy_vehicle_id = {$id}), 0)"
+            : '0';
+
         return array(
-            "COALESCE((SELECT v.verification_status FROM {$links} l INNER JOIN {$variants} v ON v.id = l.engine_variant_id WHERE l.legacy_vehicle_id = {$id} ORDER BY CASE v.verification_status WHEN 'verified' THEN 7 WHEN 'reviewed' THEN 6 WHEN 'vin_required' THEN 5 WHEN 'conflict' THEN 4 WHEN 'proposed' THEN 3 WHEN 'provisional' THEN 2 ELSE 1 END DESC LIMIT 1), '') AS verification_status",
+            "{$verification} AS verification_status",
             "COALESCE((SELECT MAX(v.source_count) FROM {$links} l INNER JOIN {$variants} v ON v.id = l.engine_variant_id WHERE l.legacy_vehicle_id = {$id}), 0) AS source_count",
-            "COALESCE((SELECT COUNT(*) FROM {$links} l INNER JOIN {$sources} s ON s.engine_variant_id = l.engine_variant_id WHERE l.legacy_vehicle_id = {$id}), 0) AS evidence_count",
-            "COALESCE((SELECT COUNT(*) FROM {$links} l INNER JOIN {$eu_links} e ON e.engine_variant_id = l.engine_variant_id WHERE l.legacy_vehicle_id = {$id}), 0) AS eu_observations",
+            "{$evidence_count} AS evidence_count",
+            "{$eu_observations} AS eu_observations",
         );
     }
 
@@ -301,10 +342,12 @@ trait Autolex_Portal_Query_Trait
             'fuels'  => $fuels,
             'ranges' => array('year_min' => $year_min, 'year_max' => $year_max, 'power_min' => $power_min, 'power_max' => $power_max),
             'available' => array(
-                'engine_code' => (bool) $col('engine_code'),
-                'fuel'        => (bool) $col('fuel_type'),
-                'year'        => (bool) ($col('year_from') || $col('year_to')),
-                'power'       => (bool) ($col('power_ps') || $col('power_kw')),
+                'generation'   => (bool) $col('generation'),
+                'engine_code'  => (bool) $col('engine_code'),
+                'fuel'         => (bool) $col('fuel_type'),
+                'year'         => (bool) ($col('year_from') || $col('year_to')),
+                'power'        => (bool) ($col('power_ps') || $col('power_kw')),
+                'verification' => class_exists('Autolex_Engine_Catalog'),
             ),
         );
     }
@@ -336,6 +379,4 @@ trait Autolex_Portal_Query_Trait
             'health_label'     => $labels[$health],
         );
     }
-
-    /** @param array<int,array<string,mixed>> $items Vehicle items. @return string */
 }
