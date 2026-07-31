@@ -55,4 +55,26 @@ function autolex_platform()
     return $platform;
 }
 
+/**
+ * Loads the optional premium visual layer after the portal base stylesheet.
+ * The body scope keeps the stylesheet inert outside Autolex portal screens.
+ */
+function autolex_enqueue_visual_layer()
+{
+    $relative_path = 'assets/css/autolex-visual-night.css';
+    $absolute_path = AUTOLEX_PLATFORM_DIR . $relative_path;
+
+    if (!is_readable($absolute_path)) {
+        return;
+    }
+
+    wp_enqueue_style(
+        'autolex-visual-night',
+        plugins_url($relative_path, AUTOLEX_PLATFORM_FILE),
+        array('autolex-portal-3'),
+        (string) filemtime($absolute_path)
+    );
+}
+
 add_action('plugins_loaded', 'autolex_platform');
+add_action('wp_enqueue_scripts', 'autolex_enqueue_visual_layer', 40);
