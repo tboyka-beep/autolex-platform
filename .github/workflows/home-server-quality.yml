@@ -5,18 +5,22 @@ on:
     branches:
       - main
       - 'agent/**'
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: autolex-home-server-${{ github.ref }}
+  group: autolex-home-server-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality:
     name: Full quality gate on home-server
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Linux, X64, autolex]
     timeout-minutes: 15
 
