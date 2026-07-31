@@ -26,6 +26,7 @@ require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-engine-catalog.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eea-sync.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-maintenance-evidence.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-safety-gate.php';
+require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eurostat.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-portal.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-operations-center.php';
 
