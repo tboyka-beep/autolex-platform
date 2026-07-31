@@ -226,6 +226,14 @@ final class Autolex_Portal
             array('autolex-platform-experience'),
             AUTOLEX_PLATFORM_VERSION
         );
+        if ($is_detail) {
+            wp_enqueue_style(
+                'autolex-vehicle-detail',
+                plugins_url('assets/css/autolex-vehicle-detail.css', AUTOLEX_PLATFORM_FILE),
+                array('autolex-portal-3'),
+                AUTOLEX_PLATFORM_VERSION
+            );
+        }
         wp_enqueue_script(
             'autolex-portal-3',
             plugins_url('assets/js/autolex-portal-3.js', AUTOLEX_PLATFORM_FILE),
