@@ -34,12 +34,14 @@ jobs:
           php -l plugin/autolex-platform/includes/class-autolex-vehicle-comparison.php
           php -l plugin/autolex-platform/includes/class-autolex-comparison-page.php
           php -l plugin/autolex-platform/includes/class-autolex-vehicle-relations.php
+          php -l plugin/autolex-platform/includes/class-autolex-vehicle-seo.php
           php -l tests/catalog-filter-smoke.php
           php -l tests/portal-design-smoke.php
           php -l tests/global-search-smoke.php
           php -l tests/vehicle-comparison-smoke.php
           php -l tests/vehicle-detail-smoke.php
           php -l tests/vehicle-relations-smoke.php
+          php -l tests/vehicle-seo-smoke.php
           php -l tests/safety-gate-live-smoke.php
 
       - name: Validate portal JavaScript syntax
@@ -68,6 +70,9 @@ jobs:
 
       - name: Test related generations and engine variants contract
         run: php tests/vehicle-relations-smoke.php
+
+      - name: Test vehicle SEO, performance and accessibility contract
+        run: php tests/vehicle-seo-smoke.php
 
       - name: Test Safety Gate alert normalization
         run: php tests/safety-gate-smoke.php
