@@ -29,13 +29,17 @@ jobs:
       - name: Validate portal PHP syntax
         run: |
           php -l plugin/autolex-platform/includes/class-autolex-portal.php
+          php -l plugin/autolex-platform/includes/class-autolex-maintenance-evidence.php
           php -l plugin/autolex-platform/includes/class-autolex-safety-gate.php
           php -l tests/catalog-filter-smoke.php
           php -l tests/portal-design-smoke.php
+          php -l tests/vehicle-detail-smoke.php
           php -l tests/safety-gate-live-smoke.php
 
       - name: Validate portal JavaScript syntax
-        run: node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
+        run: |
+          node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
+          node --check plugin/autolex-platform/assets/js/autolex-maintenance-evidence.js
 
       - name: Test data quality and free-source policy
         run: php tests/portal-smoke.php
@@ -45,6 +49,9 @@ jobs:
 
       - name: Test complete portal design contract
         run: php tests/portal-design-smoke.php
+
+      - name: Test vehicle detail evidence and commerce contract
+        run: php tests/vehicle-detail-smoke.php
 
       - name: Test Safety Gate alert normalization
         run: php tests/safety-gate-smoke.php
