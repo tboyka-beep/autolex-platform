@@ -8,6 +8,8 @@ trait Autolex_Portal_Utilities_Trait
     {
         $labels = array(
             'active'           => 'AKTÍV IMPORT',
+            'adapter_ready'    => 'TESZTELT ADAPTER',
+            'live_validated'   => 'ÉLŐ FORRÁS IGAZOLT',
             'planned'          => 'KÖVETKEZŐ ADATRÉTEG',
             'reference_only'   => 'REFERENCIA',
             'active_reference' => 'AKTÍV SZABÁLY',
