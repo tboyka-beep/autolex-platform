@@ -17,20 +17,22 @@ trait Autolex_Portal_Catalog_Trait
                 <div>
                     <span class="alx3-kicker"><b>EU / EEA</b> SZŰRHETŐ KATALÓGUS</span>
                     <h1>Találd meg a <em>pontos</em> autóváltozatot.</h1>
-                    <p>Márka, modell, hajtás, évjárat, teljesítmény, motorkód és adatminőség szerint. A találatokon külön látszik a forrás- és ellenőrzési állapot.</p>
+                    <p>Márka, modell, generáció, hajtás, évjárat, teljesítmény, motorkód, adatminőség és ellenőrzési állapot szerint.</p>
                 </div>
                 <aside><strong data-result-count><?php echo esc_html(number_format_i18n($data['total'])); ?></strong><span>találat az adatbázisban</span><small><?php echo esc_html(number_format_i18n(count($facets['makes']))); ?> listázott márka</small></aside>
             </header>
 
             <div class="alx3-catalog-layout">
-                <aside class="alx3-filters" data-filter-panel>
-                    <header><div><span>SZŰRŐRENDSZER</span><h2>Autóadatok</h2></div><button type="button" data-filter-close aria-label="Szűrők bezárása">×</button></header>
-                    <form action="<?php echo esc_url(home_url('/autok/')); ?>" method="get" data-autolex-filter-form>
+                <aside class="alx3-filters" id="alx3-filter-panel" data-filter-panel>
+                    <header><div><span>SZŰRŐRENDSZER</span><h2>Autóadatok</h2></div><button type="button" data-filter-close aria-label="Szűrők bezárása" aria-controls="alx3-filter-panel">×</button></header>
+                    <form id="alx3-filter-form" action="<?php echo esc_url(home_url('/autok/')); ?>" method="get" data-autolex-filter-form>
                         <label class="alx3-field alx3-field--wide"><span>Szabad keresés</span><input type="search" name="q" value="<?php echo esc_attr($filters['q']); ?>" placeholder="Márka, modell, motor, motorkód"></label>
                         <label class="alx3-field"><span>Márka</span><select name="make" data-make-select><option value="">Összes márka</option><?php echo $this->options($facets['makes'], $filters['make']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></select></label>
                         <label class="alx3-field"><span>Modell</span><select name="model" data-model-select><option value="">Összes modell</option><?php echo $this->options($facets['models'], $filters['model']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></select></label>
+                        <label class="alx3-field"><span>Generáció</span><input type="text" name="generation" value="<?php echo esc_attr($filters['generation']); ?>" placeholder="pl. E46, Mk7, W204"></label>
                         <label class="alx3-field"><span>Üzemanyag</span><select name="fuel"><option value="">Minden hajtás</option><?php echo $this->options($facets['fuels'], $filters['fuel']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></select></label>
                         <label class="alx3-field"><span>Motorkód</span><input type="text" name="engine_code" value="<?php echo esc_attr($filters['engine_code']); ?>" placeholder="pl. N47D20"></label>
+                        <label class="alx3-field"><span>Ellenőrzési állapot</span><select name="verification"><option value="">Minden állapot</option><?php foreach (array('verified' => 'Több forrással ellenőrzött', 'reviewed' => 'Felülvizsgált', 'vin_required' => 'VIN-ellenőrzés szükséges', 'conflict' => 'Forrásellentmondás', 'proposed' => 'Forrásalapú javaslat', 'provisional' => 'Előzetes hivatalos adat', 'unverified' => 'Ellenőrzésre vár', 'imported' => 'Importált alaprekord') as $value => $label) : ?><option value="<?php echo esc_attr($value); ?>" <?php selected($filters['verification'], $value); ?>><?php echo esc_html($label); ?></option><?php endforeach; ?></select></label>
                         <div class="alx3-field-group"><span>Évjárat</span><label><small>ettől</small><input type="number" name="year_min" min="1950" max="<?php echo esc_attr((string) ((int) gmdate('Y') + 2)); ?>" value="<?php echo esc_attr($filters['year_min']); ?>" placeholder="<?php echo esc_attr((string) ($facets['ranges']['year_min'] ?: 2000)); ?>"></label><label><small>eddig</small><input type="number" name="year_max" min="1950" max="<?php echo esc_attr((string) ((int) gmdate('Y') + 2)); ?>" value="<?php echo esc_attr($filters['year_max']); ?>" placeholder="<?php echo esc_attr((string) ($facets['ranges']['year_max'] ?: gmdate('Y'))); ?>"></label></div>
                         <div class="alx3-field-group"><span>Teljesítmény (LE)</span><label><small>minimum</small><input type="number" name="power_min" min="1" max="2500" value="<?php echo esc_attr($filters['power_min']); ?>" placeholder="50"></label><label><small>maximum</small><input type="number" name="power_max" min="1" max="2500" value="<?php echo esc_attr($filters['power_max']); ?>" placeholder="800"></label></div>
                         <fieldset class="alx3-grade-filter"><legend>Adatminőség</legend><?php foreach (array('' => 'Mindegy', 'A' => 'A – részletes', 'B' => 'B – műszaki alap', 'C' => 'C – alaprekord') as $value => $label) : ?><label><input type="radio" name="grade" value="<?php echo esc_attr($value); ?>" <?php checked($filters['grade'], $value); ?>><span><?php echo esc_html($label); ?></span></label><?php endforeach; ?></fieldset>
@@ -41,9 +43,9 @@ trait Autolex_Portal_Catalog_Trait
 
                 <section class="alx3-results" aria-live="polite">
                     <div class="alx3-results-toolbar">
-                        <button type="button" class="alx3-filter-toggle" data-filter-open><?php echo $this->icon('filter'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> Szűrők</button>
+                        <button type="button" class="alx3-filter-toggle" data-filter-open aria-controls="alx3-filter-panel" aria-expanded="false"><?php echo $this->icon('filter'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?> Szűrők</button>
                         <div><b data-result-count><?php echo esc_html(number_format_i18n($data['total'])); ?></b> találat <span data-active-summary><?php echo esc_html($this->active_filter_summary($filters)); ?></span></div>
-                        <label><span>Rendezés</span><select name="sort" form="alx3-sort-proxy" data-sort-select><?php echo $this->sort_options($filters['sort']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></select></label>
+                        <label><span>Rendezés</span><select name="sort" form="alx3-filter-form" data-sort-select><?php echo $this->sort_options($filters['sort']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></select></label>
                     </div>
                     <div class="alx3-result-status" data-result-status hidden></div>
                     <div class="alx3-vehicle-grid" data-vehicle-grid>
@@ -54,7 +56,6 @@ trait Autolex_Portal_Catalog_Trait
                     </nav>
                 </section>
             </div>
-            <form id="alx3-sort-proxy" hidden></form>
         </main>
         <?php
         return (string) ob_get_clean();
@@ -159,7 +160,13 @@ trait Autolex_Portal_Catalog_Trait
     private function active_filter_summary($filters)
     {
         $active = array_filter(array(
-            $filters['make'], $filters['model'], $filters['fuel'], $filters['engine_code'], $filters['grade'] ? 'minőség ' . $filters['grade'] : '',
+            $filters['make'],
+            $filters['model'],
+            $filters['generation'],
+            $filters['fuel'],
+            $filters['engine_code'],
+            $filters['grade'] ? 'minőség ' . $filters['grade'] : '',
+            $filters['verification'] ? $this->verification_label($filters['verification']) : '',
         ));
         return $active ? '• ' . implode(' • ', $active) : '• minden autó';
     }
