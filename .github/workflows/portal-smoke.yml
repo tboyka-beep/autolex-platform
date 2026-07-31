@@ -42,6 +42,7 @@ jobs:
           php -l tests/vehicle-detail-smoke.php
           php -l tests/vehicle-relations-smoke.php
           php -l tests/vehicle-seo-smoke.php
+          php -l tests/visual-layer-smoke.php
           php -l tests/safety-gate-live-smoke.php
 
       - name: Validate portal JavaScript syntax
@@ -58,6 +59,9 @@ jobs:
 
       - name: Test complete portal design contract
         run: php tests/portal-design-smoke.php
+
+      - name: Test premium visual layer contract
+        run: php tests/visual-layer-smoke.php
 
       - name: Test global search and navigation contract
         run: php tests/global-search-smoke.php
