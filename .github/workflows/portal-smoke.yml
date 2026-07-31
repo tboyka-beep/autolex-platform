@@ -31,9 +31,12 @@ jobs:
           php -l plugin/autolex-platform/includes/class-autolex-portal.php
           php -l plugin/autolex-platform/includes/class-autolex-maintenance-evidence.php
           php -l plugin/autolex-platform/includes/class-autolex-safety-gate.php
+          php -l plugin/autolex-platform/includes/class-autolex-vehicle-comparison.php
+          php -l plugin/autolex-platform/includes/class-autolex-comparison-page.php
           php -l tests/catalog-filter-smoke.php
           php -l tests/portal-design-smoke.php
           php -l tests/global-search-smoke.php
+          php -l tests/vehicle-comparison-smoke.php
           php -l tests/vehicle-detail-smoke.php
           php -l tests/safety-gate-live-smoke.php
 
@@ -53,6 +56,9 @@ jobs:
 
       - name: Test global search and navigation contract
         run: php tests/global-search-smoke.php
+
+      - name: Test vehicle comparison contract
+        run: php tests/vehicle-comparison-smoke.php
 
       - name: Test vehicle detail evidence and commerce contract
         run: php tests/vehicle-detail-smoke.php
