@@ -29,7 +29,7 @@ foreach ($required as $needle) {
     }
 }
 
-foreach (array('is_page(\'autok\')', 'is_main_query()', 'Autolex_Vehicle_Comparison::instance()->render()') as $needle) {
+foreach (array('is_page(\'autok\')', 'is_main_query()', 'Autolex_Vehicle_Comparison::instance()', '$comparison->render()') as $needle) {
     if (false === strpos($bridge, $needle)) {
         fwrite(STDERR, "Missing progressive page bridge: {$needle}\n");
         exit(1);
