@@ -1,12 +1,214 @@
 (() => {
   'use strict';
 
+  const portalScript = document.currentScript?.src || '';
   const ready = (callback) => {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', callback);
     else callback();
   };
 
-  ready(() => {
+  const ensureSearchStyles = () => {
+    if (!portalScript || document.querySelector('link[data-autolex-search-css]')) return;
+    const href = portalScript.replace('/js/autolex-portal-3.js', '/css/autolex-search-3.css').split('?')[0];
+    if (href === portalScript.split('?')[0]) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `${href}?ver=${encodeURIComponent(window.AutolexPortal?.version || '3.3.0')}`;
+    link.dataset.autolexSearchCss = 'true';
+    document.head.appendChild(link);
+  };
+
+  const initGlobalSearch = () => {
+    if (!window.AutolexPortal || !window.fetch) return;
+    const inputs = [...document.querySelectorAll('.alx3-hero-search input[name="q"], [data-autolex-filter-form] input[name="q"]')];
+    inputs.forEach((input, index) => enhanceSearch(input, index));
+    renderNavigation();
+  };
+
+  const enhanceSearch = (input, index) => {
+    const form = input.form;
+    if (!form || input.dataset.autolexCombobox === 'true') return;
+    input.dataset.autolexCombobox = 'true';
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-autocomplete', 'list');
+    input.setAttribute('aria-expanded', 'false');
+    input.setAttribute('aria-haspopup', 'listbox');
+    input.setAttribute('autocomplete', 'off');
+
+    const shell = document.createElement('div');
+    shell.className = 'alx3-search-shell';
+    input.parentNode.insertBefore(shell, input);
+    shell.appendChild(input);
+
+    const listId = `alx3-global-search-${index + 1}`;
+    const list = document.createElement('div');
+    list.id = listId;
+    list.className = 'alx3-search-results';
+    list.setAttribute('role', 'listbox');
+    list.hidden = true;
+    shell.appendChild(list);
+    input.setAttribute('aria-controls', listId);
+
+    let controller;
+    let timer;
+    let activeIndex = -1;
+    let items = [];
+
+    const close = () => {
+      list.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+      activeIndex = -1;
+    };
+
+    const setActive = (next) => {
+      if (!items.length) return;
+      activeIndex = (next + items.length) % items.length;
+      items.forEach((node, itemIndex) => node.classList.toggle('is-active', itemIndex === activeIndex));
+      const active = items[activeIndex];
+      input.setAttribute('aria-activedescendant', active.id);
+      active.scrollIntoView({ block: 'nearest' });
+    };
+
+    const renderMessage = (message, state = '') => {
+      list.className = `alx3-search-results${state ? ` is-${state}` : ''}`;
+      list.innerHTML = `<div class="alx3-search-message" role="status">${html(message)}</div>`;
+      list.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+      items = [];
+      activeIndex = -1;
+    };
+
+    const renderItems = (vehicles, query) => {
+      list.className = 'alx3-search-results';
+      if (!vehicles.length) {
+        renderMessage('Nincs közvetlen találat. Enterrel megnyithatod a teljes katalóguskeresést.', 'empty');
+        return;
+      }
+      const allResultsUrl = new URL(AutolexPortal.catalogUrl);
+      allResultsUrl.searchParams.set('q', query);
+      list.innerHTML = vehicles.map((vehicle, itemIndex) => {
+        const title = [vehicle.make, vehicle.model, vehicle.generation].filter(Boolean).join(' ');
+        const meta = [vehicle.engine_code || vehicle.engine, vehicle.years].filter(Boolean).join(' • ');
+        return `<a id="${listId}-option-${itemIndex}" role="option" href="${attr(vehicle.url)}" data-search-option>
+          <span class="alx3-search-mark">${html(initials(vehicle.make))}</span>
+          <span><strong>${html(title)}</strong><small>${html(meta || 'Járműadatlap')}</small></span>
+          <b>${html(vehicle.data_grade || 'C')}</b>
+        </a>`;
+      }).join('') + `<a class="alx3-search-all" href="${attr(allResultsUrl.toString())}">Minden találat megnyitása →</a>`;
+      list.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+      items = [...list.querySelectorAll('[data-search-option]')];
+      activeIndex = -1;
+    };
+
+    const search = async () => {
+      const query = input.value.trim();
+      if (query.length < 2) {
+        close();
+        return;
+      }
+      controller?.abort();
+      controller = new AbortController();
+      renderMessage('Találatok keresése…', 'loading');
+      try {
+        const url = new URL(AutolexPortal.vehiclesEndpoint);
+        url.searchParams.set('q', query);
+        url.searchParams.set('limit', '7');
+        url.searchParams.set('page', '1');
+        url.searchParams.set('sort', 'data_desc');
+        const response = await fetch(url, { headers: { Accept: 'application/json' }, signal: controller.signal });
+        if (!response.ok) throw new Error('request_failed');
+        const data = await response.json();
+        renderItems(Array.isArray(data.items) ? data.items : [], query);
+      } catch (error) {
+        if (error.name === 'AbortError') return;
+        renderMessage('Az élő keresés átmenetileg nem érhető el. Enterrel a szerveroldali keresés továbbra is használható.', 'error');
+      }
+    };
+
+    input.addEventListener('input', () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(search, 260);
+    });
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' && !list.hidden) {
+        event.preventDefault();
+        setActive(activeIndex + 1);
+      } else if (event.key === 'ArrowUp' && !list.hidden) {
+        event.preventDefault();
+        setActive(activeIndex - 1);
+      } else if (event.key === 'Enter' && activeIndex >= 0 && items[activeIndex]) {
+        event.preventDefault();
+        window.location.assign(items[activeIndex].href);
+      } else if (event.key === 'Escape') {
+        close();
+      }
+    });
+    input.addEventListener('focus', () => {
+      if (list.innerHTML && input.value.trim().length >= 2) {
+        list.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+      }
+    });
+    list.addEventListener('mousemove', (event) => {
+      const option = event.target.closest('[data-search-option]');
+      const optionIndex = items.indexOf(option);
+      if (optionIndex >= 0) setActive(optionIndex);
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (!shell.contains(event.target)) close();
+    });
+  };
+
+  const renderNavigation = () => {
+    const catalog = document.querySelector('.alx3-catalog');
+    if (!catalog || catalog.querySelector('[data-autolex-breadcrumbs]')) return;
+    const params = new URLSearchParams(window.location.search);
+    const crumbs = [{ label: 'Főoldal', url: '/' }, { label: 'Autókatalógus', url: AutolexPortal.catalogUrl }];
+    ['make', 'model', 'generation'].forEach((key) => {
+      const value = params.get(key);
+      if (!value) return;
+      const url = new URL(AutolexPortal.catalogUrl);
+      ['make', 'model', 'generation'].forEach((allowed) => {
+        const part = params.get(allowed);
+        if (part) url.searchParams.set(allowed, part);
+        if (allowed === key) return;
+      });
+      crumbs.push({ label: value, url: url.toString() });
+    });
+    const nav = document.createElement('nav');
+    nav.className = 'alx3-breadcrumbs';
+    nav.dataset.autolexBreadcrumbs = 'true';
+    nav.setAttribute('aria-label', 'Morzsamenü');
+    nav.innerHTML = crumbs.map((crumb, index) => index === crumbs.length - 1
+      ? `<span aria-current="page">${html(crumb.label)}</span>`
+      : `<a href="${attr(crumb.url)}">${html(crumb.label)}</a>`).join('<b aria-hidden="true">/</b>');
+    catalog.prepend(nav);
+
+    const form = document.querySelector('[data-autolex-filter-form]');
+    if (!form) return;
+    const quick = document.createElement('div');
+    quick.className = 'alx3-quick-routes';
+    quick.setAttribute('aria-label', 'Gyors keresési útvonalak');
+    const links = [
+      ['Márka kiválasztása', form.querySelector('[name="make"]')?.value],
+      ['Modell pontosítása', form.querySelector('[name="model"]')?.value],
+      ['Motorkód keresése', form.querySelector('[name="engine_code"]')?.value],
+    ];
+    quick.innerHTML = links.map(([label, value]) => `<button type="button" data-focus-field="${attr(label)}">${value ? `${html(label)}: ${html(value)}` : html(label)}</button>`).join('');
+    form.prepend(quick);
+    quick.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-focus-field]');
+      if (!button) return;
+      const map = { 'Márka kiválasztása': 'make', 'Modell pontosítása': 'model', 'Motorkód keresése': 'engine_code' };
+      const field = form.elements[map[button.dataset.focusField]];
+      field?.focus();
+      field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  };
+
+  const initCatalogue = () => {
     const form = document.querySelector('[data-autolex-filter-form]');
     const grid = document.querySelector('[data-vehicle-grid]');
     const pagination = document.querySelector('[data-pagination]');
@@ -35,6 +237,7 @@
 
     let controller;
     let timer;
+    const searchInput = form.querySelector('input[name="q"]');
 
     const currentParams = () => {
       const params = new URLSearchParams(new FormData(form));
@@ -84,6 +287,7 @@
     };
 
     form.addEventListener('submit', (event) => {
+      if (event.submitter?.closest('.alx3-hero-search')) return;
       event.preventDefault();
       load(1);
     });
@@ -103,9 +307,9 @@
       }
       timer = window.setTimeout(() => load(1), 120);
     });
-    form.querySelector('input[name="q"]')?.addEventListener('input', () => {
+    searchInput?.addEventListener('input', () => {
       window.clearTimeout(timer);
-      timer = window.setTimeout(() => load(1), 380);
+      timer = window.setTimeout(() => load(1), 520);
     });
     pagination.addEventListener('click', (event) => {
       const link = event.target.closest('[data-page]');
@@ -128,6 +332,12 @@
         // The server-rendered form remains fully usable without this enhancement.
       }
     };
+  };
+
+  ready(() => {
+    ensureSearchStyles();
+    initGlobalSearch();
+    initCatalogue();
   });
 
   const vehicleCard = (vehicle) => `
