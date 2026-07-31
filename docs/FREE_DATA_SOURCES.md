@@ -22,16 +22,31 @@ hozzáférés engedélyezését.
 
 ### 2. Eurostat közúti közlekedési adatok
 
-- Hivatalos, nyilvános REST API.
-- Ország-, év- és hajtáslánc-szintű járműállomány és új regisztráció.
-- Piaci háttérgrafikonokhoz és trendekhez, nem egyedi járműspecifikációhoz.
+- Hivatalos, ingyenes Statistics API, JSON-stat 2.0 válaszformátummal.
+- Az Autolex csak az allowlistes `ec.europa.eu` hostot és az előre engedélyezett
+  közúti járműállomány-/regisztrációs adatsorokat fogadja el.
+- Beépített korlátok: 25 másodperces timeout, átirányítás tiltása, 4 MB
+  válaszméret, legfeljebb 1 millió deklarált cella, séma- és dimenzióellenőrzés,
+  hatórás cache.
+- Használható: ország-, év- és hajtáslánc-szintű járműállomány,
+  regisztráció és piaci háttérgrafikonok.
+- Nem használható egyedi jármű, motorkód, karbantartási specifikáció vagy
+  alkatrészillesztés `verified` bizonyítékaként.
 
 ### 3. European Alternative Fuels Observatory
 
 - Hivatalos európai alternatívhajtás- és infrastruktúra-adatok.
-- BEV, PHEV, hidrogén, LPG, CNG és LNG piac, állomány és regisztráció.
-- Az automatizálás csak stabil letöltési formátum és felhasználási feltétel
-  ellenőrzése után indulhat.
+- Az EAFO a grafikonok nagy részéhez CSV/XLS letöltést biztosít, de az Autolex
+  által igazolt, stabil nyilvános gépi API jelenleg nincs.
+- Emiatt automatizált scraping tilos. Import csak kézzel letöltött hivatalos
+  fájlból, forrás-URL-t, referencia-időszakot, letöltési időt, fájlméretet és
+  SHA-256 ujjlenyomatot tartalmazó manifeszttel indulhat.
+- Az adapter csak az
+  `alternative-fuels-observatory.ec.europa.eu` hostot, 10 MB alatti CSV/XLSX
+  fájlt és az előre engedélyezett AF-flotta-, regisztráció-, piaci részesedés-,
+  töltő- és üzemanyag-infrastruktúra adatkört fogadja el.
+- Az importált statisztika `source_download_validated`, nem egyedi járműre
+  vonatkozó `verified` állapotot kap.
 
 ### 4. EU Safety Gate
 
@@ -61,8 +76,8 @@ engedély nélküli tömeges scraping és fórumállítás nem lehet ellenőrzö
 
 ## Következő adatfázisok
 
-1. Safety Gate éles első importjának és heti frissülésének production ellenőrzése.
-2. Eurostat járműállomány és regisztrációs trendek.
-3. EAFO alternatívhajtás-adatok és magyar országprofil.
+1. Safety Gate első élő importjának és heti frissülésének hálózati ellenőrzése.
+2. Eurostat járműállomány és regisztrációs mintalekérések tartós tárolása.
+3. EAFO hivatalos CSV-manifeszt és ellenőrzött magyar országprofil importja.
 4. Típusjóváhagyási dokumentum-kapcsolatok.
 5. Márkánkénti OEM kézikönyv-allowlist és karbantartási bizonyíték.
