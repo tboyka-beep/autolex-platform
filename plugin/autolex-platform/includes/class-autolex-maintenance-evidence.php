@@ -145,8 +145,14 @@ final class Autolex_Maintenance_Evidence
         }
         wp_enqueue_script('autolex-maintenance-evidence', plugins_url('assets/js/autolex-maintenance-evidence.js', AUTOLEX_PLATFORM_FILE), array(), AUTOLEX_PLATFORM_VERSION, true);
         wp_localize_script('autolex-maintenance-evidence', 'AutolexMaintenance', array(
-            'endpoint' => esc_url_raw(rest_url('autolex/v1/maintenance/')),
-            'version'  => AUTOLEX_PLATFORM_VERSION,
+            'endpoint'        => esc_url_raw(rest_url('autolex/v1/maintenance/')),
+            'recallsEndpoint' => esc_url_raw(rest_url('autolex/v1/recalls')),
+            'catalogUrl'      => esc_url_raw(home_url('/autok/')),
+            'version'         => AUTOLEX_PLATFORM_VERSION,
+            'labels'          => array(
+                'loading' => __('Adatlap bizonyítékainak betöltése…', 'autolex-platform'),
+                'error'   => __('A kiegészítő adatforrások átmenetileg nem érhetők el.', 'autolex-platform'),
+            ),
         ));
     }
 
@@ -165,11 +171,17 @@ final class Autolex_Maintenance_Evidence
                 $claim['id']
             ), ARRAY_A);
             $items[] = array(
-                'key' => $claim['field_key'], 'label' => $claim['label'], 'value' => $claim['value_text'],
-                'note' => $claim['note_text'], 'status' => $claim['status'], 'confidence' => (int) $claim['confidence'],
-                'checked_at' => $claim['checked_at'], 'sources' => array_map(array($this, 'public_source'), $sources),
+                'key'        => $claim['field_key'],
+                'label'      => $claim['label'],
+                'value'      => $claim['value_text'],
+                'note'       => $claim['note_text'],
+                'status'     => $claim['status'],
+                'confidence' => (int) $claim['confidence'],
+                'checked_at' => $claim['checked_at'],
+                'sources'    => array_map(array($this, 'public_source'), $sources),
             );
         }
+
         $rules = $wpdb->get_results($wpdb->prepare(
             'SELECT category_key, label, required_spec, search_query, rule_type, fallback_reason, product_title, product_url, image_url, price_text FROM ' . self::rules_table() . ' WHERE legacy_vehicle_id = %d ORDER BY priority DESC',
             $vehicle_id
@@ -177,37 +189,140 @@ final class Autolex_Maintenance_Evidence
         foreach ($rules as &$rule) {
             $target = $rule['product_url'] ?: 'https://www.frissauto.hu/shop_search.php';
             $args   = array(
-                'utm_source' => 'autolex', 'utm_medium' => 'vehicle-fitment',
+                'utm_source'   => 'autolex',
+                'utm_medium'   => 'vehicle-fitment',
                 'utm_campaign' => 'maintenance-evidence',
             );
             if (!$rule['product_url']) {
                 $args['search'] = $rule['search_query'];
             }
             $rule['url'] = add_query_arg($args, $target);
+            $rule['fitment'] = 'fallback' === $rule['rule_type']
+                ? 'universal'
+                : ($rule['product_url'] ? 'matched_product' : 'specification_search');
         }
         unset($rule);
+
         $unique_sources = array();
         foreach ($items as $item) {
             foreach ($item['sources'] as $source) {
                 $unique_sources[$source['key']] = $source;
             }
         }
+        $sources = array_values($unique_sources);
+        $vehicle = $this->get_vehicle_summary($vehicle_id);
+        $primary_sources = count(array_filter($sources, static function ($source) {
+            return !empty($source['primary']);
+        }));
+        $vin_claims = count(array_filter($items, static function ($claim) {
+            return in_array((string) ($claim['status'] ?? ''), array('needs_vin', 'vin_required'), true);
+        }));
+        $exact_rules = count(array_filter($rules, static function ($rule) {
+            return 'fallback' !== (string) ($rule['rule_type'] ?? '');
+        }));
+        $matched_products = count(array_filter($rules, static function ($rule) {
+            return 'matched_product' === (string) ($rule['fitment'] ?? '');
+        }));
+        $fallback_rules = count(array_filter($rules, static function ($rule) {
+            return 'fallback' === (string) ($rule['rule_type'] ?? '');
+        }));
+
         return array(
-            'vehicle_id' => $vehicle_id, 'engine_code' => $claims[0]['engine_code'] ?? '',
-            'claims' => $items, 'sources' => array_values($unique_sources), 'recommendations' => $rules,
-            'status' => $items ? 'ok' : 'empty',
-            'disclaimer' => __('A szín nem helyettesíti a gyártói folyadékspecifikációt. Vásárlás előtt VIN és motorkód alapján ellenőrizd a kompatibilitást.', 'autolex-platform'),
+            'vehicle_id'      => $vehicle_id,
+            'vehicle'         => $vehicle,
+            'engine_code'     => $claims[0]['engine_code'] ?? ($vehicle['engine_code'] ?? ''),
+            'claims'          => $items,
+            'sources'         => $sources,
+            'recommendations' => $rules,
+            'summary'         => array(
+                'claim_count'        => count($items),
+                'source_count'       => count($sources),
+                'primary_sources'    => $primary_sources,
+                'vin_claims'         => $vin_claims,
+                'exact_rules'        => $exact_rules,
+                'matched_products'   => $matched_products,
+                'fallback_rules'     => $fallback_rules,
+                'has_evidence'       => (bool) $items,
+                'has_primary_source' => $primary_sources > 0,
+            ),
+            'status'          => ($items || $rules || array_filter($vehicle)) ? 'ok' : 'empty',
+            'disclaimer'      => __('A szín nem helyettesíti a gyártói folyadékspecifikációt. Vásárlás előtt VIN és motorkód alapján ellenőrizd a kompatibilitást.', 'autolex-platform'),
         );
+    }
+
+    /** @return array<string,mixed> */
+    private function get_vehicle_summary($vehicle_id)
+    {
+        global $wpdb;
+        $empty = array(
+            'id'          => $vehicle_id,
+            'make'        => '',
+            'model'       => '',
+            'generation'  => '',
+            'engine'      => '',
+            'engine_code' => '',
+            'fuel_type'   => '',
+            'capacity_cc' => 0,
+            'power_kw'    => 0,
+            'power_ps'    => 0,
+            'year_from'   => 0,
+            'year_to'     => 0,
+            'title'       => '',
+        );
+        if (!class_exists('Autolex_Catalog_Browser')) {
+            return $empty;
+        }
+        $map = Autolex_Catalog_Browser::instance()->get_legacy_mapping();
+        if (!$map || empty($map['table']) || empty($map['id'])) {
+            return $empty;
+        }
+        foreach (array_merge(array('table'), array_values($map)) as $identifier) {
+            if ('' !== $identifier && !preg_match('/^[A-Za-z0-9_]+$/', (string) $identifier)) {
+                return $empty;
+            }
+        }
+        $select = array();
+        foreach (array('id', 'make', 'model', 'generation', 'engine', 'engine_code', 'fuel_type', 'capacity_cc', 'power_kw', 'power_ps', 'year_from', 'year_to') as $field) {
+            $select[] = !empty($map[$field])
+                ? '`' . $map[$field] . '` AS `' . $field . '`'
+                : "'' AS `{$field}`";
+        }
+        $sql = 'SELECT ' . implode(', ', $select) . ' FROM `' . $map['table'] . '` WHERE `' . $map['id'] . '` = %d LIMIT 1';
+        $row = $wpdb->get_row($wpdb->prepare($sql, $vehicle_id), ARRAY_A); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        if (!is_array($row)) {
+            return $empty;
+        }
+        $vehicle = array(
+            'id'          => absint($row['id'] ?? $vehicle_id),
+            'make'        => trim((string) ($row['make'] ?? '')),
+            'model'       => trim((string) ($row['model'] ?? '')),
+            'generation'  => trim((string) ($row['generation'] ?? '')),
+            'engine'      => trim((string) ($row['engine'] ?? '')),
+            'engine_code' => trim((string) ($row['engine_code'] ?? '')),
+            'fuel_type'   => trim((string) ($row['fuel_type'] ?? '')),
+            'capacity_cc' => absint($row['capacity_cc'] ?? 0),
+            'power_kw'    => is_numeric($row['power_kw'] ?? null) ? round((float) $row['power_kw'], 1) : 0,
+            'power_ps'    => is_numeric($row['power_ps'] ?? null) ? round((float) $row['power_ps'], 1) : 0,
+            'year_from'   => absint($row['year_from'] ?? 0),
+            'year_to'     => absint($row['year_to'] ?? 0),
+        );
+        $vehicle['title'] = trim(implode(' ', array_filter(array($vehicle['make'], $vehicle['model'], $vehicle['generation']))));
+        return array_merge($empty, $vehicle);
     }
 
     /** @return array<string,mixed> */
     private function public_source($source)
     {
         return array(
-            'key' => $source['source_key'], 'publisher' => $source['publisher'], 'title' => $source['title'],
-            'type' => $source['source_type'], 'url' => esc_url_raw($source['source_url']),
-            'primary' => (bool) $source['is_primary'], 'checked_at' => $source['checked_at'],
-            'support' => $source['support_level'], 'note' => $source['source_note'],
+            'key'        => $source['source_key'],
+            'publisher'  => $source['publisher'],
+            'title'      => $source['title'],
+            'type'       => $source['source_type'],
+            'url'        => esc_url_raw($source['source_url']),
+            'primary'    => (bool) $source['is_primary'],
+            'checked_at' => $source['checked_at'],
+            'support'    => $source['support_level'],
+            'note'       => $source['source_note'],
         );
     }
 
