@@ -45,9 +45,9 @@ final class Autolex_Vehicle_SEO
         $cached = get_transient($cache_key);
         if (is_array($cached)) {
             $this->vehicle = $cached;
-        } elseif (class_exists('Autolex_Vehicle_Relations')) {
-            $snapshot = Autolex_Vehicle_Relations::instance()->get_vehicle_snapshot($vehicle_id);
-            if (is_array($snapshot) && !empty($snapshot['id']) && !empty($snapshot['make']) && !empty($snapshot['model'])) {
+        } else {
+            $snapshot = $this->load_vehicle($vehicle_id);
+            if ($snapshot) {
                 $this->vehicle = $snapshot;
                 set_transient($cache_key, $snapshot, 15 * MINUTE_IN_SECONDS);
             }
@@ -95,6 +95,48 @@ final class Autolex_Vehicle_SEO
             array('@context' => 'https://schema.org', '@graph' => $graph),
             JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
         ) . '</script>' . "\n";
+    }
+
+    /** @return array<string,mixed>|false */
+    private function load_vehicle($vehicle_id)
+    {
+        global $wpdb;
+        if (!class_exists('Autolex_Catalog_Browser')) {
+            return false;
+        }
+        $map = Autolex_Catalog_Browser::instance()->get_legacy_mapping();
+        if (!$map || empty($map['table']) || empty($map['id']) || empty($map['make']) || empty($map['model'])) {
+            return false;
+        }
+        foreach (array_merge(array($map['table']), array_values($map)) as $identifier) {
+            if ('' !== $identifier && !preg_match('/^[A-Za-z0-9_]+$/', (string) $identifier)) {
+                return false;
+            }
+        }
+        $fields = array('id','make','model','generation','engine','engine_code','fuel_type','capacity_cc','power_kw','power_ps','year_from','year_to');
+        $select = array();
+        foreach ($fields as $field) {
+            $select[] = !empty($map[$field]) ? '`' . $map[$field] . '` AS `' . $field . '`' : "'' AS `{$field}`";
+        }
+        $sql = 'SELECT ' . implode(', ', $select) . ' FROM `' . $map['table'] . '` WHERE `' . $map['id'] . '` = %d LIMIT 1';
+        $row = $wpdb->get_row($wpdb->prepare($sql, $vehicle_id), ARRAY_A); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+        if (!is_array($row)) {
+            return false;
+        }
+        return array(
+            'id' => absint($row['id'] ?? 0),
+            'make' => trim((string) ($row['make'] ?? '')),
+            'model' => trim((string) ($row['model'] ?? '')),
+            'generation' => trim((string) ($row['generation'] ?? '')),
+            'engine' => trim((string) ($row['engine'] ?? '')),
+            'engine_code' => trim((string) ($row['engine_code'] ?? '')),
+            'fuel_type' => trim((string) ($row['fuel_type'] ?? '')),
+            'capacity_cc' => absint($row['capacity_cc'] ?? 0),
+            'power_kw' => is_numeric($row['power_kw'] ?? null) ? round((float) $row['power_kw'], 1) : 0,
+            'power_ps' => is_numeric($row['power_ps'] ?? null) ? round((float) $row['power_ps'], 1) : 0,
+            'year_from' => absint($row['year_from'] ?? 0),
+            'year_to' => absint($row['year_to'] ?? 0),
+        );
     }
 
     /** @return int */
@@ -153,19 +195,22 @@ final class Autolex_Vehicle_SEO
             'brand' => array('@type' => 'Brand', 'name' => trim((string) ($vehicle['make'] ?? ''))),
             'model' => trim((string) ($vehicle['model'] ?? '')),
         );
-        $optional = array(
-            'vehicleConfiguration' => trim(implode(' ', array_filter(array(
-                trim((string) ($vehicle['generation'] ?? '')),
-                trim((string) ($vehicle['engine'] ?? '')),
-                trim((string) ($vehicle['engine_code'] ?? '')),
-            )))),
-            'fuelType' => trim((string) ($vehicle['fuel_type'] ?? '')),
-        );
+        $configuration = trim(implode(' ', array_filter(array(
+            trim((string) ($vehicle['generation'] ?? '')),
+            trim((string) ($vehicle['engine'] ?? '')),
+            trim((string) ($vehicle['engine_code'] ?? '')),
+        ))));
+        if ($configuration) {
+            $vehicle_schema['vehicleConfiguration'] = $configuration;
+        }
+        if (!empty($vehicle['fuel_type'])) {
+            $vehicle_schema['fuelType'] = trim((string) $vehicle['fuel_type']);
+        }
         if (!empty($vehicle['year_from'])) {
-            $optional['vehicleModelDate'] = (string) absint($vehicle['year_from']);
+            $vehicle_schema['vehicleModelDate'] = (string) absint($vehicle['year_from']);
         }
         if (!empty($vehicle['capacity_cc'])) {
-            $optional['vehicleEngine'] = array(
+            $vehicle_schema['vehicleEngine'] = array(
                 '@type' => 'EngineSpecification',
                 'engineDisplacement' => array(
                     '@type' => 'QuantitativeValue',
@@ -173,11 +218,6 @@ final class Autolex_Vehicle_SEO
                     'unitCode' => 'CMQ',
                 ),
             );
-        }
-        foreach ($optional as $key => $value) {
-            if ('' !== $value && array() !== $value) {
-                $vehicle_schema[$key] = $value;
-            }
         }
         return array(
             $vehicle_schema,
