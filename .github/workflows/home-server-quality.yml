@@ -53,6 +53,7 @@ jobs:
           php tests/eea-sync-smoke.php
           php tests/engine-catalog-smoke.php
           php tests/eurostat-smoke.php
+          php tests/eafo-smoke.php
 
       - name: Run portal and Safety Gate smoke tests
         run: |
