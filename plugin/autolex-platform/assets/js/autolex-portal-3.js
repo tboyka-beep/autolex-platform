@@ -18,10 +18,20 @@
     const open = document.querySelector('[data-filter-open]');
     const close = document.querySelector('[data-filter-close]');
 
-    open?.addEventListener('click', () => panel?.classList.add('is-open'));
-    close?.addEventListener('click', () => panel?.classList.remove('is-open'));
+    const setPanel = (isOpen) => {
+      panel?.classList.toggle('is-open', isOpen);
+      open?.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      if (isOpen) panel?.querySelector('input, select, button')?.focus();
+      else open?.focus();
+    };
 
-    if (!form || !grid || !window.AutolexPortal || !window.fetch) return;
+    open?.addEventListener('click', () => setPanel(true));
+    close?.addEventListener('click', () => setPanel(false));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && panel?.classList.contains('is-open')) setPanel(false);
+    });
+
+    if (!form || !grid || !pagination || !status || !window.AutolexPortal || !window.fetch) return;
 
     let controller;
     let timer;
@@ -63,7 +73,7 @@
           params.forEach((value, key) => browserUrl.searchParams.set(key, value));
           window.history.replaceState({}, '', browserUrl);
         }
-        panel?.classList.remove('is-open');
+        setPanel(false);
       } catch (error) {
         if (error.name === 'AbortError') return;
         status.hidden = false;
@@ -79,15 +89,25 @@
     });
     sort?.addEventListener('change', () => load(1));
     form.addEventListener('change', (event) => {
-      if (event.target === make) updateModels(make.value);
       window.clearTimeout(timer);
+      if (event.target === make) {
+        if (model) {
+          model.value = '';
+          model.disabled = true;
+        }
+        updateModels(make.value).finally(() => {
+          if (model) model.disabled = false;
+          load(1);
+        });
+        return;
+      }
       timer = window.setTimeout(() => load(1), 120);
     });
     form.querySelector('input[name="q"]')?.addEventListener('input', () => {
       window.clearTimeout(timer);
       timer = window.setTimeout(() => load(1), 380);
     });
-    pagination?.addEventListener('click', (event) => {
+    pagination.addEventListener('click', (event) => {
       const link = event.target.closest('[data-page]');
       if (!link) return;
       event.preventDefault();
@@ -142,7 +162,7 @@
     return `${previous}<span>${data.page} / ${data.pages} oldal</span>${next}`;
   };
   const filterSummary = (params) => {
-    const labels = ['make', 'model', 'fuel', 'engine_code', 'grade'].map((key) => params.get(key)).filter(Boolean);
+    const labels = ['make', 'model', 'generation', 'fuel', 'engine_code', 'grade', 'verification'].map((key) => params.get(key)).filter(Boolean);
     return labels.length ? `• ${labels.join(' • ')}` : '• minden autó';
   };
   const initials = (value) => String(value || 'AL').trim().split(/[\s-]+/).slice(0, 2).map((part) => part[0] || '').join('').toUpperCase();
