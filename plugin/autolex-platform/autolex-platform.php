@@ -30,6 +30,7 @@ require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eurostat.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eafo.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-comparison.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-relations.php';
+require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-seo.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-portal.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-comparison-page.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-operations-center.php';
@@ -47,6 +48,7 @@ function autolex_platform()
     Autolex_Safety_Gate::instance();
     Autolex_Vehicle_Comparison::instance();
     Autolex_Vehicle_Relations::instance();
+    Autolex_Vehicle_SEO::instance();
     Autolex_Portal::instance();
     Autolex_Comparison_Page::instance();
     Autolex_Operations_Center::instance();
