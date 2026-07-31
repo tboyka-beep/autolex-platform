@@ -31,6 +31,7 @@ jobs:
           php -l plugin/autolex-platform/includes/class-autolex-portal.php
           php -l plugin/autolex-platform/includes/class-autolex-safety-gate.php
           php -l tests/catalog-filter-smoke.php
+          php -l tests/portal-design-smoke.php
           php -l tests/safety-gate-live-smoke.php
 
       - name: Validate portal JavaScript syntax
@@ -41,6 +42,9 @@ jobs:
 
       - name: Test catalogue filter contracts
         run: php tests/catalog-filter-smoke.php
+
+      - name: Test complete portal design contract
+        run: php tests/portal-design-smoke.php
 
       - name: Test Safety Gate alert normalization
         run: php tests/safety-gate-smoke.php
