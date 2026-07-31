@@ -146,6 +146,12 @@ final class Autolex_Portal
         add_filter('the_content', array($this, 'render_portal_page'), 80);
     }
 
+    /** @return bool */
+    private function is_vehicle_detail_request()
+    {
+        return false !== strpos((string) ($_SERVER['REQUEST_URI'] ?? ''), '/auto-adatlap/');
+    }
+
     /** @return void */
     public function register_routes()
     {
@@ -209,7 +215,8 @@ final class Autolex_Portal
     /** @return void */
     public function enqueue_assets()
     {
-        if (is_admin() || !(is_front_page() || is_page('autok') || is_singular('alx_vehicle'))) {
+        $is_detail = $this->is_vehicle_detail_request();
+        if (is_admin() || !(is_front_page() || is_page('autok') || is_singular('alx_vehicle') || $is_detail)) {
             return;
         }
 
@@ -245,10 +252,13 @@ final class Autolex_Portal
     /** @param string[] $classes Body classes. @return string[] */
     public function add_body_class($classes)
     {
-        if (is_front_page() || is_page('autok') || is_singular('alx_vehicle')) {
+        if (is_front_page() || is_page('autok') || is_singular('alx_vehicle') || $this->is_vehicle_detail_request()) {
             $classes[] = 'autolex-portal-3';
         }
-        return $classes;
+        if ($this->is_vehicle_detail_request()) {
+            $classes[] = 'autolex-vehicle-detail';
+        }
+        return array_values(array_unique($classes));
     }
 
     /** @return WP_REST_Response */
