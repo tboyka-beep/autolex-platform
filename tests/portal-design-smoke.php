@@ -49,10 +49,24 @@ if (false === strpos($css, 'grid-template-columns:repeat(3,minmax(0,1fr))')) {
     fwrite(STDERR, "Desktop information-card layout is missing.\n");
     exit(1);
 }
-if (false === strpos($home, 'alx3-source-grid') || false === strpos($home, 'alx3-method') || false === strpos($home, 'alx3-final-cta')) {
-    fwrite(STDERR, "Homepage premium sections are not rendered.\n");
-    exit(1);
+
+$required_home_sections = array(
+    'alx3-home-light',
+    'alx3-home-shortcuts',
+    'alx3-home-model-grid',
+    'alx3-home-recent-grid',
+    'alx3-home-service-grid',
+    'alx3-make-grid',
+    'alx3-metrics',
+    'alx3-empty-state',
+);
+foreach ($required_home_sections as $section) {
+    if (false === strpos($home, $section)) {
+        fwrite(STDERR, "Light homepage section is not rendered: {$section}\n");
+        exit(1);
+    }
 }
+
 if (false === strpos($catalog, 'alx3-vehicle-grid') || false === strpos($catalog, 'alx3-results-toolbar')) {
     fwrite(STDERR, "Catalogue premium layout is not rendered.\n");
     exit(1);
