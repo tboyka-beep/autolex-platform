@@ -1,0 +1,138 @@
+/* ALX-033 R4 — light, scan-friendly catalogue and vehicle cards. */
+body.autolex-portal-3 .alx3-catalog {
+  width:min(100% - 32px,1480px);
+  padding-block:clamp(1.25rem,3vw,3rem) 6rem;
+}
+
+body.autolex-portal-3 .alx3-catalog-hero {
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:end;
+  gap:2rem;
+  padding:clamp(2rem,5vw,4.75rem);
+  border:1px solid #d9e4f1;
+  border-radius:28px;
+  background:linear-gradient(135deg,#fff 0%,#f7fbff 62%,#edf5ff 100%);
+  box-shadow:0 22px 64px rgba(15,35,65,.1);
+  overflow:hidden;
+}
+body.autolex-portal-3 .alx3-catalog-hero:after {
+  content:"";
+  position:absolute;
+  width:340px;
+  height:340px;
+  right:-120px;
+  top:-170px;
+  border-radius:50%;
+  background:rgba(23,105,224,.08);
+  box-shadow:0 0 0 62px rgba(23,105,224,.025);
+  pointer-events:none;
+}
+body.autolex-portal-3 .alx3-catalog-hero > * { position:relative;z-index:1; }
+body.autolex-portal-3 .alx3-catalog-hero h1 {
+  max-width:13ch;
+  margin:.8rem 0 1rem;
+  color:var(--alx-text)!important;
+  font-size:clamp(2.7rem,5vw,5.6rem);
+  line-height:.94;
+  letter-spacing:-.065em;
+}
+body.autolex-portal-3 .alx3-catalog-hero h1 em { color:var(--alx-primary);font-style:normal; }
+body.autolex-portal-3 .alx3-catalog-hero p { max-width:760px;margin:0;color:var(--alx-text-soft);font-size:1.05rem; }
+body.autolex-portal-3 .alx3-catalog-hero > aside {
+  min-width:220px;
+  padding:1.35rem 1.5rem;
+  border:1px solid var(--alx-border);
+  border-radius:20px;
+  background:rgba(255,255,255,.9);
+  box-shadow:var(--alx-shadow-sm);
+}
+body.autolex-portal-3 .alx3-catalog-hero > aside strong { display:block;color:var(--alx-primary);font-size:2.5rem;line-height:1;letter-spacing:-.05em; }
+body.autolex-portal-3 .alx3-catalog-hero > aside span,
+body.autolex-portal-3 .alx3-catalog-hero > aside small { display:block;margin-top:.45rem;color:var(--alx-muted); }
+
+body.autolex-portal-3 .alx3-catalog-layout { grid-template-columns:320px minmax(0,1fr);gap:1.25rem;margin-top:1.25rem; }
+body.autolex-portal-3 .alx3-filters {
+  top:94px;
+  border-color:var(--alx-border);
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 12px 34px rgba(15,35,65,.08);
+}
+body.autolex-portal-3 .alx3-filters > header { background:#f7faff;border-color:var(--alx-border); }
+body.autolex-portal-3 .alx3-filters > header span { color:var(--alx-primary); }
+body.autolex-portal-3 .alx3-filters form { gap:1rem;padding:1.25rem; }
+body.autolex-portal-3 .alx3-field > span,
+body.autolex-portal-3 .alx3-field-group > span,
+body.autolex-portal-3 .alx3-grade-filter legend { color:var(--alx-text-soft); }
+body.autolex-portal-3 .alx3-field input,
+body.autolex-portal-3 .alx3-field select,
+body.autolex-portal-3 .alx3-field-group input,
+body.autolex-portal-3 .alx3-results-toolbar select { border-color:var(--alx-border-strong)!important;border-radius:12px!important;background:#fff!important;color:var(--alx-text)!important; }
+body.autolex-portal-3 .alx3-grade-filter span { min-height:42px;display:grid;place-items:center;background:var(--alx-surface-soft);border-color:var(--alx-border); }
+body.autolex-portal-3 .alx3-grade-filter input:checked + span { border-color:var(--alx-primary);background:var(--alx-primary-soft);color:var(--alx-primary-hover);box-shadow:inset 0 0 0 1px var(--alx-primary); }
+body.autolex-portal-3 .alx3-filter-submit { background:linear-gradient(135deg,var(--alx-primary),var(--alx-primary-hover));box-shadow:0 10px 24px rgba(23,105,224,.22); }
+
+body.autolex-portal-3 .alx3-results-toolbar {
+  top:90px;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  min-height:70px;
+  padding:.8rem 1rem;
+  border-color:var(--alx-border);
+  border-radius:16px;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 10px 30px rgba(15,35,65,.08);
+}
+body.autolex-portal-3 .alx3-results-toolbar > div > b { color:var(--alx-primary);font-size:1.3rem; }
+body.autolex-portal-3 .alx3-filter-toggle { border-color:var(--alx-border);background:var(--alx-primary-soft);color:var(--alx-primary-hover); }
+
+body.autolex-portal-3 .alx3-vehicle-grid { grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1rem; }
+body.autolex-portal-3 .alx3-vehicle-card {
+  min-height:420px;
+  padding:1.25rem;
+  border-color:var(--alx-border);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 8px 26px rgba(15,35,65,.065);
+}
+body.autolex-portal-3 .alx3-vehicle-card:hover { transform:translateY(-4px);border-color:#a9c7ef;box-shadow:0 20px 44px rgba(15,35,65,.13); }
+body.autolex-portal-3 .alx3-vehicle-card > header { grid-template-columns:52px minmax(0,1fr) auto;border-color:var(--alx-border); }
+body.autolex-portal-3 .alx3-brand-mark { border-color:#cddcf0;background:var(--alx-primary-soft);color:var(--alx-primary); }
+body.autolex-portal-3 .alx3-vehicle-card h2 { font-size:1.18rem; }
+body.autolex-portal-3 .alx3-vehicle-card h2 a { display:block;overflow:hidden;text-overflow:ellipsis; }
+body.autolex-portal-3 .alx3-grade { border:1px solid var(--alx-border);background:#f4f7fb;color:var(--alx-muted); }
+body.autolex-portal-3 .alx3-card-badges span { background:#f7f9fc;border-color:var(--alx-border);color:var(--alx-text-soft); }
+body.autolex-portal-3 .alx3-specs { border-color:var(--alx-border);background:var(--alx-border); }
+body.autolex-portal-3 .alx3-specs > div { background:#fbfdff; }
+body.autolex-portal-3 .alx3-specs dt { color:var(--alx-muted); }
+body.autolex-portal-3 .alx3-specs dd { color:var(--alx-text);overflow-wrap:anywhere; }
+body.autolex-portal-3 .alx3-vehicle-card > footer a { color:var(--alx-primary); }
+body.autolex-portal-3 .alx3-pagination a:hover { border-color:var(--alx-primary);color:var(--alx-primary); }
+
+@media (max-width:1250px) {
+  body.autolex-portal-3 .alx3-vehicle-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:980px) {
+  body.autolex-portal-3 .alx3-catalog-hero { grid-template-columns:1fr;align-items:start; }
+  body.autolex-portal-3 .alx3-catalog-hero > aside { min-width:0; }
+  body.autolex-portal-3 .alx3-catalog-layout { display:block; }
+  body.autolex-portal-3 .alx3-filters { width:min(92vw,400px); }
+  body.autolex-portal-3 .alx3-results-toolbar { top:76px;margin-top:1rem; }
+}
+@media (max-width:680px) {
+  body.autolex-portal-3 .alx3-catalog { width:min(100% - 20px,1480px);padding-top:.75rem; }
+  body.autolex-portal-3 .alx3-catalog-hero { padding:2rem 1.25rem;border-radius:22px; }
+  body.autolex-portal-3 .alx3-catalog-hero h1 { font-size:clamp(2.5rem,14vw,4.2rem); }
+  body.autolex-portal-3 .alx3-results-toolbar { grid-template-columns:auto minmax(0,1fr); }
+  body.autolex-portal-3 .alx3-results-toolbar > label { grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr); }
+  body.autolex-portal-3 .alx3-vehicle-grid { grid-template-columns:1fr; }
+  body.autolex-portal-3 .alx3-vehicle-card { min-height:0;padding:1rem; }
+  body.autolex-portal-3 .alx3-specs { grid-template-columns:1fr; }
+  body.autolex-portal-3 .alx3-vehicle-card > footer { align-items:flex-start;flex-direction:column; }
+  body.autolex-portal-3 .alx3-vehicle-card > footer small { max-width:none; }
+}
+@media (prefers-reduced-motion:reduce) {
+  body.autolex-portal-3 .alx3-vehicle-card,
+  body.autolex-portal-3 .alx3-vehicle-card:hover { transition:none;transform:none; }
+}
