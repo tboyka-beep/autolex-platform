@@ -56,47 +56,16 @@ function autolex_platform()
 }
 
 /**
- * Loads the optional premium visual layer after the portal base stylesheet.
- * The body scope keeps the stylesheet inert outside Autolex portal screens.
+ * Loads the single Autolex 4.1 light visual stack after the portal base CSS.
+ *
+ * The retired night and adaptive layers are intentionally not enqueued. This
+ * keeps one deterministic public design system instead of stacking competing
+ * dark, adaptive and light overrides.
  */
 function autolex_enqueue_visual_layer()
 {
-    $relative_path = 'assets/css/autolex-visual-night.css';
-    $absolute_path = AUTOLEX_PLATFORM_DIR . $relative_path;
-
-    if (!is_readable($absolute_path)) {
+    if (is_admin()) {
         return;
-    }
-
-    wp_enqueue_style(
-        'autolex-visual-night',
-        plugins_url($relative_path, AUTOLEX_PLATFORM_FILE),
-        array('autolex-portal-3'),
-        (string) filemtime($absolute_path)
-    );
-
-    $detail_relative_path = 'assets/css/autolex-vehicle-detail-premium.css';
-    $detail_absolute_path = AUTOLEX_PLATFORM_DIR . $detail_relative_path;
-
-    if (is_readable($detail_absolute_path)) {
-        wp_enqueue_style(
-            'autolex-vehicle-detail-premium',
-            plugins_url($detail_relative_path, AUTOLEX_PLATFORM_FILE),
-            array('autolex-visual-night'),
-            (string) filemtime($detail_absolute_path)
-        );
-    }
-
-    $adaptive_relative_path = 'assets/css/autolex-adaptive-theme.css';
-    $adaptive_absolute_path = AUTOLEX_PLATFORM_DIR . $adaptive_relative_path;
-
-    if (is_readable($adaptive_absolute_path)) {
-        wp_enqueue_style(
-            'autolex-adaptive-theme',
-            plugins_url($adaptive_relative_path, AUTOLEX_PLATFORM_FILE),
-            array('autolex-visual-night'),
-            (string) filemtime($adaptive_absolute_path)
-        );
     }
 
     $catalog_relative_path = 'assets/css/autolex-catalog-light.css';
@@ -106,23 +75,30 @@ function autolex_enqueue_visual_layer()
         wp_enqueue_style(
             'autolex-catalog-light',
             plugins_url($catalog_relative_path, AUTOLEX_PLATFORM_FILE),
-            array('autolex-adaptive-theme'),
+            array('autolex-portal-3'),
             (string) filemtime($catalog_absolute_path)
         );
     }
 
-    $vehicle_experience_relative_path = 'assets/css/autolex-vehicle-experience-light.css';
-    $vehicle_experience_absolute_path = AUTOLEX_PLATFORM_DIR . $vehicle_experience_relative_path;
+    $vehicle_relative_path = 'assets/css/autolex-vehicle-experience-light.css';
+    $vehicle_absolute_path = AUTOLEX_PLATFORM_DIR . $vehicle_relative_path;
 
-    if (is_readable($vehicle_experience_absolute_path)) {
+    if (is_readable($vehicle_absolute_path)) {
         wp_enqueue_style(
             'autolex-vehicle-experience-light',
-            plugins_url($vehicle_experience_relative_path, AUTOLEX_PLATFORM_FILE),
+            plugins_url($vehicle_relative_path, AUTOLEX_PLATFORM_FILE),
             array('autolex-catalog-light'),
-            (string) filemtime($vehicle_experience_absolute_path)
+            (string) filemtime($vehicle_absolute_path)
         );
     }
+
+    wp_register_style('autolex-design-system-41', false, array('autolex-catalog-light'), AUTOLEX_PLATFORM_VERSION);
+    wp_enqueue_style('autolex-design-system-41');
+    wp_add_inline_style(
+        'autolex-design-system-41',
+        ':root{--alx3-bg:#f6f8fc;--alx3-bg-soft:#fbfcfe;--alx3-panel:#fff;--alx3-panel-soft:#eef3fa;--alx3-panel-strong:#172033;--alx3-line:#dce4ef;--alx3-line-dark:#c7d2e2;--alx3-text:#172033;--alx3-muted:#657189;--alx3-accent:#1769e0;--alx3-accent-dark:#0f4faf;--alx3-teal:#087f8c;--alx3-green:#21865a;--alx3-amber:#a96d12;--alx3-red:#c43d4b;--alx3-blue:#1769e0;--alx3-radius-sm:12px;--alx3-radius:18px;--alx3-radius-lg:28px;--alx3-shadow-sm:0 10px 30px rgba(23,32,51,.07);--alx3-shadow:0 24px 70px rgba(23,32,51,.12);--alx3-shadow-hover:0 30px 76px rgba(23,32,51,.17)}html{background:#f6f8fc}body.autolex-portal-3{background:radial-gradient(circle at 8% 0,rgba(23,105,224,.08),transparent 30rem),#f6f8fc;color:#172033}body.autolex-portal-3:before,body.autolex-portal-3:after{display:none!important}body.autolex-portal-3 .site-main,body.autolex-portal-3 .content-area,body.autolex-portal-3 #main{background:transparent!important}body.autolex-portal-3 :focus-visible{outline:3px solid rgba(23,105,224,.35)!important;outline-offset:3px}.alx3-section:before{background:linear-gradient(90deg,#1769e0,#087f8c,transparent 76%)}.alx3-hero{background:linear-gradient(135deg,#fff 0%,#f4f7fc 58%,#e8f0fb 100%)}.alx3-hero h1 em,.alx3-kicker b,.alx3-section-head span{color:#1769e0}.alx3-hero-search button{background:linear-gradient(135deg,#1769e0,#0f4faf);box-shadow:0 12px 28px rgba(23,105,224,.24)}body.autolex-portal-3 .ct-header [data-row="middle"],body.autolex-portal-3 #header [data-row="middle"]{background:rgba(255,255,255,.94)!important;border-bottom:1px solid #dce4ef!important;box-shadow:0 8px 30px rgba(23,32,51,.07)!important}body.autolex-portal-3 footer.ct-footer{background:#eef3fa!important;border-top:1px solid #dce4ef!important}.alx3-section,.alx3-metrics article,.alx3-make-grid a,.alx3-capability-grid article,.alx3-card,.alx3-pipeline{border-color:#dce4ef;background-color:#fff}.alx3-make-grid a>span,.alx3-capability-grid i{background:#eaf2fd;color:#1769e0;border-color:#cbdcf5}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.alx3-section *,.alx3-card,.alx3-make-grid a,.alx3-capability-grid article{animation:none!important;transition:none!important}}'
+    );
 }
 
 add_action('plugins_loaded', 'autolex_platform');
-add_action('wp_enqueue_scripts', 'autolex_enqueue_visual_layer', 40);
+add_action('wp_enqueue_scripts', 'autolex_enqueue_visual_layer', 140);
