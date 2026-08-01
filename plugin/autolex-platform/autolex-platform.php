@@ -98,6 +98,18 @@ function autolex_enqueue_visual_layer()
             (string) filemtime($adaptive_absolute_path)
         );
     }
+
+    $catalog_relative_path = 'assets/css/autolex-catalog-light.css';
+    $catalog_absolute_path = AUTOLEX_PLATFORM_DIR . $catalog_relative_path;
+
+    if (is_readable($catalog_absolute_path)) {
+        wp_enqueue_style(
+            'autolex-catalog-light',
+            plugins_url($catalog_relative_path, AUTOLEX_PLATFORM_FILE),
+            array('autolex-adaptive-theme'),
+            (string) filemtime($catalog_absolute_path)
+        );
+    }
 }
 
 add_action('plugins_loaded', 'autolex_platform');
