@@ -110,6 +110,18 @@ function autolex_enqueue_visual_layer()
             (string) filemtime($catalog_absolute_path)
         );
     }
+
+    $vehicle_experience_relative_path = 'assets/css/autolex-vehicle-experience-light.css';
+    $vehicle_experience_absolute_path = AUTOLEX_PLATFORM_DIR . $vehicle_experience_relative_path;
+
+    if (is_readable($vehicle_experience_absolute_path)) {
+        wp_enqueue_style(
+            'autolex-vehicle-experience-light',
+            plugins_url($vehicle_experience_relative_path, AUTOLEX_PLATFORM_FILE),
+            array('autolex-catalog-light'),
+            (string) filemtime($vehicle_experience_absolute_path)
+        );
+    }
 }
 
 add_action('plugins_loaded', 'autolex_platform');
