@@ -1,0 +1,123 @@
+name: Report Autolex Production Deploy
+
+on:
+  workflow_run:
+    workflows:
+      - Validate and Deploy Autolex Plugin
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  report-production:
+    name: Report production deployment
+    if: >-
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout deployed revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 1
+
+      - name: Collect deployment evidence
+        id: evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -u
+
+          jobs_json="$(gh api \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/jobs?per_page=100")"
+
+          validate_conclusion="$(jq -r '[.jobs[] | select(.name == "Validate and build")][0].conclusion // "missing"' <<<"$jobs_json")"
+          deploy_conclusion="$(jq -r '[.jobs[] | select(.name == "Deploy to cPanel")][0].conclusion // "missing"' <<<"$jobs_json")"
+          deploy_job_id="$(jq -r '[.jobs[] | select(.name == "Deploy to cPanel")][0].id // empty' <<<"$jobs_json")"
+          expected_version="$(sed -n "s/define('AUTOLEX_PLATFORM_VERSION', '\([^']*\)');/\1/p" plugin/autolex-platform/autolex-platform.php)"
+
+          live_json=''
+          live_http='000'
+          live_service='unavailable'
+          live_status='unavailable'
+          live_version='unavailable'
+          live_tmp="$(mktemp)"
+
+          live_http="$(curl --silent --show-error --location \
+            --retry 4 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            --connect-timeout 15 \
+            --max-time 45 \
+            --output "$live_tmp" \
+            --write-out '%{http_code}' \
+            'https://autolex.hu/wp-json/autolex/v1/status' || true)"
+          live_json="$(cat "$live_tmp")"
+          rm -f "$live_tmp"
+
+          if jq -e . >/dev/null 2>&1 <<<"$live_json"; then
+            live_service="$(jq -r '.service // "missing"' <<<"$live_json")"
+            live_status="$(jq -r '.status // "missing"' <<<"$live_json")"
+            live_version="$(jq -r '.version // "missing"' <<<"$live_json")"
+          fi
+
+          overall='failure'
+          if [ "$RUN_CONCLUSION" = 'success' ] && \
+             [ "$validate_conclusion" = 'success' ] && \
+             [ "$deploy_conclusion" = 'success' ] && \
+             [ "$live_http" = '200' ] && \
+             [ "$live_service" = 'autolex-platform' ] && \
+             [ "$live_status" = 'ok' ] && \
+             [ "$live_version" = "$expected_version" ]; then
+            overall='success'
+          fi
+
+          deploy_job_url="$RUN_URL"
+          if [ -n "$deploy_job_id" ]; then
+            deploy_job_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/job/${deploy_job_id}"
+          fi
+
+          {
+            echo '## Autolex production deploy jelentés'
+            echo
+            if [ "$overall" = 'success' ]; then
+              echo '**Eredmény: ✅ SIKERES ÉLES TELEPÍTÉS**'
+            else
+              echo '**Eredmény: ❌ A TELEPÍTÉS NEM IGAZOLT**'
+            fi
+            echo
+            echo "- Commit: \`$HEAD_SHA\`"
+            echo "- Elvárt pluginverzió: \`$expected_version\`"
+            echo "- Workflow: [$RUN_ID]($RUN_URL) — \`$RUN_CONCLUSION\`"
+            echo "- Validate and build: \`$validate_conclusion\`"
+            echo "- Deploy to cPanel: [$deploy_conclusion]($deploy_job_url)"
+            echo "- Élő státusz HTTP: \`$live_http\`"
+            echo "- Élő service/status/version: \`$live_service / $live_status / $live_version\`"
+            echo
+            echo '<!-- autolex-production-deploy-report -->'
+          } > deploy-report.md
+
+          echo "overall=$overall" >> "$GITHUB_OUTPUT"
+
+      - name: Publish report to Issue 34
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 34 --repo "$GITHUB_REPOSITORY" --body-file deploy-report.md
+
+      - name: Fail when production is not proven
+        if: steps.evidence.outputs.overall != 'success'
+        run: |
+          echo 'Production deployment or live version verification failed.'
+          exit 1
