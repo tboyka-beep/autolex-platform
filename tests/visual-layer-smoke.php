@@ -3,6 +3,7 @@ $root = dirname(__DIR__);
 $plugin = file_get_contents($root . '/plugin/autolex-platform/autolex-platform.php');
 $css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-visual-night.css');
 $detail_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-vehicle-detail-premium.css');
+$adaptive_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-adaptive-theme.css');
 
 $checks = array(
     'stylesheet file is readable' => $css !== false,
@@ -33,6 +34,15 @@ $checks = array(
     'plugin enqueues detail premium stylesheet' => strpos($plugin, "'autolex-vehicle-detail-premium'") !== false,
     'detail premium layer depends on global visual layer' => strpos($plugin, "array('autolex-visual-night')") !== false,
     'detail asset version uses filemtime' => strpos($plugin, 'filemtime($detail_absolute_path)') !== false,
+    'adaptive theme stylesheet is readable' => $adaptive_css !== false,
+    'adaptive theme is portal scoped' => strpos($adaptive_css, 'body.autolex-portal-3') !== false,
+    'adaptive theme supports dark mode' => strpos($adaptive_css, 'prefers-color-scheme:dark') !== false,
+    'adaptive theme supports increased contrast' => strpos($adaptive_css, 'prefers-contrast:more') !== false,
+    'adaptive theme exposes visible focus contract' => strpos($adaptive_css, ':focus-visible') !== false && strpos($adaptive_css, 'outline:3px solid') !== false,
+    'adaptive theme protects reduced motion users' => strpos($adaptive_css, 'prefers-reduced-motion:reduce') !== false,
+    'plugin enqueues adaptive theme stylesheet' => strpos($plugin, "'autolex-adaptive-theme'") !== false,
+    'adaptive layer depends on global visual layer' => strpos($plugin, "array('autolex-visual-night')") !== false,
+    'adaptive asset version uses filemtime' => strpos($plugin, 'filemtime($adaptive_absolute_path)') !== false,
 );
 
 foreach ($checks as $label => $passed) {
