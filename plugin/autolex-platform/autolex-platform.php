@@ -64,31 +64,36 @@ function autolex_enqueue_visual_layer()
         return;
     }
 
-    $catalog_relative_path = 'assets/css/autolex-catalog-light.css';
-    $catalog_absolute_path = AUTOLEX_PLATFORM_DIR . $catalog_relative_path;
+    $styles = array(
+        'autolex-catalog-light' => array(
+            'path' => 'assets/css/autolex-catalog-light.css',
+            'deps' => array('autolex-portal-3'),
+        ),
+        'autolex-vehicle-experience-light' => array(
+            'path' => 'assets/css/autolex-vehicle-experience-light.css',
+            'deps' => array('autolex-catalog-light'),
+        ),
+        'autolex-home-41' => array(
+            'path' => 'assets/css/autolex-home-41.css',
+            'deps' => array('autolex-vehicle-experience-light'),
+        ),
+    );
 
-    if (is_readable($catalog_absolute_path)) {
+    foreach ($styles as $handle => $style) {
+        $absolute_path = AUTOLEX_PLATFORM_DIR . $style['path'];
+        if (!is_readable($absolute_path)) {
+            continue;
+        }
+
         wp_enqueue_style(
-            'autolex-catalog-light',
-            plugins_url($catalog_relative_path, AUTOLEX_PLATFORM_FILE),
-            array('autolex-portal-3'),
-            (string) filemtime($catalog_absolute_path)
+            $handle,
+            plugins_url($style['path'], AUTOLEX_PLATFORM_FILE),
+            $style['deps'],
+            (string) filemtime($absolute_path)
         );
     }
 
-    $vehicle_relative_path = 'assets/css/autolex-vehicle-experience-light.css';
-    $vehicle_absolute_path = AUTOLEX_PLATFORM_DIR . $vehicle_relative_path;
-
-    if (is_readable($vehicle_absolute_path)) {
-        wp_enqueue_style(
-            'autolex-vehicle-experience-light',
-            plugins_url($vehicle_relative_path, AUTOLEX_PLATFORM_FILE),
-            array('autolex-catalog-light'),
-            (string) filemtime($vehicle_absolute_path)
-        );
-    }
-
-    wp_register_style('autolex-design-system-41', false, array('autolex-catalog-light'), AUTOLEX_PLATFORM_VERSION);
+    wp_register_style('autolex-design-system-41', false, array('autolex-home-41'), AUTOLEX_PLATFORM_VERSION);
     wp_enqueue_style('autolex-design-system-41');
     wp_add_inline_style(
         'autolex-design-system-41',
