@@ -17,20 +17,12 @@ $home = (string) file_get_contents($home_path);
 $catalog = (string) file_get_contents($catalog_path);
 
 $required_css = array(
-    '.alx3-hero',
-    '.alx3-pipeline',
-    '.alx3-capability-grid',
-    '.alx3-source-grid',
-    '.alx3-method',
-    '.alx3-final-cta',
     '.alx3-catalog-hero',
     '.alx3-catalog-layout',
     '.alx3-results-toolbar',
     '.alx3-vehicle-grid',
     '.alx3-vehicle-card',
     '.alx3-filters.is-open',
-    '.is-adapter_ready',
-    '.is-live_validated',
     '@media(max-width:900px)',
     '@media(prefers-reduced-motion:reduce)',
 );
@@ -41,34 +33,41 @@ foreach ($required_css as $selector) {
     }
 }
 
-if (false === strpos($css, '--alx3-accent:#c5482d')) {
-    fwrite(STDERR, "The approved Autolex accent token is missing.\n");
-    exit(1);
-}
-if (false === strpos($css, 'grid-template-columns:repeat(3,minmax(0,1fr))')) {
-    fwrite(STDERR, "Desktop information-card layout is missing.\n");
-    exit(1);
-}
-
 $required_home_sections = array(
-    'alx3-home-light',
-    'alx3-home-shortcuts',
-    'alx3-home-model-grid',
-    'alx3-home-recent-grid',
-    'alx3-home-service-grid',
-    'alx3-make-grid',
-    'alx3-metrics',
-    'alx3-empty-state',
+    'alx4-home',
+    'alx4-hero',
+    'alx4-search',
+    'alx4-hero__panel',
+    'alx4-quick-nav',
+    'alx4-brand-grid',
+    'alx4-metric-strip',
+    'alx4-model-grid',
+    'alx4-recent-grid',
+    'alx4-feature-grid',
+    'body.autolex-portal-3{background:#f4f7fb!important',
+    '@media(prefers-reduced-motion:reduce)',
 );
 foreach ($required_home_sections as $section) {
     if (false === strpos($home, $section)) {
-        fwrite(STDERR, "Light homepage section is not rendered: {$section}\n");
+        fwrite(STDERR, "Autolex 4.0 homepage contract is missing: {$section}\n");
         exit(1);
     }
 }
 
+if (false === strpos($home, 'Minden fontos adat az autódról')) {
+    fwrite(STDERR, "Autolex 4.0 value proposition is missing.\n");
+    exit(1);
+}
+if (false === strpos($home, 'name="q" type="search"')) {
+    fwrite(STDERR, "Server-side search fallback is missing.\n");
+    exit(1);
+}
+if (false === strpos($home, "number_format_i18n((int) \$coverage['vehicles'])")) {
+    fwrite(STDERR, "Homepage database metrics must remain data-backed.\n");
+    exit(1);
+}
 if (false === strpos($catalog, 'alx3-vehicle-grid') || false === strpos($catalog, 'alx3-results-toolbar')) {
-    fwrite(STDERR, "Catalogue premium layout is not rendered.\n");
+    fwrite(STDERR, "Catalogue layout is not rendered.\n");
     exit(1);
 }
 if (false === strpos($catalog, 'aria-expanded="false"') || false === strpos($catalog, 'aria-controls="alx3-filter-panel"')) {
@@ -76,4 +75,4 @@ if (false === strpos($catalog, 'aria-expanded="false"') || false === strpos($cat
     exit(1);
 }
 
-echo "Autolex Portal design smoke tests passed.\n";
+echo "Autolex 4.0 portal design smoke tests passed.\n";
