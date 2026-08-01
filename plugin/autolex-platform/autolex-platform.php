@@ -74,6 +74,18 @@ function autolex_enqueue_visual_layer()
         array('autolex-portal-3'),
         (string) filemtime($absolute_path)
     );
+
+    $detail_relative_path = 'assets/css/autolex-vehicle-detail-premium.css';
+    $detail_absolute_path = AUTOLEX_PLATFORM_DIR . $detail_relative_path;
+
+    if (is_readable($detail_absolute_path)) {
+        wp_enqueue_style(
+            'autolex-vehicle-detail-premium',
+            plugins_url($detail_relative_path, AUTOLEX_PLATFORM_FILE),
+            array('autolex-visual-night'),
+            (string) filemtime($detail_absolute_path)
+        );
+    }
 }
 
 add_action('plugins_loaded', 'autolex_platform');
