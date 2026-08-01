@@ -49,6 +49,11 @@ $checks = array(
     'plugin enqueues adaptive theme stylesheet' => strpos($plugin, "'autolex-adaptive-theme'") !== false,
     'adaptive layer depends on global visual layer' => strpos($plugin, "array('autolex-visual-night')") !== false,
     'adaptive asset version uses filemtime' => strpos($plugin, 'filemtime($adaptive_absolute_path)') !== false,
+    'light hero uses blue automotive accent' => strpos($adaptive_css, 'radial-gradient(circle at 82% 18%,rgba(23,105,224,.12)') !== false,
+    'hero search has strong focus-within treatment' => strpos($adaptive_css, '.alx3-hero-search:focus-within') !== false && strpos($adaptive_css, '0 0 0 4px rgba(23,105,224,.12)') !== false,
+    'global search results stay light and elevated' => strpos($adaptive_css, '.alx3-search-results') !== false && strpos($adaptive_css, 'box-shadow:0 24px 60px rgba(15,35,65,.18)') !== false,
+    'hero collapses to one column on tablet' => strpos($adaptive_css, 'body.autolex-portal-3 .alx3-hero { grid-template-columns:1fr;min-height:auto; }') !== false,
+    'hero search button stacks on mobile' => strpos($adaptive_css, 'grid-column:1/-1;width:100%') !== false,
 );
 
 foreach ($checks as $label => $passed) {
