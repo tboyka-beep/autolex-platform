@@ -185,9 +185,77 @@ body.autolex-portal-3 .alx3-vehicle-card footer a {
 }
 body.autolex-portal-3 .alx3-vehicle-card footer a:hover { color:#7f2819; }
 
+/* Premium comparison experience */
+body.autolex-portal-3 .alx3-compare__hero {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border-color:rgba(255,255,255,.72);
+  background:linear-gradient(118deg,#17201c 0%,#25352d 58%,#55382d 100%);
+  box-shadow:0 32px 88px rgba(24,29,26,.26);
+}
+body.autolex-portal-3 .alx3-compare__hero:before {
+  content:"";
+  position:absolute;
+  inset:-55% -8% auto 45%;
+  z-index:-1;
+  height:520px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(255,118,87,.38),rgba(255,118,87,.08) 42%,transparent 72%);
+  animation:alx3-compare-glow 9s ease-in-out infinite alternate;
+}
+body.autolex-portal-3 .alx3-compare__hero h1,
+body.autolex-portal-3 .alx3-compare__hero>strong { color:#fff!important; }
+body.autolex-portal-3 .alx3-compare__hero p,
+body.autolex-portal-3 .alx3-compare__hero>strong small { color:#c8d1cb; }
+body.autolex-portal-3 .alx3-compare__form {
+  border-color:rgba(52,61,55,.14);
+  background:rgba(255,255,255,.9);
+  box-shadow:0 22px 64px rgba(43,39,33,.13);
+  backdrop-filter:blur(18px);
+}
+body.autolex-portal-3 .alx3-compare__form input:focus {
+  border-color:rgba(197,72,45,.72)!important;
+  box-shadow:0 0 0 4px rgba(197,72,45,.12)!important;
+}
+body.autolex-portal-3 .alx3-compare__form button {
+  background:linear-gradient(135deg,#eb5c3d,#b93623);
+  box-shadow:0 12px 30px rgba(235,92,61,.24);
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+body.autolex-portal-3 .alx3-compare__form button:hover {
+  transform:translateY(-2px);
+  box-shadow:0 16px 34px rgba(235,92,61,.32);
+}
+body.autolex-portal-3 .alx3-compare__table-wrap {
+  border-color:rgba(52,61,55,.14);
+  box-shadow:0 26px 72px rgba(43,39,33,.14);
+}
+body.autolex-portal-3 .alx3-compare__table thead th {
+  background:linear-gradient(145deg,#202b26,#33453b);
+  color:#fff;
+}
+body.autolex-portal-3 .alx3-compare__table thead strong { color:#fff; }
+body.autolex-portal-3 .alx3-compare__table thead a { color:#c8d1cb; }
+body.autolex-portal-3 .alx3-compare__table tbody tr:nth-child(even) td { background:#fbf8f2; }
+body.autolex-portal-3 .alx3-compare__table tbody tr:hover td { background:#f2ece2; }
+body.autolex-portal-3 .alx3-compare__grade {
+  box-shadow:inset 0 0 0 1px rgba(52,61,55,.08),0 8px 18px rgba(43,39,33,.08);
+}
+body.autolex-portal-3 .alx3-compare__notice {
+  border-color:rgba(52,61,55,.14);
+  border-left-color:#e55b3d;
+  background:linear-gradient(145deg,#fff,#fbf8f2);
+  box-shadow:0 16px 42px rgba(43,39,33,.09);
+}
+
 @keyframes alx3-catalog-glow {
   from { transform:translate3d(-2%,0,0) scale(.96); opacity:.72; }
   to { transform:translate3d(4%,4%,0) scale(1.08); opacity:1; }
+}
+@keyframes alx3-compare-glow {
+  from { transform:translate3d(-3%,0,0) scale(.95); opacity:.7; }
+  to { transform:translate3d(5%,5%,0) scale(1.08); opacity:1; }
 }
 
 @media (max-width:980px) {
@@ -201,9 +269,11 @@ body.autolex-portal-3 .alx3-vehicle-card footer a:hover { color:#7f2819; }
   body.autolex-portal-3 .alx3-hero h1 { font-size:clamp(48px,16vw,68px); }
   body.autolex-portal-3 .alx3-proof-row { gap:8px; }
   body.autolex-portal-3 .alx3-proof-row span { font-size:11px; }
-  body.autolex-portal-3 .alx3-catalog-hero { border-radius:22px; }
+  body.autolex-portal-3 .alx3-catalog-hero,
+  body.autolex-portal-3 .alx3-compare__hero { border-radius:22px; }
   body.autolex-portal-3 .alx3-catalog-hero aside { width:100%; }
-  body.autolex-portal-3 .alx3-vehicle-card:hover { transform:none; }
+  body.autolex-portal-3 .alx3-vehicle-card:hover,
+  body.autolex-portal-3 .alx3-compare__form button:hover { transform:none; }
 }
 
 @media (prefers-reduced-motion:reduce) {
@@ -212,5 +282,7 @@ body.autolex-portal-3 .alx3-vehicle-card footer a:hover { color:#7f2819; }
   body.autolex-portal-3 .alx3-make-grid a,
   body.autolex-portal-3 .alx3-make-grid a:after,
   body.autolex-portal-3 .alx3-vehicle-card,
-  body.autolex-portal-3 .alx3-catalog-hero:before { transition:none!important;animation:none!important; }
+  body.autolex-portal-3 .alx3-compare__form button,
+  body.autolex-portal-3 .alx3-catalog-hero:before,
+  body.autolex-portal-3 .alx3-compare__hero:before { transition:none!important;animation:none!important; }
 }
