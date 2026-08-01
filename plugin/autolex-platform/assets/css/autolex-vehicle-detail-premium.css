@@ -1,0 +1,122 @@
+/* Autolex 3.3 — premium vehicle detail layer. */
+body.autolex-vehicle-detail {
+  background:
+    radial-gradient(circle at 84% 3%,rgba(197,72,45,.15),transparent 30rem),
+    radial-gradient(circle at 8% 34%,rgba(31,111,104,.12),transparent 34rem),
+    linear-gradient(180deg,#f5f2eb 0%,#ebe5da 100%)!important;
+}
+
+body.autolex-vehicle-detail .alx3-detail-overview {
+  isolation:isolate;
+  border-color:rgba(255,255,255,.72);
+  background:linear-gradient(118deg,#17201c 0%,#25352d 58%,#55382d 100%);
+  box-shadow:0 34px 96px rgba(24,29,26,.28);
+}
+body.autolex-vehicle-detail .alx3-detail-overview:before {
+  right:-120px;
+  top:-180px;
+  width:520px;
+  height:520px;
+  border:0;
+  background:radial-gradient(circle,rgba(255,118,87,.38),rgba(255,118,87,.08) 40%,transparent 72%);
+  box-shadow:none;
+  animation:alx3-detail-glow 9s ease-in-out infinite alternate;
+}
+body.autolex-vehicle-detail .alx3-detail-overview h1 { color:#fff!important; }
+body.autolex-vehicle-detail .alx3-detail-kicker { color:#ff7657; }
+body.autolex-vehicle-detail .alx3-detail-overview__copy>p { color:#c8d1cb; }
+body.autolex-vehicle-detail .alx3-detail-tags span {
+  border-color:rgba(255,255,255,.14);
+  background:rgba(255,255,255,.075);
+  color:#cbd4ce;
+  backdrop-filter:blur(12px);
+}
+body.autolex-vehicle-detail .alx3-detail-tags b { color:#fff; }
+body.autolex-vehicle-detail .alx3-detail-confidence {
+  border-color:rgba(255,255,255,.16);
+  background:rgba(15,20,18,.76);
+  box-shadow:0 30px 78px rgba(0,0,0,.4);
+  backdrop-filter:blur(22px);
+}
+body.autolex-vehicle-detail .alx3-detail-confidence>header,
+body.autolex-vehicle-detail .alx3-detail-confidence dl>div { background:rgba(255,255,255,.06); }
+body.autolex-vehicle-detail .alx3-detail-confidence dl { background:rgba(255,255,255,.12); }
+body.autolex-vehicle-detail .alx3-detail-confidence dt { color:#aeb9b2!important; }
+body.autolex-vehicle-detail .alx3-detail-confidence dd { color:#fff!important; }
+body.autolex-vehicle-detail .alx3-detail-confidence>p {
+  border-top-color:rgba(255,255,255,.12);
+  background:rgba(40,122,75,.14);
+  color:#a9e3bd!important;
+}
+body.autolex-vehicle-detail .alx3-detail-confidence>p.is-warning {
+  background:rgba(190,127,29,.16);
+  color:#ffd594!important;
+}
+
+body.autolex-vehicle-detail .alx3-detail-nav {
+  border-color:rgba(52,61,55,.14);
+  background:rgba(255,255,255,.88);
+  box-shadow:0 18px 54px rgba(43,39,33,.13);
+  backdrop-filter:blur(20px);
+}
+body.autolex-vehicle-detail .alx3-detail-nav a:focus-visible {
+  outline:3px solid rgba(197,72,45,.35);
+  outline-offset:2px;
+}
+
+body.autolex-vehicle-detail .alxbc-section,
+body.autolex-vehicle-detail .alx3-detail-section {
+  border-color:rgba(52,61,55,.13)!important;
+  background:linear-gradient(150deg,#fff 0%,#fbf8f2 100%)!important;
+  box-shadow:0 22px 62px rgba(43,39,33,.1)!important;
+}
+body.autolex-vehicle-detail .alx3-claim-card,
+body.autolex-vehicle-detail .alx3-source-card {
+  position:relative;
+  overflow:hidden;
+  transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease;
+}
+body.autolex-vehicle-detail .alx3-claim-card:before,
+body.autolex-vehicle-detail .alx3-source-card:before {
+  content:"";
+  position:absolute;
+  inset:0 0 auto;
+  height:4px;
+  background:linear-gradient(90deg,#e55b3d,#1f6f68,transparent 76%);
+}
+body.autolex-vehicle-detail .alx3-claim-card:hover,
+body.autolex-vehicle-detail .alx3-source-card:hover {
+  transform:translateY(-6px);
+  border-color:rgba(197,72,45,.34);
+  box-shadow:0 28px 68px rgba(43,39,33,.16);
+}
+body.autolex-vehicle-detail .alxp-fitment-warning {
+  box-shadow:0 14px 34px rgba(131,85,13,.09);
+}
+body.autolex-vehicle-detail .alx3-recall-summary {
+  border-left:4px solid #e55b3d;
+  background:linear-gradient(145deg,#fff,#fbf8f2);
+  box-shadow:0 14px 38px rgba(43,39,33,.08);
+}
+
+@keyframes alx3-detail-glow {
+  from { transform:translate3d(-3%,0,0) scale(.95); opacity:.7; }
+  to { transform:translate3d(5%,5%,0) scale(1.08); opacity:1; }
+}
+
+@media (max-width:980px) {
+  body.autolex-vehicle-detail .alx3-detail-overview { grid-template-columns:1fr; }
+  body.autolex-vehicle-detail .alx3-detail-confidence { max-width:none; }
+}
+@media (max-width:640px) {
+  body.autolex-vehicle-detail .alx3-detail-overview { border-radius:22px; }
+  body.autolex-vehicle-detail .alx3-detail-overview h1 { font-size:clamp(42px,14vw,62px); }
+  body.autolex-vehicle-detail .alx3-detail-nav { top:68px; }
+  body.autolex-vehicle-detail .alx3-claim-card:hover,
+  body.autolex-vehicle-detail .alx3-source-card:hover { transform:none; }
+}
+@media (prefers-reduced-motion:reduce) {
+  body.autolex-vehicle-detail .alx3-detail-overview:before,
+  body.autolex-vehicle-detail .alx3-claim-card,
+  body.autolex-vehicle-detail .alx3-source-card { transition:none!important;animation:none!important; }
+}
