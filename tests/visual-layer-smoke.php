@@ -2,6 +2,7 @@
 $root = dirname(__DIR__);
 $plugin = file_get_contents($root . '/plugin/autolex-platform/autolex-platform.php');
 $css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-visual-night.css');
+$detail_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-vehicle-detail-premium.css');
 
 $checks = array(
     'stylesheet file is readable' => $css !== false,
@@ -21,6 +22,17 @@ $checks = array(
     'plugin enqueues visual stylesheet' => strpos($plugin, "'autolex-visual-night'") !== false,
     'base portal style is dependency' => strpos($plugin, "array('autolex-portal-3')") !== false,
     'asset version uses filemtime' => strpos($plugin, 'filemtime($absolute_path)') !== false,
+    'detail premium stylesheet is readable' => $detail_css !== false,
+    'detail premium stylesheet is page scoped' => strpos($detail_css, 'body.autolex-vehicle-detail') !== false,
+    'detail overview receives premium dark layer' => strpos($detail_css, '.alx3-detail-overview') !== false && strpos($detail_css, 'alx3-detail-glow') !== false,
+    'detail confidence panel uses glass treatment' => strpos($detail_css, '.alx3-detail-confidence') !== false && strpos($detail_css, 'backdrop-filter:blur(22px)') !== false,
+    'detail navigation has accessible focus treatment' => strpos($detail_css, '.alx3-detail-nav a:focus-visible') !== false && strpos($detail_css, 'outline:3px solid') !== false,
+    'detail cards have premium hover treatment' => strpos($detail_css, '.alx3-claim-card:hover') !== false && strpos($detail_css, 'translateY(-6px)') !== false,
+    'detail mobile hover is neutralized' => strpos($detail_css, '@media (max-width:640px)') !== false && strpos($detail_css, '.alx3-source-card:hover { transform:none; }') !== false,
+    'detail reduced motion contract exists' => strpos($detail_css, 'prefers-reduced-motion:reduce') !== false && strpos($detail_css, 'animation:none!important') !== false,
+    'plugin enqueues detail premium stylesheet' => strpos($plugin, "'autolex-vehicle-detail-premium'") !== false,
+    'detail premium layer depends on global visual layer' => strpos($plugin, "array('autolex-visual-night')") !== false,
+    'detail asset version uses filemtime' => strpos($plugin, 'filemtime($detail_absolute_path)') !== false,
 );
 
 foreach ($checks as $label => $passed) {
