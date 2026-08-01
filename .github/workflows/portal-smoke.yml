@@ -1,0 +1,85 @@
+name: Validate Autolex Portal 3
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portal-smoke:
+    name: Portal design and data smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Configure PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: curl, simplexml
+
+      - name: Validate portal PHP syntax
+        run: |
+          php -l plugin/autolex-platform/includes/class-autolex-portal.php
+          php -l plugin/autolex-platform/includes/class-autolex-maintenance-evidence.php
+          php -l plugin/autolex-platform/includes/class-autolex-safety-gate.php
+          php -l plugin/autolex-platform/includes/class-autolex-vehicle-comparison.php
+          php -l plugin/autolex-platform/includes/class-autolex-comparison-page.php
+          php -l plugin/autolex-platform/includes/class-autolex-vehicle-relations.php
+          php -l plugin/autolex-platform/includes/class-autolex-vehicle-seo.php
+          php -l tests/catalog-filter-smoke.php
+          php -l tests/portal-design-smoke.php
+          php -l tests/global-search-smoke.php
+          php -l tests/vehicle-comparison-smoke.php
+          php -l tests/vehicle-detail-smoke.php
+          php -l tests/vehicle-relations-smoke.php
+          php -l tests/vehicle-seo-smoke.php
+          php -l tests/visual-layer-smoke.php
+          php -l tests/safety-gate-live-smoke.php
+
+      - name: Validate portal JavaScript syntax
+        run: |
+          node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
+          node --check plugin/autolex-platform/assets/js/autolex-maintenance-evidence.js
+          node --check plugin/autolex-platform/assets/js/autolex-vehicle-relations.js
+
+      - name: Test data quality and free-source policy
+        run: php tests/portal-smoke.php
+
+      - name: Test catalogue filter contracts
+        run: php tests/catalog-filter-smoke.php
+
+      - name: Test complete portal design contract
+        run: php tests/portal-design-smoke.php
+
+      - name: Test premium visual layer contract
+        run: php tests/visual-layer-smoke.php
+
+      - name: Test global search and navigation contract
+        run: php tests/global-search-smoke.php
+
+      - name: Test vehicle comparison contract
+        run: php tests/vehicle-comparison-smoke.php
+
+      - name: Test vehicle detail evidence and commerce contract
+        run: php tests/vehicle-detail-smoke.php
+
+      - name: Test related generations and engine variants contract
+        run: php tests/vehicle-relations-smoke.php
+
+      - name: Test vehicle SEO, performance and accessibility contract
+        run: php tests/vehicle-seo-smoke.php
+
+      - name: Test Safety Gate alert normalization
+        run: php tests/safety-gate-smoke.php
+
+      - name: Validate live official Safety Gate XML
+        run: php tests/safety-gate-live-smoke.php

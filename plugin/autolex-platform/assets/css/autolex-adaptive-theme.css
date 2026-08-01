@@ -1,0 +1,301 @@
+/* Autolex ALX-033 — light-first design system and Blocksy-safe navigation layer. */
+body.autolex-portal-3 {
+  color-scheme:light;
+  --alx-page:#f5f7fa;
+  --alx-surface:#fff;
+  --alx-surface-soft:#f8fafc;
+  --alx-surface-accent:#eef5ff;
+  --alx-border:#dfe5ec;
+  --alx-border-strong:#cbd5e1;
+  --alx-text:#172033;
+  --alx-text-soft:#42526a;
+  --alx-muted:#66758a;
+  --alx-primary:#1769e0;
+  --alx-primary-hover:#0f56bd;
+  --alx-primary-soft:#eaf2ff;
+  --alx-success:#16845b;
+  --alx-success-soft:#eaf8f2;
+  --alx-warning:#a65a00;
+  --alx-warning-soft:#fff6e6;
+  --alx-danger:#c93434;
+  --alx-danger-soft:#fff0f0;
+  --alx-safety:#b9232f;
+  --alx-focus:#0b63ce;
+  --alx-radius-sm:10px;
+  --alx-radius-md:16px;
+  --alx-radius-lg:24px;
+  --alx-shadow-sm:0 4px 18px rgba(15,35,65,.06);
+  --alx-shadow-md:0 14px 40px rgba(15,35,65,.1);
+  --alx-space-1:.375rem;
+  --alx-space-2:.625rem;
+  --alx-space-3:1rem;
+  --alx-space-4:1.5rem;
+  --alx-space-5:2rem;
+  --alx-space-6:3rem;
+  background:var(--alx-page);
+  color:var(--alx-text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.6;
+}
+
+body.autolex-portal-3 :is(h1,h2,h3,h4) {
+  color:var(--alx-text);
+  letter-spacing:-.025em;
+  line-height:1.15;
+}
+
+body.autolex-portal-3 :is(p,li,dd,.alx3-muted) { color:var(--alx-text-soft); }
+body.autolex-portal-3 a { color:var(--alx-primary); text-underline-offset:3px; }
+body.autolex-portal-3 a:hover { color:var(--alx-primary-hover); }
+
+body.autolex-portal-3 :is(a,button,input,select,textarea,[tabindex]):focus-visible {
+  outline:3px solid var(--alx-focus);
+  outline-offset:3px;
+  box-shadow:0 0 0 5px rgba(11,99,206,.14);
+}
+
+body.autolex-portal-3 :is(
+  .alx3-section,
+  .alx3-results-toolbar,
+  .alx3-filters,
+  .alx3-vehicle-card,
+  .alx3-compare__form,
+  .alx3-compare__notice,
+  .alx3-detail-card,
+  .alx3-source-card,
+  .alx3-claim-card
+) {
+  background:var(--alx-surface);
+  border:1px solid var(--alx-border);
+  border-radius:var(--alx-radius-md);
+  box-shadow:var(--alx-shadow-sm);
+  color:var(--alx-text);
+}
+
+body.autolex-portal-3 :is(input,select,textarea) {
+  min-height:46px;
+  background:var(--alx-surface);
+  border:1px solid var(--alx-border-strong);
+  border-radius:var(--alx-radius-sm);
+  color:var(--alx-text);
+}
+
+body.autolex-portal-3 :is(input,select,textarea):hover { border-color:#9eacbd; }
+body.autolex-portal-3 :is(input,textarea)::placeholder { color:#758398; opacity:1; }
+
+body.autolex-portal-3 :is(.alx3-button,.alx3-cta,button[type="submit"]) {
+  min-height:44px;
+  border-radius:999px;
+  font-weight:750;
+  transition:transform .18s ease,box-shadow .18s ease,background-color .18s ease;
+}
+
+body.autolex-portal-3 :is(.alx3-button--primary,.alx3-cta,button[type="submit"]) {
+  background:var(--alx-primary);
+  border-color:var(--alx-primary);
+  color:#fff;
+  box-shadow:0 8px 22px rgba(23,105,224,.2);
+}
+
+body.autolex-portal-3 :is(.alx3-button--primary,.alx3-cta,button[type="submit"]):hover {
+  background:var(--alx-primary-hover);
+  transform:translateY(-1px);
+  box-shadow:0 12px 26px rgba(23,105,224,.25);
+}
+
+/* Keep the WordPress/Blocksy header, but make the Autolex portal navigation clear and light. */
+body.autolex-portal-3 :is(#header,[data-id="type-1"],.ct-header) {
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid var(--alx-border);
+  box-shadow:0 8px 28px rgba(15,35,65,.06);
+  backdrop-filter:saturate(140%) blur(14px);
+}
+
+body.autolex-portal-3 :is(.menu,.ct-header-menu) > li > a {
+  color:var(--alx-text);
+  font-weight:700;
+  border-radius:10px;
+  padding-inline:.8rem;
+}
+
+body.autolex-portal-3 :is(.menu,.ct-header-menu) > li > a:hover,
+body.autolex-portal-3 :is(.menu,.ct-header-menu) > li.current-menu-item > a,
+body.autolex-portal-3 :is(.menu,.ct-header-menu) > li.current-menu-ancestor > a {
+  background:var(--alx-primary-soft);
+  color:var(--alx-primary-hover);
+}
+
+body.autolex-portal-3 :is(.ct-panel,.ct-header-trigger,.ct-offcanvas-menu) {
+  background:var(--alx-surface);
+  color:var(--alx-text);
+}
+
+body.autolex-portal-3 :is(.alx3-badge--success,.alx3-status--verified) { background:var(--alx-success-soft); color:var(--alx-success); }
+body.autolex-portal-3 :is(.alx3-badge--warning,.alx3-status--partial) { background:var(--alx-warning-soft); color:var(--alx-warning); }
+body.autolex-portal-3 :is(.alx3-badge--danger,.alx3-safety-alert) { background:var(--alx-danger-soft); color:var(--alx-safety); border-color:#f0b9be; }
+
+/* R2 — premium light hero and global search entry point. */
+body.autolex-portal-3 .alx3-portal { padding-top:clamp(1rem,2vw,2rem); }
+body.autolex-portal-3 .alx3-hero {
+  min-height:min(720px,calc(100vh - 110px));
+  grid-template-columns:minmax(0,1.2fr) minmax(330px,.8fr);
+  border:1px solid #dbe5f1;
+  border-radius:32px;
+  background:
+    radial-gradient(circle at 82% 18%,rgba(23,105,224,.12),transparent 28rem),
+    radial-gradient(circle at 12% 82%,rgba(22,132,91,.07),transparent 24rem),
+    linear-gradient(135deg,#fff 0%,#f8fbff 58%,#eef5ff 100%);
+  box-shadow:0 28px 80px rgba(15,35,65,.12);
+}
+
+body.autolex-portal-3 .alx3-hero:after {
+  width:560px;
+  height:560px;
+  right:-190px;
+  top:-210px;
+  border-color:rgba(23,105,224,.16);
+  box-shadow:0 0 0 70px rgba(23,105,224,.025),0 0 0 140px rgba(22,132,91,.018);
+}
+
+body.autolex-portal-3 .alx3-grid-noise {
+  opacity:.28;
+  background-image:linear-gradient(rgba(23,105,224,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(23,105,224,.045) 1px,transparent 1px);
+}
+
+body.autolex-portal-3 .alx3-hero__copy { padding:clamp(2.75rem,6vw,6.5rem); }
+body.autolex-portal-3 .alx3-kicker { color:var(--alx-muted); }
+body.autolex-portal-3 .alx3-kicker b { color:var(--alx-primary); }
+
+body.autolex-portal-3 .alx3-hero h1 {
+  max-width:11ch;
+  margin:1.35rem 0 1.5rem;
+  color:var(--alx-text)!important;
+  font-size:clamp(3.4rem,7vw,6.6rem);
+  line-height:.92;
+  letter-spacing:-.07em;
+}
+
+body.autolex-portal-3 .alx3-hero h1 em { color:var(--alx-primary); }
+body.autolex-portal-3 .alx3-hero__copy > p { max-width:720px;color:var(--alx-text-soft);font-size:clamp(1.05rem,1.35vw,1.3rem);line-height:1.65; }
+
+body.autolex-portal-3 .alx3-hero-search {
+  position:relative;
+  z-index:5;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  max-width:900px;
+  margin-top:2rem;
+  padding:.55rem;
+  border:1px solid #bfcde0;
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 20px 50px rgba(15,35,65,.14);
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+
+body.autolex-portal-3 .alx3-hero-search:focus-within {
+  border-color:var(--alx-primary);
+  box-shadow:0 0 0 4px rgba(23,105,224,.12),0 24px 58px rgba(15,35,65,.16);
+  transform:translateY(-1px);
+}
+
+body.autolex-portal-3 .alx3-search-icon { color:var(--alx-primary); }
+body.autolex-portal-3 .alx3-hero-search input {
+  min-width:0;
+  min-height:58px;
+  padding-inline:.25rem .75rem;
+  border:0!important;
+  border-radius:12px;
+  background:transparent!important;
+  color:var(--alx-text)!important;
+  font-size:1.05rem;
+  box-shadow:none!important;
+}
+
+body.autolex-portal-3 .alx3-hero-search input:focus-visible { outline:0;box-shadow:none; }
+body.autolex-portal-3 .alx3-hero-search button {
+  min-height:58px;
+  padding-inline:1.65rem;
+  border:0;
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--alx-primary),#0f56bd);
+  box-shadow:0 10px 24px rgba(23,105,224,.24);
+  white-space:nowrap;
+}
+
+body.autolex-portal-3 .alx3-search-shell { min-width:0; }
+body.autolex-portal-3 .alx3-search-results {
+  top:calc(100% + .75rem);
+  border:1px solid var(--alx-border);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 24px 60px rgba(15,35,65,.18);
+  overflow:hidden;
+}
+
+body.autolex-portal-3 .alx3-search-results [role="option"] { min-height:68px; }
+body.autolex-portal-3 .alx3-search-results [role="option"].is-active,
+body.autolex-portal-3 .alx3-search-results [role="option"]:hover { background:var(--alx-primary-soft); }
+body.autolex-portal-3 .alx3-search-message { color:var(--alx-text-soft); }
+body.autolex-portal-3 .alx3-search-results.is-error .alx3-search-message { color:var(--alx-danger); }
+
+body.autolex-portal-3 .alx3-proof-row { margin-top:1.35rem;gap:.65rem; }
+body.autolex-portal-3 .alx3-proof-row span {
+  min-height:38px;
+  padding:.45rem .75rem;
+  border:1px solid var(--alx-border);
+  border-radius:999px;
+  background:rgba(255,255,255,.82);
+  color:var(--alx-text-soft);
+  font-weight:700;
+}
+body.autolex-portal-3 .alx3-proof-row svg { color:var(--alx-success); }
+
+body.autolex-portal-3 .alx3-pipeline {
+  border-color:#d7e1ee;
+  border-radius:24px;
+  background:rgba(255,255,255,.96);
+  box-shadow:0 28px 70px rgba(15,35,65,.14);
+}
+body.autolex-portal-3 .alx3-pipeline > header { background:#f6f9fd;border-color:var(--alx-border); }
+body.autolex-portal-3 .alx3-pipeline__flow b { background:linear-gradient(90deg,var(--alx-primary),var(--alx-success)); }
+
+@media (max-width:999px) {
+  body.autolex-portal-3 { --alx-space-6:2.25rem; }
+  body.autolex-portal-3 :is(.ct-panel,.ct-offcanvas-menu) { border-left:1px solid var(--alx-border); }
+  body.autolex-portal-3 :is(.mobile-menu,.ct-panel-content) a { min-height:48px; display:flex; align-items:center; }
+  body.autolex-portal-3 .alx3-hero { grid-template-columns:1fr;min-height:auto; }
+  body.autolex-portal-3 .alx3-pipeline { margin:0 clamp(1.5rem,5vw,3rem) clamp(1.5rem,5vw,3rem); }
+}
+
+@media (max-width:640px) {
+  body.autolex-portal-3 { --alx-radius-lg:18px; --alx-space-5:1.5rem; --alx-space-6:2rem; }
+  body.autolex-portal-3 :is(.alx3-button,.alx3-cta,button[type="submit"]) { width:100%; }
+  body.autolex-portal-3 .alx3-hero { border-radius:22px; }
+  body.autolex-portal-3 .alx3-hero__copy { padding:2rem 1.25rem 1.5rem; }
+  body.autolex-portal-3 .alx3-hero h1 { font-size:clamp(2.9rem,15vw,4.2rem); }
+  body.autolex-portal-3 .alx3-hero-search { grid-template-columns:auto minmax(0,1fr);padding:.45rem; }
+  body.autolex-portal-3 .alx3-hero-search button { grid-column:1/-1;width:100%; }
+  body.autolex-portal-3 .alx3-search-icon { width:42px; }
+  body.autolex-portal-3 .alx3-pipeline { margin:0 1rem 1rem; }
+  body.autolex-portal-3 .alx3-proof-row span { width:100%;justify-content:flex-start; }
+}
+
+@media (prefers-contrast:more) {
+  body.autolex-portal-3 {
+    --alx-border:currentColor;
+    --alx-border-strong:currentColor;
+    --alx-focus:#004fa8;
+  }
+  body.autolex-portal-3 :is(a,button,input,select,textarea,[tabindex]):focus-visible { outline-width:4px; box-shadow:none; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  body.autolex-portal-3 *,
+  body.autolex-portal-3 *:before,
+  body.autolex-portal-3 *:after {
+    scroll-behavior:auto!important;
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.01ms!important;
+  }
+}

@@ -2,18 +2,63 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 2.8.1
+Stable tag: 3.3.0
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
 
 == Description ==
 
-Ez a fejlesztési váz biztosítja az Autolex Platform biztonságosan bővíthető
-WordPress-belépési pontját. A járműadatbázis, a kereső, a SEO-rendszer és a
-FrissAuto-integráció külön modulokban épülhet rá.
+Az Autolex Platform EU/EGT fókuszú, forrásállapotot és adatminőséget kezelő
+autóadat-rendszer. A nyilvános portál, a szűrhető katalógus, a jármű- és
+motoradatok, a forrásbizonyítékok, valamint a FrissAuto-integráció elkülönített
+modulokból épül fel.
 
 == Changelog ==
+
+= 3.3.0 =
+* Akadálymentes globális autókeresés márka, modell, generáció, motor és motorkód alapján.
+* Billentyűzetes combobox/listbox navigáció, URL-ben megosztható keresés és JavaScript nélküli fallback.
+* Legfeljebb három járműves, URL-paraméteres összehasonlítás műszaki, adatminőségi és Safety Gate jelzésekkel.
+* Kapcsolódó generációk és motorváltozatok a jármű-adatlapon, visszahívási összesítéssel és biztonságos katalógus-visszalépéssel.
+* A FrissAuto-ajánlatok konkrét termék, specifikációs keresés és univerzális fallback szintjeinek egyértelmű jelölése.
+* Vehicle és BreadcrumbList JSON-LD kizárólag tényleges, nem üres katalógusadatokból.
+* Stabil canonical, meta title, meta description, robots policy és verziózott SEO-adatcache.
+* Új keresési, összehasonlítási, kapcsolódójármű-, SEO-, teljesítmény- és accessibility regressziós contractok.
+
+= 3.2.1 =
+* Teljes prémium világos jármű-adatlap külön áttekintő, navigációs és adatbizalmi blokkal.
+* Karbantartási állítások, elsődleges és támogató források külön bizonyítékkártyákon.
+* Márka–modell alapú Safety Gate visszahívási lekérdezés, VIN-ellenőrzési figyelmeztetéssel.
+* Háromszintű FrissAuto-ajánlás: konkrét termék, specifikációs keresés és univerzális fallback.
+* A specifikációs keresések konkrét termék-URL nélkül is láthatók és használhatók.
+* Reszponzív mobil adatlap, sticky szakasznavigáció, betöltési, üres és hibaállapotok.
+* Külön jármű-adatlap regressziós contract a GitHub-hosted és home-server quality gate-ben.
+
+= 3.2.0 =
+* Teljes prémium világos designrendszer a főoldal és a katalógus minden komponensére.
+* Új forráskártya-, adatfolyam-, módszertan-, CTA-, járműkártya- és találati toolbar megjelenés.
+* Sticky asztali szűrő és mobil drawer, reszponzív 3/2/1 oszlopos járműrács.
+* Generáció- és ellenőrzésiállapot-szűrés, JavaScript nélküli rendezés és stabil márka–modell váltás.
+* Akadálymentes fókuszállapotok, Escape-bezárás, aria-expanded kezelés és csökkentett mozgás támogatása.
+* Eurostat és EAFO tesztelt adapterállapot, élő Safety Gate forrásvalidálás túlállítás nélkül.
+* Külön design- és katalógusszerződés-regressziós tesztek.
+
+= 3.1.0 =
+* Világos, szerkesztőségi Autolex portál törtfehér háttérrel és grafit tipográfiával.
+* Biztonságos Műveleti központ az EEA-feldolgozás felügyeletéhez.
+* Eurostat JSON-stat 2.0 és EAFO forrásmanifeszt-adapteralap.
+* Élő, read-only Safety Gate XML-felderítés és fail-closed validálás.
+* Same-repo PR-re korlátozott self-hosted quality gate.
+
+= 3.0.0 =
+* Teljesen új, adatportál-központú nyilvános felület.
+* Külső fizetős sablon, képbank, betűkészlet vagy JavaScript-könyvtár nélküli megvalósítás.
+* Új információgazdag főoldal valós katalógus-, motor-, forrás- és EEA-számlálókkal.
+* Márka, modell, üzemanyag, évjárat, teljesítmény, motorkód és adatminőség szerinti szűrés.
+* A járműkártyákon A/B/C adatminőség, ellenőrzési állapot, forrásbizonyíték és EU-megfigyelés.
+* Nyilvános, géppel olvasható forrásjegyzék kizárólag ingyenes és hivatalos forrásokkal.
+* EEA, Eurostat, EAFO, Safety Gate, EU típusjóváhagyási és CoC forrásstratégia.
 
 = 2.8.1 =
 * EEA-kompatibilis teljes márkaindex-lekérdezés az API saját lapozójához.

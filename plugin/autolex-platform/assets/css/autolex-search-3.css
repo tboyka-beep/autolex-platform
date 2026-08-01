@@ -1,0 +1,26 @@
+/* Autolex 3.3 global search and navigation. Progressively loaded by the portal client. */
+.alx3-search-shell{position:relative;min-width:0;flex:1}
+.alx3-hero-search .alx3-search-shell{display:block}
+.alx3-search-shell>input{width:100%}
+.alx3-search-results{position:absolute;z-index:1000;top:calc(100% + 12px);left:0;right:0;max-height:min(480px,70vh);padding:8px;border:1px solid var(--alx3-line,#d9d3c8);border-radius:16px;background:#fff;box-shadow:0 24px 70px rgba(43,39,33,.2);overflow:auto}
+.alx3-search-results[hidden]{display:none!important}
+.alx3-search-results>a[data-search-option]{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:12px;padding:11px;border-radius:12px;color:var(--alx3-text,#20241f)}
+.alx3-search-results>a[data-search-option]:hover,.alx3-search-results>a[data-search-option].is-active{background:#f2eee7;color:var(--alx3-accent,#c5482d)}
+.alx3-search-results strong,.alx3-search-results small{display:block}
+.alx3-search-results small{margin-top:3px;color:var(--alx3-muted,#677069);font-size:11px}
+.alx3-search-results b{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#edf3f8;color:#315f84;font-size:12px}
+.alx3-search-mark{display:grid;place-items:center;width:42px;height:42px;border:1px solid #d7cfc3;border-radius:12px;background:#f0ebe3;color:var(--alx3-accent,#c5482d);font-weight:900}
+.alx3-search-message{padding:18px;color:var(--alx3-muted,#677069);font-size:13px;text-align:center}
+.alx3-search-results.is-error .alx3-search-message{color:#8c3125;background:#fff5f3;border-radius:10px}
+.alx3-search-results.is-empty .alx3-search-message{color:#805312;background:#fff8e9;border-radius:10px}
+.alx3-search-all{display:block;margin-top:6px;padding:12px;border-top:1px solid var(--alx3-line,#d9d3c8);color:var(--alx3-accent,#c5482d);font-size:12px;font-weight:850;text-align:center}
+.alx3-breadcrumbs{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:0 4px;color:var(--alx3-muted,#677069);font-size:12px;font-weight:750}
+.alx3-breadcrumbs a{color:#4e5751}
+.alx3-breadcrumbs a:hover{color:var(--alx3-accent,#c5482d)}
+.alx3-breadcrumbs b{color:#aaa39a;font-weight:400}
+.alx3-breadcrumbs span[aria-current="page"]{color:var(--alx3-text,#20241f)}
+.alx3-quick-routes{display:flex;flex-wrap:wrap;gap:7px;padding-bottom:4px}
+.alx3-quick-routes button{min-height:34px;padding:0 11px;border:1px solid var(--alx3-line,#d9d3c8);border-radius:999px;background:#f7f4ee;color:#525a55;font-size:10px;font-weight:800;cursor:pointer}
+.alx3-quick-routes button:hover,.alx3-quick-routes button:focus-visible{border-color:var(--alx3-accent,#c5482d);color:var(--alx3-accent,#c5482d);background:#fff0ec}
+@media(max-width:720px){.alx3-search-results{position:fixed;top:auto;left:10px;right:10px;bottom:10px;max-height:62vh;border-radius:18px}.alx3-search-results>a[data-search-option]{grid-template-columns:40px minmax(0,1fr) auto}.alx3-search-mark{width:38px;height:38px}.alx3-breadcrumbs{margin-top:8px}.alx3-quick-routes{display:grid;grid-template-columns:1fr}.alx3-quick-routes button{text-align:left}}
+@media(prefers-reduced-motion:reduce){.alx3-search-results *{scroll-behavior:auto!important;transition:none!important}}

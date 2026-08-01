@@ -1,0 +1,36 @@
+.alx3-detail-back{display:inline-flex;margin:18px 0 4px;padding:10px 14px;border:1px solid var(--alx3-line);border-radius:999px;background:#fff;color:var(--alx3-text);font-size:12px;font-weight:850;box-shadow:var(--alx3-shadow-sm)}
+.alx3-detail-back:hover{border-color:var(--alx3-accent);color:var(--alx3-accent)}
+.alx3-related-vehicles{scroll-margin-top:110px}
+.alx3-related-intro,.alx3-related-policy{padding:14px 16px;border-left:3px solid var(--alx3-teal);background:#f4f7f5;color:var(--alx3-muted);line-height:1.6}
+.alx3-related-policy{margin-top:18px;border-left-color:var(--alx3-accent)}
+.alx3-related-group{margin-top:26px}
+.alx3-related-group>header{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:12px}
+.alx3-related-group>header span{color:var(--alx3-text);font-size:20px;font-weight:900;letter-spacing:-.025em}
+.alx3-related-group>header p{margin:5px 0 0;color:var(--alx3-muted);font-size:13px}
+.alx3-related-group>header>b{display:grid;place-items:center;min-width:38px;height:38px;border-radius:12px;background:#efe9df;color:var(--alx3-accent)}
+.alx3-related-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.alx3-related-card{display:flex;min-height:235px;padding:20px;flex-direction:column;border:1px solid var(--alx3-line);border-radius:17px;background:linear-gradient(145deg,#fff,#f8f5ef);color:var(--alx3-text);box-shadow:var(--alx3-shadow-sm);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.alx3-related-card:hover{transform:translateY(-3px);border-color:#c8a79b;box-shadow:var(--alx3-shadow-hover)}
+.alx3-related-card>span{color:var(--alx3-accent);font:850 10px/1 ui-monospace,monospace;letter-spacing:.1em}
+.alx3-related-card>strong{margin-top:12px;color:var(--alx3-text);font-size:20px;line-height:1.15}
+.alx3-related-card>p{margin:8px 0 16px;color:var(--alx3-muted);font-size:13px}
+.alx3-related-card dl{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:0;border:1px solid #e6e1d8;border-radius:12px;background:#e6e1d8;overflow:hidden}
+.alx3-related-card dl>div{padding:10px;background:#fbfaf7}
+.alx3-related-card dt{color:#858b87;font-size:9px;font-weight:850;text-transform:uppercase}
+.alx3-related-card dd{margin:4px 0 0;color:#3d443f;font-size:12px;font-weight:800}
+.alx3-related-card>em{margin-top:auto;padding-top:16px;color:var(--alx3-accent);font-style:normal;font-size:12px;font-weight:850}
+.alx3-related-empty,.alx3-related-error{padding:22px;border:1px dashed var(--alx3-line-dark);border-radius:14px;background:#faf8f3;color:var(--alx3-muted);text-align:center}
+.alx3-related-error{margin:20px 0;border-color:#dfb1aa;background:#fff5f3;color:#8c3125}
+.alx3-recall-summary{display:grid;grid-template-columns:150px 180px minmax(0,1fr);gap:1px;margin:0 0 18px;border:1px solid var(--alx3-line);border-radius:16px;background:var(--alx3-line);overflow:hidden}
+.alx3-recall-summary>div{padding:16px;background:#fbfaf7}
+.alx3-recall-summary span{display:block;color:var(--alx3-muted);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.05em}
+.alx3-recall-summary strong{display:block;margin-top:6px;color:var(--alx3-text);font-size:15px}
+.alx3-recall-summary>p{grid-column:1/-1;margin:0;padding:12px 16px;background:#fff7e8;color:#805312;font-size:12px;font-weight:750}
+.alx3-recall-summary.is-clear>p{background:#edf8f1;color:#256440}
+.alx3-offer-policy{margin:16px 0 24px;padding:18px;border:1px solid var(--alx3-line);border-radius:14px;background:#f7f4ee}
+.alx3-offer-policy>strong{color:var(--alx3-text);font-size:15px}
+.alx3-offer-policy ul{display:grid;gap:7px;margin:12px 0 0;padding-left:18px;color:var(--alx3-muted);font-size:13px;line-height:1.5}
+.alx3-offer-policy b{color:var(--alx3-text)}
+@media(max-width:1050px){.alx3-related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.alx3-recall-summary{grid-template-columns:1fr 1fr}.alx3-recall-summary>div:nth-child(3){grid-column:1/-1}}
+@media(max-width:700px){.alx3-related-grid{grid-template-columns:1fr}.alx3-related-group>header{align-items:start}.alx3-recall-summary{grid-template-columns:1fr}.alx3-recall-summary>div:nth-child(3){grid-column:auto}.alx3-related-card{min-height:0}.alx3-detail-back{margin-left:4px}}
+@media(prefers-reduced-motion:reduce){.alx3-related-card{transition:none}.alx3-related-card:hover{transform:none}}

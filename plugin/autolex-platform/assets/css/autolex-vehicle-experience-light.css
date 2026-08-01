@@ -1,0 +1,114 @@
+/**
+ * Autolex ALX-033 R5 — light vehicle detail and comparison experience.
+ * Loaded after the adaptive and catalog layers. Scoped to Autolex screens only.
+ */
+body.autolex-vehicle-detail,
+body.autolex-vehicle-comparison{background:#f6f8fb!important;color:#162033!important}
+body.autolex-vehicle-detail .site-main,
+body.autolex-vehicle-comparison .site-main{background:transparent!important}
+
+/* Shared readable surfaces */
+body.autolex-vehicle-detail .alxbc-section,
+body.autolex-vehicle-detail .alx3-detail-section,
+body.autolex-vehicle-comparison .alx3-compare__form,
+body.autolex-vehicle-comparison .alx3-compare__table-wrap,
+body.autolex-vehicle-comparison .alx3-compare__notice,
+body.autolex-vehicle-comparison .alx3-compare__empty{
+  border-color:#dfe5ee!important;
+  background:#fff!important;
+  box-shadow:0 12px 34px rgba(29,45,72,.08)!important;
+}
+
+/* Vehicle overview */
+body.autolex-vehicle-detail .alx3-detail-overview{
+  grid-template-columns:minmax(0,1.25fr) minmax(310px,.75fr);
+  border-color:#dfe5ee!important;
+  background:linear-gradient(135deg,#fff 0%,#f7fbff 56%,#edf4ff 100%)!important;
+  box-shadow:0 22px 60px rgba(29,45,72,.11)!important;
+}
+body.autolex-vehicle-detail .alx3-detail-overview:before{
+  border-color:rgba(37,99,235,.12)!important;
+  box-shadow:0 0 0 70px rgba(37,99,235,.025),0 0 0 140px rgba(14,165,233,.02)!important;
+}
+body.autolex-vehicle-detail .alx3-detail-kicker,
+body.autolex-vehicle-detail .alx3-detail-heading>div>span{color:#2563eb!important}
+body.autolex-vehicle-detail .alx3-detail-overview h1{color:#111827!important}
+body.autolex-vehicle-detail .alx3-detail-overview__copy>p{color:#526077!important}
+body.autolex-vehicle-detail .alx3-detail-tags span{
+  border-color:#dce5f2!important;
+  background:rgba(255,255,255,.92)!important;
+  color:#4c5a70!important;
+}
+body.autolex-vehicle-detail .alx3-detail-tags b{color:#172033!important}
+body.autolex-vehicle-detail .alx3-detail-confidence{
+  border-color:#dce5f2!important;
+  background:#fff!important;
+  box-shadow:0 18px 45px rgba(29,45,72,.12)!important;
+}
+body.autolex-vehicle-detail .alx3-detail-confidence>header{border-color:#e5eaf1!important;background:#f5f8fc!important}
+body.autolex-vehicle-detail .alx3-detail-confidence dl{background:#e8edf4!important}
+
+/* Clear section navigation and evidence states */
+body.autolex-vehicle-detail .alx3-detail-nav{
+  top:76px;
+  border-color:#dfe5ee!important;
+  background:rgba(255,255,255,.96)!important;
+  box-shadow:0 10px 30px rgba(29,45,72,.08)!important;
+}
+body.autolex-vehicle-detail .alx3-detail-nav a{color:#44536b!important}
+body.autolex-vehicle-detail .alx3-detail-nav a:hover,
+body.autolex-vehicle-detail .alx3-detail-nav a:focus-visible{
+  background:#eaf2ff!important;
+  color:#1d4ed8!important;
+}
+body.autolex-vehicle-detail .alx3-source-summary,
+body.autolex-vehicle-detail .alx3-recall-summary{border-color:#e0e6ef!important;background:#f7f9fc!important}
+body.autolex-vehicle-detail .alx3-detail-unavailable,
+body.autolex-vehicle-detail .alx3-detail-empty,
+body.autolex-vehicle-detail .alx3-recall-clear{border-color:#cfd8e6!important;background:#f9fbfd!important}
+body.autolex-vehicle-detail .alxp-fitment-warning{border-color:#f2c66d!important;background:#fff9e9!important;color:#70490d!important}
+body.autolex-vehicle-detail .alx3-source-card,
+body.autolex-vehicle-detail .alx3-claim-card{border-color:#e0e6ef!important;background:#fff!important}
+body.autolex-vehicle-detail .alx3-source-card:hover{border-color:#9bbcf1!important;box-shadow:0 16px 38px rgba(37,99,235,.12)!important}
+
+/* Comparison */
+body.autolex-vehicle-comparison .alx3-compare{color:#162033!important}
+body.autolex-vehicle-comparison .alx3-compare__hero{
+  border-color:#dfe5ee!important;
+  background:linear-gradient(135deg,#fff 0%,#f5f9ff 58%,#eaf2ff 100%)!important;
+  box-shadow:0 22px 60px rgba(29,45,72,.11)!important;
+}
+body.autolex-vehicle-comparison .alx3-compare__hero>div>span,
+body.autolex-vehicle-comparison .alx3-compare__crumbs a{color:#2563eb!important}
+body.autolex-vehicle-comparison .alx3-compare__hero h1{color:#111827!important}
+body.autolex-vehicle-comparison .alx3-compare__hero p,
+body.autolex-vehicle-comparison .alx3-compare__crumbs{color:#526077!important}
+body.autolex-vehicle-comparison .alx3-compare__hero>strong{color:#2563eb!important}
+body.autolex-vehicle-comparison .alx3-compare__form input{border-color:#cfd8e6!important;background:#fff!important;color:#172033!important}
+body.autolex-vehicle-comparison .alx3-compare__form input:focus{border-color:#2563eb!important;box-shadow:0 0 0 4px rgba(37,99,235,.14)!important;outline:0!important}
+body.autolex-vehicle-comparison .alx3-compare__form button{background:#2563eb!important;color:#fff!important}
+body.autolex-vehicle-comparison .alx3-compare__form button:hover{background:#1d4ed8!important}
+body.autolex-vehicle-comparison .alx3-compare__table th,
+body.autolex-vehicle-comparison .alx3-compare__table td{border-color:#e5eaf1!important}
+body.autolex-vehicle-comparison .alx3-compare__table thead th{background:#eef4fb!important}
+body.autolex-vehicle-comparison .alx3-compare__table tbody th{background:#f8fafc!important;color:#3f4d62!important}
+body.autolex-vehicle-comparison .alx3-compare__table td{color:#243047!important}
+body.autolex-vehicle-comparison .alx3-compare__notice{border-left-color:#2563eb!important}
+
+/* Accessibility and responsive behaviour */
+body.autolex-vehicle-detail :focus-visible,
+body.autolex-vehicle-comparison :focus-visible{outline:3px solid rgba(37,99,235,.55)!important;outline-offset:3px!important}
+@media(max-width:900px){
+  body.autolex-vehicle-detail .alx3-detail-overview{grid-template-columns:1fr!important}
+  body.autolex-vehicle-detail .alx3-detail-confidence{max-width:none!important}
+}
+@media(max-width:760px){
+  body.autolex-vehicle-detail .alx3-detail-overview{padding:30px 20px!important;border-radius:22px!important}
+  body.autolex-vehicle-detail .alx3-detail-overview h1{font-size:clamp(38px,13vw,58px)!important}
+  body.autolex-vehicle-detail .alx3-detail-nav{top:58px;margin-inline:-2px!important}
+  body.autolex-vehicle-comparison .alx3-compare__hero{padding:32px 22px!important;border-radius:22px!important}
+  body.autolex-vehicle-comparison .alx3-compare__table-wrap{border-radius:16px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.autolex-vehicle-detail *,body.autolex-vehicle-comparison *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
