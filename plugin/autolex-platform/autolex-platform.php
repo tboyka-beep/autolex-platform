@@ -86,6 +86,18 @@ function autolex_enqueue_visual_layer()
             (string) filemtime($detail_absolute_path)
         );
     }
+
+    $adaptive_relative_path = 'assets/css/autolex-adaptive-theme.css';
+    $adaptive_absolute_path = AUTOLEX_PLATFORM_DIR . $adaptive_relative_path;
+
+    if (is_readable($adaptive_absolute_path)) {
+        wp_enqueue_style(
+            'autolex-adaptive-theme',
+            plugins_url($adaptive_relative_path, AUTOLEX_PLATFORM_FILE),
+            array('autolex-visual-night'),
+            (string) filemtime($adaptive_absolute_path)
+        );
+    }
 }
 
 add_action('plugins_loaded', 'autolex_platform');
