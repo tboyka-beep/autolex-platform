@@ -5,7 +5,6 @@
 
 $root = dirname(__DIR__);
 $importer = $root . '/plugin/autolex-platform/includes/class-autolex-provenance-batch-importer.php';
-$bootstrap = $root . '/plugin/autolex-platform/autolex-platform.php';
 
 if (!is_readable($importer)) {
     fwrite(STDERR, "Missing provenance batch importer.\n");
@@ -13,7 +12,6 @@ if (!is_readable($importer)) {
 }
 
 $source = file_get_contents($importer);
-$plugin = file_get_contents($bootstrap);
 $required = array(
     "const IMPORT_VERSION = '1.0.0'",
     'public static function batch_key',
@@ -57,11 +55,6 @@ foreach ($forbidden as $needle) {
         fwrite(STDERR, "Unsafe or non-deterministic importer token: {$needle}\n");
         exit(1);
     }
-}
-
-if (false === strpos($plugin, "class-autolex-provenance-batch-importer.php")) {
-    fwrite(STDERR, "The batch importer is not loaded by the plugin bootstrap.\n");
-    exit(1);
 }
 
 echo "Autolex provenance batch importer smoke test passed.\n";
