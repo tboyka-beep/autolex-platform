@@ -189,11 +189,94 @@ body.autolex-portal-3 .alx-front .alxbc-section-head a {
 }
 body.autolex-portal-3 .alx-front .alxbc-section-head a:hover { background: #dce8ff; }
 
-body.autolex-portal-3 .alx-front :is(.alxbc-card, .alx-ui-card, article) {
+/* Real-data overview panels: styles only existing dynamic catalogue output. */
+body.autolex-portal-3 .alx-front :is(.alxbc-stats, .alxbc-grid, .alx-ui-grid) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: clamp(14px, 2vw, 24px);
+}
+body.autolex-portal-3 .alx-front :is(.alxbc-stat, .alxbc-card, .alx-ui-card, article) {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--alx42-line) !important;
+  border-radius: 22px !important;
+  color: var(--alx42-text) !important;
+  background: linear-gradient(180deg, #fff, #f8fafd) !important;
+  box-shadow: 0 12px 34px rgba(20, 38, 61, .08) !important;
   transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
-body.autolex-portal-3 .alx-front :is(.alxbc-card, .alx-ui-card, article):hover {
+body.autolex-portal-3 .alx-front :is(.alxbc-stat, .alxbc-card, .alx-ui-card, article)::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--alx42-blue), #7aa8ff);
+  opacity: .72;
+}
+body.autolex-portal-3 .alx-front :is(.alxbc-stat, .alxbc-card, .alx-ui-card, article) :is(strong, h3) {
+  color: var(--alx42-graphite) !important;
+  letter-spacing: -.025em;
+}
+body.autolex-portal-3 .alx-front :is(.alxbc-stat, .alxbc-card, .alx-ui-card, article) :is(p, small, .meta) {
+  color: var(--alx42-muted) !important;
+}
+body.autolex-portal-3 .alx-front :is(.alxbc-stat, .alxbc-card, .alx-ui-card, article) a {
+  color: var(--alx42-blue-dark) !important;
+  text-underline-offset: 3px;
+}
+body.autolex-portal-3 .alx-front :is(.alxbc-stat, .alxbc-card, .alx-ui-card, article):hover {
   transform: translateY(-3px);
+  border-color: rgba(20, 99, 255, .32) !important;
+  box-shadow: 0 20px 48px rgba(20, 38, 61, .12) !important;
+}
+body.autolex-portal-3 .alx-front :is(.alxbc-stat, .alxbc-card, .alx-ui-card, article):focus-within {
+  border-color: var(--alx42-blue) !important;
+  box-shadow: var(--alx42-focus), 0 20px 48px rgba(20, 38, 61, .12) !important;
+}
+
+/* Safety and source state remain visually distinct without claiming verification. */
+body.autolex-portal-3 .alx-front :is([data-status="warning"], [data-status="conflict"], .is-warning, .is-conflict) {
+  border-color: rgba(214, 60, 69, .28) !important;
+  background: linear-gradient(180deg, #fff, #fff7f7) !important;
+}
+body.autolex-portal-3 .alx-front :is([data-status="warning"], [data-status="conflict"], .is-warning, .is-conflict)::before {
+  background: var(--alx42-safety);
+}
+body.autolex-portal-3 .alx-front :is([data-status="partial"], [data-status="incomplete"], .is-partial, .is-incomplete) {
+  border-style: dashed !important;
+  background: linear-gradient(180deg, #fff, #fbfaf5) !important;
+}
+
+/* Predictable loading and empty states preserve layout while data is fetched. */
+body.autolex-portal-3 .alx-front :is(.is-loading, [aria-busy="true"]) {
+  cursor: progress;
+}
+body.autolex-portal-3 .alx-front :is(.is-loading, [aria-busy="true"])::after {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 10px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e8edf4 20%, #f8fafd 40%, #e8edf4 60%);
+  background-size: 220% 100%;
+  animation: alx42-skeleton 1.25s ease-in-out infinite;
+}
+body.autolex-portal-3 .alx-front :is(.is-empty, [data-state="empty"]) {
+  min-height: 150px;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  text-align: center;
+  color: var(--alx42-muted) !important;
+  border: 1px dashed var(--alx42-line-strong) !important;
+  border-radius: 20px;
+  background: #fbfcfe !important;
+}
+@keyframes alx42-skeleton {
+  from { background-position: 100% 0; }
+  to { background-position: -120% 0; }
 }
 
 @media (max-width: 1024px) {
@@ -241,8 +324,12 @@ body.autolex-portal-3 .alx-front :is(.alxbc-card, .alx-ui-card, article):hover {
     padding: 26px 20px;
     border-radius: 22px !important;
   }
+  body.autolex-portal-3 .alx-front :is(.alxbc-stats, .alxbc-grid, .alx-ui-grid) {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.autolex-portal-3 .alx-front :is(.alxbc-card, .alx-ui-card, article):hover { transform: none; }
+  body.autolex-portal-3 .alx-front :is(.alxbc-stat, .alxbc-card, .alx-ui-card, article):hover { transform: none; }
+  body.autolex-portal-3 .alx-front :is(.is-loading, [aria-busy="true"])::after { animation: none; }
 }
