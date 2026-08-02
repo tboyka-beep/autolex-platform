@@ -1,0 +1,255 @@
+/**
+ * Autolex 4.2 global public shell.
+ * Final light navigation, page frame and footer layer.
+ */
+:root {
+  --alx42-bg: #f6f8fb;
+  --alx42-bg-warm: #fbfcfe;
+  --alx42-surface: #ffffff;
+  --alx42-surface-muted: #eef3f8;
+  --alx42-line: #dbe3ec;
+  --alx42-line-strong: #c7d2df;
+  --alx42-graphite: #17202b;
+  --alx42-text: #253140;
+  --alx42-muted: #66758a;
+  --alx42-blue: #1463ff;
+  --alx42-blue-dark: #0b46c6;
+  --alx42-blue-soft: #eaf1ff;
+  --alx42-safety: #d63c45;
+  --alx42-success: #137a52;
+  --alx42-radius-sm: 12px;
+  --alx42-radius: 18px;
+  --alx42-radius-lg: 28px;
+  --alx42-shadow-sm: 0 10px 30px rgba(20, 38, 61, .07);
+  --alx42-shadow: 0 24px 70px rgba(20, 38, 61, .12);
+  --alx42-focus: 0 0 0 4px rgba(20, 99, 255, .18);
+}
+
+html { scroll-behavior: smooth; }
+body.autolex-portal-3 {
+  color: var(--alx42-text);
+  background:
+    radial-gradient(circle at 8% -4%, rgba(20, 99, 255, .09), transparent 31rem),
+    linear-gradient(180deg, var(--alx42-bg-warm), var(--alx42-bg));
+}
+body.autolex-portal-3::before,
+body.autolex-portal-3::after { display: none !important; }
+body.autolex-portal-3 .site,
+body.autolex-portal-3 #main-container,
+body.autolex-portal-3 .site-main,
+body.autolex-portal-3 .content-area {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+body.autolex-portal-3 a { text-underline-offset: .18em; }
+body.autolex-portal-3 :focus-visible {
+  outline: 2px solid var(--alx42-blue) !important;
+  outline-offset: 3px;
+  box-shadow: var(--alx42-focus);
+}
+
+/* Blocksy header: one stable, premium shell. */
+body.autolex-portal-3 .ct-header,
+body.autolex-portal-3 #header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border: 0 !important;
+  background: rgba(255, 255, 255, .88) !important;
+  box-shadow: 0 1px 0 rgba(199, 210, 223, .8), 0 14px 34px rgba(20, 38, 61, .07) !important;
+  backdrop-filter: saturate(145%) blur(18px);
+  -webkit-backdrop-filter: saturate(145%) blur(18px);
+}
+body.autolex-portal-3 .ct-header [data-row],
+body.autolex-portal-3 #header [data-row] {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+body.autolex-portal-3 .ct-header [data-row="middle"],
+body.autolex-portal-3 #header [data-row="middle"] {
+  min-height: 78px;
+}
+body.autolex-portal-3 .ct-header .site-logo-container,
+body.autolex-portal-3 .ct-header .site-title-container {
+  min-width: max-content;
+}
+body.autolex-portal-3 .ct-header .site-title,
+body.autolex-portal-3 .ct-header .site-title a {
+  color: var(--alx42-graphite) !important;
+  font-weight: 900;
+  letter-spacing: -.035em;
+}
+body.autolex-portal-3 .ct-header nav > ul {
+  align-items: center;
+  gap: 3px;
+}
+body.autolex-portal-3 .ct-header nav > ul > li > a {
+  min-height: 44px;
+  padding: 0 13px !important;
+  border-radius: 11px;
+  color: #3b495a !important;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .015em;
+  text-transform: none;
+  transition: color .16s ease, background-color .16s ease, transform .16s ease;
+}
+body.autolex-portal-3 .ct-header nav > ul > li > a:hover,
+body.autolex-portal-3 .ct-header nav > ul > li.current-menu-item > a,
+body.autolex-portal-3 .ct-header nav > ul > li.current-menu-ancestor > a {
+  color: var(--alx42-blue-dark) !important;
+  background: var(--alx42-blue-soft) !important;
+}
+body.autolex-portal-3 .ct-header nav > ul > li > a:active { transform: translateY(1px); }
+body.autolex-portal-3 .ct-header-trigger,
+body.autolex-portal-3 .ct-header-search,
+body.autolex-portal-3 [data-id="search"] {
+  border-radius: 12px !important;
+  color: var(--alx42-graphite) !important;
+}
+body.autolex-portal-3 .ct-header-trigger:hover,
+body.autolex-portal-3 .ct-header-search:hover,
+body.autolex-portal-3 [data-id="search"]:hover {
+  background: var(--alx42-blue-soft) !important;
+  color: var(--alx42-blue-dark) !important;
+}
+
+/* Mobile drawer follows the same light visual system. */
+body.autolex-portal-3 #offcanvas,
+body.autolex-portal-3 .ct-panel,
+body.autolex-portal-3 .ct-drawer-canvas {
+  color: var(--alx42-text) !important;
+  background: rgba(255, 255, 255, .98) !important;
+}
+body.autolex-portal-3 #offcanvas .ct-panel-content {
+  padding: 24px;
+}
+body.autolex-portal-3 #offcanvas nav a {
+  padding: 13px 14px !important;
+  border-radius: 12px;
+  color: var(--alx42-graphite) !important;
+  font-weight: 800;
+}
+body.autolex-portal-3 #offcanvas nav a:hover,
+body.autolex-portal-3 #offcanvas .current-menu-item > a {
+  background: var(--alx42-blue-soft) !important;
+  color: var(--alx42-blue-dark) !important;
+}
+
+/* Final portal frame and shared panels. */
+body.autolex-portal-3 .alx3-portal,
+body.autolex-portal-3 .alx3-catalog {
+  width: min(100% - 40px, 1480px);
+}
+body.autolex-portal-3 .alx3-section,
+body.autolex-portal-3 .alx3-hero,
+body.autolex-portal-3 .alx3-catalog-shell,
+body.autolex-portal-3 .alx3-detail-section {
+  border-color: var(--alx42-line) !important;
+  background: rgba(255, 255, 255, .96) !important;
+  box-shadow: var(--alx42-shadow) !important;
+}
+body.autolex-portal-3 .alx3-section::before {
+  background: linear-gradient(90deg, var(--alx42-blue), #69a0ff 58%, transparent 88%) !important;
+}
+body.autolex-portal-3 .alx3-kicker,
+body.autolex-portal-3 .alx3-section-head span { color: var(--alx42-blue-dark) !important; }
+body.autolex-portal-3 .alx3-kicker b { color: var(--alx42-safety) !important; }
+body.autolex-portal-3 .alx3-section-head h2,
+body.autolex-portal-3 .alx3-hero h1 { color: var(--alx42-graphite) !important; }
+body.autolex-portal-3 .alx3-hero h1 em { color: var(--alx42-blue) !important; }
+body.autolex-portal-3 .alx3-hero {
+  background:
+    radial-gradient(circle at 83% 14%, rgba(20, 99, 255, .16), transparent 23rem),
+    linear-gradient(135deg, #fff 0%, #f7faff 58%, #edf3fb 100%) !important;
+}
+body.autolex-portal-3 .alx3-hero::after {
+  border-color: rgba(20, 99, 255, .18) !important;
+  box-shadow: 0 0 0 70px rgba(20, 99, 255, .035), 0 0 0 140px rgba(214, 60, 69, .018) !important;
+}
+body.autolex-portal-3 .alx3-hero-search {
+  border-color: var(--alx42-line-strong) !important;
+  box-shadow: 0 18px 50px rgba(20, 38, 61, .14) !important;
+}
+body.autolex-portal-3 .alx3-search-icon { color: var(--alx42-blue) !important; }
+body.autolex-portal-3 .alx3-hero-search button,
+body.autolex-portal-3 .alx3-button-primary {
+  background: linear-gradient(135deg, var(--alx42-blue), var(--alx42-blue-dark)) !important;
+  box-shadow: 0 12px 28px rgba(20, 99, 255, .24) !important;
+}
+body.autolex-portal-3 .alx3-hero-search button:hover,
+body.autolex-portal-3 .alx3-button-primary:hover {
+  box-shadow: 0 16px 34px rgba(20, 99, 255, .32) !important;
+}
+
+/* Shared cards use one border, radius and interaction language. */
+body.autolex-portal-3 .alx3-metrics article,
+body.autolex-portal-3 .alx3-make-grid a,
+body.autolex-portal-3 .alx3-capability-grid article,
+body.autolex-portal-3 .alx3-card,
+body.autolex-portal-3 .alx3-source-grid article,
+body.autolex-portal-3 .alx3-trust-strip > div {
+  border-color: var(--alx42-line) !important;
+  background: linear-gradient(180deg, #fff, #fbfcfe) !important;
+  box-shadow: var(--alx42-shadow-sm) !important;
+}
+body.autolex-portal-3 .alx3-make-grid a:hover,
+body.autolex-portal-3 .alx3-capability-grid article:hover,
+body.autolex-portal-3 .alx3-card:hover {
+  border-color: #9ebcff !important;
+  box-shadow: 0 24px 58px rgba(20, 38, 61, .14) !important;
+}
+body.autolex-portal-3 .alx3-make-grid a > span,
+body.autolex-portal-3 .alx3-capability-grid i,
+body.autolex-portal-3 .alx3-trust-strip b {
+  border-color: #cbd9f4 !important;
+  background: var(--alx42-blue-soft) !important;
+  color: var(--alx42-blue-dark) !important;
+}
+
+/* Footer is part of the product, not a separate dark frame. */
+body.autolex-portal-3 footer.ct-footer {
+  margin-top: 72px;
+  border-top: 1px solid var(--alx42-line) !important;
+  color: var(--alx42-muted) !important;
+  background: linear-gradient(180deg, #f3f6fa, #eaf0f6) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8) !important;
+}
+body.autolex-portal-3 footer.ct-footer a {
+  color: #405169 !important;
+  font-weight: 700;
+}
+body.autolex-portal-3 footer.ct-footer a:hover { color: var(--alx42-blue-dark) !important; }
+body.autolex-portal-3 footer.ct-footer .ct-footer-copyright { color: var(--alx42-muted) !important; }
+
+@media (max-width: 1024px) {
+  body.autolex-portal-3 .ct-header [data-row="middle"],
+  body.autolex-portal-3 #header [data-row="middle"] { min-height: 70px; }
+  body.autolex-portal-3 .alx3-portal,
+  body.autolex-portal-3 .alx3-catalog { width: min(100% - 28px, 1480px); }
+}
+
+@media (max-width: 689px) {
+  body.autolex-portal-3 .ct-header,
+  body.autolex-portal-3 #header { backdrop-filter: blur(14px); }
+  body.autolex-portal-3 .alx3-portal,
+  body.autolex-portal-3 .alx3-catalog { width: min(100% - 20px, 1480px); }
+  body.autolex-portal-3 .alx3-section,
+  body.autolex-portal-3 .alx3-hero,
+  body.autolex-portal-3 .alx3-catalog-shell,
+  body.autolex-portal-3 .alx3-detail-section { border-radius: 20px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  body.autolex-portal-3 *,
+  body.autolex-portal-3 *::before,
+  body.autolex-portal-3 *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
