@@ -1,65 +1,42 @@
 <?php
 $root = dirname(__DIR__);
 $plugin = file_get_contents($root . '/plugin/autolex-platform/autolex-platform.php');
-$css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-visual-night.css');
-$detail_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-vehicle-detail-premium.css');
-$adaptive_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-adaptive-theme.css');
+$catalog_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-catalog-light.css');
+$vehicle_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-vehicle-experience-light.css');
+$home_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-home-41.css');
 
 $checks = array(
-    'stylesheet file is readable' => $css !== false,
-    'stylesheet is portal scoped' => strpos($css, 'body.autolex-portal-3') !== false,
-    'hero receives premium visual layer' => strpos($css, '.alx3-hero') !== false && strpos($css, 'linear-gradient') !== false,
-    'catalogue hero receives premium layer' => strpos($css, '.alx3-catalog-hero') !== false && strpos($css, 'alx3-catalog-glow') !== false,
-    'catalogue filter is sticky on desktop' => strpos($css, '.alx3-filters') !== false && strpos($css, 'position:sticky') !== false,
-    'vehicle cards have premium hover treatment' => strpos($css, '.alx3-vehicle-card:hover') !== false && strpos($css, 'translateY(-7px)') !== false,
-    'comparison hero receives premium layer' => strpos($css, '.alx3-compare__hero') !== false && strpos($css, 'alx3-compare-glow') !== false,
-    'comparison table has sticky header treatment' => strpos($css, '.alx3-compare__table thead th') !== false,
-    'comparison form has accessible focus treatment' => strpos($css, '.alx3-compare__form input:focus') !== false && strpos($css, '0 0 0 4px rgba(197,72,45,.12)') !== false,
-    'mobile breakpoint exists' => strpos($css, '@media (max-width:640px)') !== false,
-    'mobile card hover is neutralized' => strpos($css, '.alx3-vehicle-card:hover,') !== false && strpos($css, '.alx3-compare__form button:hover { transform:none; }') !== false,
-    'reduced motion contract exists' => strpos($css, 'prefers-reduced-motion:reduce') !== false,
-    'catalogue animation is disabled for reduced motion' => strpos($css, '.alx3-catalog-hero:before,') !== false,
-    'comparison animation is disabled for reduced motion' => strpos($css, '.alx3-compare__hero:before { transition:none!important;animation:none!important; }') !== false,
-    'plugin enqueues visual stylesheet' => strpos($plugin, "'autolex-visual-night'") !== false,
-    'base portal style is dependency' => strpos($plugin, "array('autolex-portal-3')") !== false,
-    'asset version uses filemtime' => strpos($plugin, 'filemtime($absolute_path)') !== false,
-    'detail premium stylesheet is readable' => $detail_css !== false,
-    'detail premium stylesheet is page scoped' => strpos($detail_css, 'body.autolex-vehicle-detail') !== false,
-    'detail overview receives premium layer' => strpos($detail_css, '.alx3-detail-overview') !== false && strpos($detail_css, 'alx3-detail-glow') !== false,
-    'detail confidence panel uses glass treatment' => strpos($detail_css, '.alx3-detail-confidence') !== false && strpos($detail_css, 'backdrop-filter:blur(22px)') !== false,
-    'detail navigation has accessible focus treatment' => strpos($detail_css, '.alx3-detail-nav a:focus-visible') !== false && strpos($detail_css, 'outline:3px solid') !== false,
-    'detail cards have premium hover treatment' => strpos($detail_css, '.alx3-claim-card:hover') !== false && strpos($detail_css, 'translateY(-6px)') !== false,
-    'detail mobile hover is neutralized' => strpos($detail_css, '@media (max-width:640px)') !== false && strpos($detail_css, '.alx3-source-card:hover { transform:none; }') !== false,
-    'detail reduced motion contract exists' => strpos($detail_css, 'prefers-reduced-motion:reduce') !== false && strpos($detail_css, 'animation:none!important') !== false,
-    'plugin enqueues detail premium stylesheet' => strpos($plugin, "'autolex-vehicle-detail-premium'") !== false,
-    'detail premium layer depends on global visual layer' => strpos($plugin, "array('autolex-visual-night')") !== false,
-    'detail asset version uses filemtime' => strpos($plugin, 'filemtime($detail_absolute_path)') !== false,
-    'adaptive theme stylesheet is readable' => $adaptive_css !== false,
-    'adaptive theme is portal scoped' => strpos($adaptive_css, 'body.autolex-portal-3') !== false,
-    'adaptive theme is light first' => strpos($adaptive_css, 'color-scheme:light') !== false && strpos($adaptive_css, '--alx-page:#f5f7fa') !== false,
-    'adaptive theme does not auto-switch to dark' => strpos($adaptive_css, 'prefers-color-scheme:dark') === false,
-    'light design tokens cover surfaces and states' => strpos($adaptive_css, '--alx-surface:#fff') !== false && strpos($adaptive_css, '--alx-success:#16845b') !== false && strpos($adaptive_css, '--alx-safety:#b9232f') !== false,
-    'typography and spacing tokens exist' => strpos($adaptive_css, '--alx-space-6:3rem') !== false && strpos($adaptive_css, 'font-family:Inter') !== false,
-    'Blocksy header stays light and scoped' => strpos($adaptive_css, '.ct-header') !== false && strpos($adaptive_css, 'background:rgba(255,255,255,.96)') !== false,
-    'desktop navigation has clear active state' => strpos($adaptive_css, '.current-menu-item') !== false && strpos($adaptive_css, 'var(--alx-primary-soft)') !== false,
-    'mobile navigation has touch target contract' => strpos($adaptive_css, '@media (max-width:999px)') !== false && strpos($adaptive_css, 'min-height:48px') !== false,
-    'adaptive theme supports increased contrast' => strpos($adaptive_css, 'prefers-contrast:more') !== false,
-    'adaptive theme exposes visible focus contract' => strpos($adaptive_css, ':focus-visible') !== false && strpos($adaptive_css, 'outline:3px solid') !== false,
-    'adaptive theme protects reduced motion users' => strpos($adaptive_css, 'prefers-reduced-motion:reduce') !== false && strpos($adaptive_css, 'transition-duration:.01ms!important') !== false,
-    'plugin enqueues adaptive theme stylesheet' => strpos($plugin, "'autolex-adaptive-theme'") !== false,
-    'adaptive layer depends on global visual layer' => strpos($plugin, "array('autolex-visual-night')") !== false,
-    'adaptive asset version uses filemtime' => strpos($plugin, 'filemtime($adaptive_absolute_path)') !== false,
-    'light hero uses blue automotive accent' => strpos($adaptive_css, 'radial-gradient(circle at 82% 18%,rgba(23,105,224,.12)') !== false,
-    'hero search has strong focus-within treatment' => strpos($adaptive_css, '.alx3-hero-search:focus-within') !== false && strpos($adaptive_css, '0 0 0 4px rgba(23,105,224,.12)') !== false,
-    'global search results stay light and elevated' => strpos($adaptive_css, '.alx3-search-results') !== false && strpos($adaptive_css, 'box-shadow:0 24px 60px rgba(15,35,65,.18)') !== false,
-    'hero collapses to one column on tablet' => strpos($adaptive_css, 'body.autolex-portal-3 .alx3-hero { grid-template-columns:1fr;min-height:auto; }') !== false,
-    'hero search button stacks on mobile' => strpos($adaptive_css, 'grid-column:1/-1;width:100%') !== false,
+    'plugin source is readable' => $plugin !== false,
+    'catalogue stylesheet is readable' => $catalog_css !== false,
+    'vehicle stylesheet is readable' => $vehicle_css !== false,
+    'home stylesheet is readable' => $home_css !== false,
+    'single light catalogue layer is enqueued' => strpos($plugin, "'autolex-catalog-light'") !== false,
+    'vehicle layer follows catalogue layer' => strpos($plugin, "'autolex-vehicle-experience-light'") !== false && strpos($plugin, "array('autolex-catalog-light')") !== false,
+    'home layer follows vehicle layer' => strpos($plugin, "'autolex-home-41'") !== false && strpos($plugin, "array('autolex-vehicle-experience-light')") !== false,
+    'assets use deterministic filemtime cache busting' => strpos($plugin, 'filemtime($absolute_path)') !== false,
+    'legacy night layer is not enqueued' => strpos($plugin, "wp_enqueue_style(\n            'autolex-visual-night'") === false,
+    'legacy adaptive layer is not enqueued' => strpos($plugin, "wp_enqueue_style(\n            'autolex-adaptive-theme'") === false,
+    'catalogue is portal scoped' => strpos($catalog_css, 'body.autolex-portal-3 .alx3-catalog') !== false,
+    'catalogue hero uses premium light treatment' => strpos($catalog_css, '.alx3-catalog-hero') !== false && strpos($catalog_css, 'radial-gradient') !== false,
+    'desktop filter remains sticky' => strpos($catalog_css, '.alx3-filters') !== false && strpos($catalog_css, 'position: sticky') !== false,
+    'mobile filter becomes a drawer' => strpos($catalog_css, 'position: fixed') !== false && strpos($catalog_css, 'translateX(-105%)') !== false,
+    'vehicle cards use premium hover treatment' => strpos($catalog_css, '.alx3-vehicle-card:hover') !== false && strpos($catalog_css, 'translateY(-5px)') !== false,
+    'long vehicle data can wrap safely' => strpos($catalog_css, 'overflow-wrap: anywhere') !== false,
+    'verification states are visually distinct' => strpos($catalog_css, '.is-verified') !== false && strpos($catalog_css, '.is-conflict') !== false,
+    'mobile catalogue breakpoint exists' => strpos($catalog_css, '@media (max-width: 680px)') !== false,
+    'reduced motion contract exists' => strpos($catalog_css, 'prefers-reduced-motion: reduce') !== false,
+    'home hero remains premium and responsive' => strpos($home_css, '.alx3-hero') !== false && strpos($home_css, '@media (max-width: 689px)') !== false,
+    'vehicle experience remains portal scoped' => strpos($vehicle_css, 'body.autolex-portal-3') !== false,
 );
 
+$failed = false;
 foreach ($checks as $label => $passed) {
     if (!$passed) {
         fwrite(STDERR, "FAIL: {$label}\n");
-        exit(1);
+        $failed = true;
+        continue;
     }
     echo "PASS: {$label}\n";
 }
+
+exit($failed ? 1 : 0);

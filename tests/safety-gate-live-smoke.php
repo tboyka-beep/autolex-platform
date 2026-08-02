@@ -28,9 +28,9 @@ const AUTOLEX_LIVE_ALLOWED_HOSTS = array(
 );
 
 /**
- * @param string              $url     Official HTTPS URL.
- * @param int                 $max     Maximum accepted response size.
- * @param array<int,string>   $headers HTTP headers.
+ * @param string            $url     Official HTTPS URL.
+ * @param int               $max     Maximum accepted response size.
+ * @param array<int,string> $headers HTTP headers.
  * @return array{body:string,effective_url:string,content_type:string}
  */
 function autolex_live_fetch($url, $max, $headers = array())
@@ -39,55 +39,92 @@ function autolex_live_fetch($url, $max, $headers = array())
         throw new RuntimeException('The PHP cURL extension is required.');
     }
 
-    $handle = curl_init($url);
-    if (false === $handle) {
-        throw new RuntimeException('Could not initialize cURL.');
+    $attempts = 4;
+    $last_error = 'Unknown network error.';
+
+    for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+        $handle = curl_init($url);
+        if (false === $handle) {
+            throw new RuntimeException('Could not initialize cURL.');
+        }
+
+        curl_setopt_array($handle, array(
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 3,
+            CURLOPT_CONNECTTIMEOUT => 15,
+            CURLOPT_TIMEOUT => 45,
+            CURLOPT_ENCODING => '',
+            CURLOPT_USERAGENT => 'Autolex-Safety-Gate-Live-Smoke/1.1 (+https://autolex.hu/)',
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+            CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_FRESH_CONNECT => true,
+            CURLOPT_FORBID_REUSE => true,
+        ));
+
+        $body = curl_exec($handle);
+        $error = curl_error($handle);
+        $error_number = curl_errno($handle);
+        $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
+        $effective_url = (string) curl_getinfo($handle, CURLINFO_EFFECTIVE_URL);
+        $content_type = strtolower((string) curl_getinfo($handle, CURLINFO_CONTENT_TYPE));
+        curl_close($handle);
+
+        $transient_http = 408 === $status || 425 === $status || 429 === $status || $status >= 500;
+        $transient_curl = in_array($error_number, array(
+            CURLE_COULDNT_RESOLVE_HOST,
+            CURLE_COULDNT_CONNECT,
+            CURLE_OPERATION_TIMEDOUT,
+            CURLE_RECV_ERROR,
+            CURLE_SEND_ERROR,
+            CURLE_GOT_NOTHING,
+            CURLE_PARTIAL_FILE,
+            CURLE_SSL_CONNECT_ERROR,
+        ), true);
+
+        if (false !== $body && 200 === $status) {
+            if ('' === trim($body)) {
+                throw new RuntimeException('Official source returned an empty response.');
+            }
+            if (strlen($body) > $max) {
+                throw new RuntimeException('Official source exceeded the response size limit.');
+            }
+
+            $host = strtolower((string) parse_url($effective_url, PHP_URL_HOST));
+            if ('https' !== strtolower((string) parse_url($effective_url, PHP_URL_SCHEME))
+                || !in_array($host, AUTOLEX_LIVE_ALLOWED_HOSTS, true)) {
+                throw new RuntimeException('Request redirected outside the official EU allowlist.');
+            }
+
+            return array(
+                'body' => $body,
+                'effective_url' => $effective_url,
+                'content_type' => $content_type,
+            );
+        }
+
+        if (false === $body) {
+            $last_error = 'Network request failed: ' . ($error ?: 'cURL error ' . $error_number);
+        } else {
+            $last_error = 'Official source returned HTTP ' . $status . '.';
+        }
+
+        if ($attempt >= $attempts || (!$transient_http && !$transient_curl)) {
+            throw new RuntimeException($last_error);
+        }
+
+        fwrite(STDERR, sprintf(
+            "Transient Safety Gate request failure on attempt %d/%d: %s Retrying.\n",
+            $attempt,
+            $attempts,
+            $last_error
+        ));
+        sleep(2 ** ($attempt - 1));
     }
 
-    curl_setopt_array($handle, array(
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_MAXREDIRS => 3,
-        CURLOPT_CONNECTTIMEOUT => 15,
-        CURLOPT_TIMEOUT => 45,
-        CURLOPT_ENCODING => '',
-        CURLOPT_USERAGENT => 'Autolex-Safety-Gate-Live-Smoke/1.0 (+https://autolex.hu/)',
-        CURLOPT_HTTPHEADER => $headers,
-        CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
-        CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
-    ));
-
-    $body = curl_exec($handle);
-    $error = curl_error($handle);
-    $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
-    $effective_url = (string) curl_getinfo($handle, CURLINFO_EFFECTIVE_URL);
-    $content_type = strtolower((string) curl_getinfo($handle, CURLINFO_CONTENT_TYPE));
-    curl_close($handle);
-
-    if (false === $body) {
-        throw new RuntimeException('Network request failed: ' . $error);
-    }
-    if (200 !== $status) {
-        throw new RuntimeException('Official source returned HTTP ' . $status . '.');
-    }
-    if ('' === trim($body)) {
-        throw new RuntimeException('Official source returned an empty response.');
-    }
-    if (strlen($body) > $max) {
-        throw new RuntimeException('Official source exceeded the response size limit.');
-    }
-
-    $host = strtolower((string) parse_url($effective_url, PHP_URL_HOST));
-    if ('https' !== strtolower((string) parse_url($effective_url, PHP_URL_SCHEME))
-        || !in_array($host, AUTOLEX_LIVE_ALLOWED_HOSTS, true)) {
-        throw new RuntimeException('Request redirected outside the official EU allowlist.');
-    }
-
-    return array(
-        'body' => $body,
-        'effective_url' => $effective_url,
-        'content_type' => $content_type,
-    );
+    throw new RuntimeException($last_error);
 }
 
 $metadata_errors = array();

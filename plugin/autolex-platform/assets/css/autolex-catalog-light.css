@@ -1,138 +1,652 @@
-/* ALX-033 R4 — light, scan-friendly catalogue and vehicle cards. */
+/* Autolex 4.1 — premium catalogue, filters and vehicle cards. */
 body.autolex-portal-3 .alx3-catalog {
-  width:min(100% - 32px,1480px);
-  padding-block:clamp(1.25rem,3vw,3rem) 6rem;
+  width: min(100% - 32px, 1520px);
+  padding: clamp(18px, 3vw, 44px) 0 96px;
 }
 
 body.autolex-portal-3 .alx3-catalog-hero {
-  position:relative;
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  align-items:end;
-  gap:2rem;
-  padding:clamp(2rem,5vw,4.75rem);
-  border:1px solid #d9e4f1;
-  border-radius:28px;
-  background:linear-gradient(135deg,#fff 0%,#f7fbff 62%,#edf5ff 100%);
-  box-shadow:0 22px 64px rgba(15,35,65,.1);
-  overflow:hidden;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+  align-items: end;
+  gap: clamp(24px, 5vw, 64px);
+  padding: clamp(32px, 6vw, 78px);
+  border: 1px solid var(--alx3-line);
+  border-radius: clamp(24px, 4vw, 38px);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(23, 105, 224, .16), transparent 28rem),
+    linear-gradient(135deg, #fff 0%, #f8fbff 58%, #edf4ff 100%);
+  box-shadow: var(--alx3-shadow);
+  overflow: hidden;
+  isolation: isolate;
 }
-body.autolex-portal-3 .alx3-catalog-hero:after {
-  content:"";
-  position:absolute;
-  width:340px;
-  height:340px;
-  right:-120px;
-  top:-170px;
-  border-radius:50%;
-  background:rgba(23,105,224,.08);
-  box-shadow:0 0 0 62px rgba(23,105,224,.025);
-  pointer-events:none;
-}
-body.autolex-portal-3 .alx3-catalog-hero > * { position:relative;z-index:1; }
-body.autolex-portal-3 .alx3-catalog-hero h1 {
-  max-width:13ch;
-  margin:.8rem 0 1rem;
-  color:var(--alx-text)!important;
-  font-size:clamp(2.7rem,5vw,5.6rem);
-  line-height:.94;
-  letter-spacing:-.065em;
-}
-body.autolex-portal-3 .alx3-catalog-hero h1 em { color:var(--alx-primary);font-style:normal; }
-body.autolex-portal-3 .alx3-catalog-hero p { max-width:760px;margin:0;color:var(--alx-text-soft);font-size:1.05rem; }
-body.autolex-portal-3 .alx3-catalog-hero > aside {
-  min-width:220px;
-  padding:1.35rem 1.5rem;
-  border:1px solid var(--alx-border);
-  border-radius:20px;
-  background:rgba(255,255,255,.9);
-  box-shadow:var(--alx-shadow-sm);
-}
-body.autolex-portal-3 .alx3-catalog-hero > aside strong { display:block;color:var(--alx-primary);font-size:2.5rem;line-height:1;letter-spacing:-.05em; }
-body.autolex-portal-3 .alx3-catalog-hero > aside span,
-body.autolex-portal-3 .alx3-catalog-hero > aside small { display:block;margin-top:.45rem;color:var(--alx-muted); }
 
-body.autolex-portal-3 .alx3-catalog-layout { grid-template-columns:320px minmax(0,1fr);gap:1.25rem;margin-top:1.25rem; }
-body.autolex-portal-3 .alx3-filters {
-  top:94px;
-  border-color:var(--alx-border);
-  border-radius:20px;
-  background:#fff;
-  box-shadow:0 12px 34px rgba(15,35,65,.08);
+body.autolex-portal-3 .alx3-catalog-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(23, 105, 224, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 105, 224, .035) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,.55) 55%, transparent 100%);
 }
-body.autolex-portal-3 .alx3-filters > header { background:#f7faff;border-color:var(--alx-border); }
-body.autolex-portal-3 .alx3-filters > header span { color:var(--alx-primary); }
-body.autolex-portal-3 .alx3-filters form { gap:1rem;padding:1.25rem; }
+
+body.autolex-portal-3 .alx3-catalog-hero h1 {
+  max-width: 12ch;
+  margin: 16px 0 20px;
+  color: var(--alx3-text) !important;
+  font-size: clamp(44px, 7vw, 86px);
+  line-height: .95;
+  letter-spacing: -.065em;
+  text-wrap: balance;
+}
+
+body.autolex-portal-3 .alx3-catalog-hero h1 em {
+  color: var(--alx3-accent);
+  font-style: normal;
+}
+
+body.autolex-portal-3 .alx3-catalog-hero p {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--alx3-muted);
+  font-size: clamp(16px, 1.6vw, 20px);
+  line-height: 1.7;
+}
+
+body.autolex-portal-3 .alx3-catalog-hero > aside {
+  padding: 24px;
+  border: 1px solid rgba(199, 210, 226, .96);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 18px 45px rgba(23, 32, 51, .09);
+  backdrop-filter: blur(16px);
+}
+
+body.autolex-portal-3 .alx3-catalog-hero > aside strong {
+  display: block;
+  color: var(--alx3-accent);
+  font-size: clamp(36px, 4vw, 54px);
+  line-height: 1;
+  letter-spacing: -.055em;
+}
+
+body.autolex-portal-3 .alx3-catalog-hero > aside span,
+body.autolex-portal-3 .alx3-catalog-hero > aside small {
+  display: block;
+  margin-top: 8px;
+  color: var(--alx3-muted);
+  line-height: 1.4;
+}
+
+body.autolex-portal-3 .alx3-catalog-layout {
+  display: grid;
+  grid-template-columns: 326px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+body.autolex-portal-3 .alx3-filters {
+  position: sticky;
+  top: 96px;
+  overflow: hidden;
+  border: 1px solid var(--alx3-line);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 14px 38px rgba(23, 32, 51, .075);
+}
+
+body.autolex-portal-3 .alx3-filters > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--alx3-line);
+  background: linear-gradient(180deg, #fbfdff, #f5f8fc);
+}
+
+body.autolex-portal-3 .alx3-filters > header span {
+  color: var(--alx3-accent);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+body.autolex-portal-3 .alx3-filters > header h2 {
+  margin: 4px 0 0;
+  color: var(--alx3-text);
+  font-size: 22px;
+  letter-spacing: -.025em;
+}
+
+body.autolex-portal-3 .alx3-filters > header button {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--alx3-line);
+  border-radius: 13px;
+  background: #fff;
+  color: var(--alx3-text);
+  cursor: pointer;
+}
+
+body.autolex-portal-3 .alx3-filters form {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+body.autolex-portal-3 .alx3-field,
+body.autolex-portal-3 .alx3-field-group {
+  min-width: 0;
+}
+
 body.autolex-portal-3 .alx3-field > span,
 body.autolex-portal-3 .alx3-field-group > span,
-body.autolex-portal-3 .alx3-grade-filter legend { color:var(--alx-text-soft); }
+body.autolex-portal-3 .alx3-grade-filter legend {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--alx3-muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
 body.autolex-portal-3 .alx3-field input,
 body.autolex-portal-3 .alx3-field select,
 body.autolex-portal-3 .alx3-field-group input,
-body.autolex-portal-3 .alx3-results-toolbar select { border-color:var(--alx-border-strong)!important;border-radius:12px!important;background:#fff!important;color:var(--alx-text)!important; }
-body.autolex-portal-3 .alx3-grade-filter span { min-height:42px;display:grid;place-items:center;background:var(--alx-surface-soft);border-color:var(--alx-border); }
-body.autolex-portal-3 .alx3-grade-filter input:checked + span { border-color:var(--alx-primary);background:var(--alx-primary-soft);color:var(--alx-primary-hover);box-shadow:inset 0 0 0 1px var(--alx-primary); }
-body.autolex-portal-3 .alx3-filter-submit { background:linear-gradient(135deg,var(--alx-primary),var(--alx-primary-hover));box-shadow:0 10px 24px rgba(23,105,224,.22); }
+body.autolex-portal-3 .alx3-results-toolbar select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #cbd7e6 !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  color: var(--alx3-text) !important;
+  box-shadow: inset 0 1px 1px rgba(23, 32, 51, .025);
+}
+
+body.autolex-portal-3 .alx3-field input:focus,
+body.autolex-portal-3 .alx3-field select:focus,
+body.autolex-portal-3 .alx3-field-group input:focus,
+body.autolex-portal-3 .alx3-results-toolbar select:focus {
+  border-color: var(--alx3-accent) !important;
+  box-shadow: 0 0 0 4px rgba(23, 105, 224, .11);
+}
+
+body.autolex-portal-3 .alx3-field-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+body.autolex-portal-3 .alx3-field-group > span {
+  grid-column: 1 / -1;
+}
+
+body.autolex-portal-3 .alx3-field-group small {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--alx3-muted);
+}
+
+body.autolex-portal-3 .alx3-grade-filter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+body.autolex-portal-3 .alx3-grade-filter legend {
+  grid-column: 1 / -1;
+}
+
+body.autolex-portal-3 .alx3-grade-filter label {
+  position: relative;
+  cursor: pointer;
+}
+
+body.autolex-portal-3 .alx3-grade-filter input {
+  position: absolute;
+  opacity: 0;
+}
+
+body.autolex-portal-3 .alx3-grade-filter span {
+  display: grid;
+  min-height: 44px;
+  padding: 8px 10px;
+  place-items: center;
+  border: 1px solid var(--alx3-line);
+  border-radius: 12px;
+  background: #f7f9fc;
+  color: var(--alx3-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+body.autolex-portal-3 .alx3-grade-filter input:checked + span {
+  border-color: var(--alx3-accent);
+  background: #edf4ff;
+  color: #0f55b7;
+  box-shadow: inset 0 0 0 1px var(--alx3-accent);
+}
+
+body.autolex-portal-3 .alx3-filter-submit {
+  min-height: 50px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--alx3-accent), #0f55b7);
+  color: #fff;
+  font-weight: 900;
+  box-shadow: 0 12px 25px rgba(23, 105, 224, .22);
+  cursor: pointer;
+}
+
+body.autolex-portal-3 .alx3-filter-reset {
+  color: var(--alx3-muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+body.autolex-portal-3 .alx3-results {
+  min-width: 0;
+}
 
 body.autolex-portal-3 .alx3-results-toolbar {
-  top:90px;
-  grid-template-columns:auto minmax(0,1fr) auto;
-  min-height:70px;
-  padding:.8rem 1rem;
-  border-color:var(--alx-border);
-  border-radius:16px;
-  background:rgba(255,255,255,.96);
-  box-shadow:0 10px 30px rgba(15,35,65,.08);
+  position: sticky;
+  top: 90px;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 10px 14px;
+  border: 1px solid var(--alx3-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 12px 34px rgba(23, 32, 51, .08);
+  backdrop-filter: blur(14px);
 }
-body.autolex-portal-3 .alx3-results-toolbar > div > b { color:var(--alx-primary);font-size:1.3rem; }
-body.autolex-portal-3 .alx3-filter-toggle { border-color:var(--alx-border);background:var(--alx-primary-soft);color:var(--alx-primary-hover); }
 
-body.autolex-portal-3 .alx3-vehicle-grid { grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1rem; }
+body.autolex-portal-3 .alx3-results-toolbar > div {
+  min-width: 0;
+  color: var(--alx3-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.autolex-portal-3 .alx3-results-toolbar > div > b {
+  color: var(--alx3-accent);
+  font-size: 22px;
+}
+
+body.autolex-portal-3 .alx3-results-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--alx3-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+body.autolex-portal-3 .alx3-filter-toggle {
+  display: none;
+  min-height: 46px;
+  padding: 0 15px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #c7d8ef;
+  border-radius: 13px;
+  background: #edf4ff;
+  color: #0f55b7;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+body.autolex-portal-3 .alx3-result-status {
+  margin-top: 12px;
+  padding: 13px 16px;
+  border: 1px solid var(--alx3-line);
+  border-radius: 14px;
+  background: #f8fafd;
+  color: var(--alx3-muted);
+}
+
+body.autolex-portal-3 .alx3-vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
 body.autolex-portal-3 .alx3-vehicle-card {
-  min-height:420px;
-  padding:1.25rem;
-  border-color:var(--alx-border);
-  border-radius:18px;
-  background:#fff;
-  box-shadow:0 8px 26px rgba(15,35,65,.065);
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 430px;
+  padding: 20px;
+  flex-direction: column;
+  border: 1px solid var(--alx3-line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+  box-shadow: 0 10px 30px rgba(23, 32, 51, .06);
+  overflow: hidden;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
-body.autolex-portal-3 .alx3-vehicle-card:hover { transform:translateY(-4px);border-color:#a9c7ef;box-shadow:0 20px 44px rgba(15,35,65,.13); }
-body.autolex-portal-3 .alx3-vehicle-card > header { grid-template-columns:52px minmax(0,1fr) auto;border-color:var(--alx-border); }
-body.autolex-portal-3 .alx3-brand-mark { border-color:#cddcf0;background:var(--alx-primary-soft);color:var(--alx-primary); }
-body.autolex-portal-3 .alx3-vehicle-card h2 { font-size:1.18rem; }
-body.autolex-portal-3 .alx3-vehicle-card h2 a { display:block;overflow:hidden;text-overflow:ellipsis; }
-body.autolex-portal-3 .alx3-grade { border:1px solid var(--alx-border);background:#f4f7fb;color:var(--alx-muted); }
-body.autolex-portal-3 .alx3-card-badges span { background:#f7f9fc;border-color:var(--alx-border);color:var(--alx-text-soft); }
-body.autolex-portal-3 .alx3-specs { border-color:var(--alx-border);background:var(--alx-border); }
-body.autolex-portal-3 .alx3-specs > div { background:#fbfdff; }
-body.autolex-portal-3 .alx3-specs dt { color:var(--alx-muted); }
-body.autolex-portal-3 .alx3-specs dd { color:var(--alx-text);overflow-wrap:anywhere; }
-body.autolex-portal-3 .alx3-vehicle-card > footer a { color:var(--alx-primary); }
-body.autolex-portal-3 .alx3-pagination a:hover { border-color:var(--alx-primary);color:var(--alx-primary); }
 
-@media (max-width:1250px) {
-  body.autolex-portal-3 .alx3-vehicle-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+body.autolex-portal-3 .alx3-vehicle-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, var(--alx3-accent), #087f8c, transparent 80%);
 }
-@media (max-width:980px) {
-  body.autolex-portal-3 .alx3-catalog-hero { grid-template-columns:1fr;align-items:start; }
-  body.autolex-portal-3 .alx3-catalog-hero > aside { min-width:0; }
-  body.autolex-portal-3 .alx3-catalog-layout { display:block; }
-  body.autolex-portal-3 .alx3-filters { width:min(92vw,400px); }
-  body.autolex-portal-3 .alx3-results-toolbar { top:76px;margin-top:1rem; }
+
+body.autolex-portal-3 .alx3-vehicle-card:hover {
+  transform: translateY(-5px);
+  border-color: #b8cce8;
+  box-shadow: 0 22px 50px rgba(23, 32, 51, .12);
 }
-@media (max-width:680px) {
-  body.autolex-portal-3 .alx3-catalog { width:min(100% - 20px,1480px);padding-top:.75rem; }
-  body.autolex-portal-3 .alx3-catalog-hero { padding:2rem 1.25rem;border-radius:22px; }
-  body.autolex-portal-3 .alx3-catalog-hero h1 { font-size:clamp(2.5rem,14vw,4.2rem); }
-  body.autolex-portal-3 .alx3-results-toolbar { grid-template-columns:auto minmax(0,1fr); }
-  body.autolex-portal-3 .alx3-results-toolbar > label { grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr); }
-  body.autolex-portal-3 .alx3-vehicle-grid { grid-template-columns:1fr; }
-  body.autolex-portal-3 .alx3-vehicle-card { min-height:0;padding:1rem; }
-  body.autolex-portal-3 .alx3-specs { grid-template-columns:1fr; }
-  body.autolex-portal-3 .alx3-vehicle-card > footer { align-items:flex-start;flex-direction:column; }
-  body.autolex-portal-3 .alx3-vehicle-card > footer small { max-width:none; }
+
+body.autolex-portal-3 .alx3-vehicle-card > header {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--alx3-line);
 }
-@media (prefers-reduced-motion:reduce) {
+
+body.autolex-portal-3 .alx3-brand-mark {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border: 1px solid #c7d8ef;
+  border-radius: 17px;
+  background: linear-gradient(145deg, #f5f9ff, #e8f1ff);
+  color: var(--alx3-accent);
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: -.025em;
+}
+
+body.autolex-portal-3 .alx3-vehicle-card > header span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--alx3-muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+body.autolex-portal-3 .alx3-vehicle-card h2 {
+  min-width: 0;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: -.025em;
+}
+
+body.autolex-portal-3 .alx3-vehicle-card h2 a {
+  display: block;
+  color: var(--alx3-text);
+  overflow-wrap: anywhere;
+}
+
+body.autolex-portal-3 .alx3-grade {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid var(--alx3-line);
+  border-radius: 12px;
+  background: #f3f6fa;
+  color: var(--alx3-muted);
+  font-weight: 950;
+}
+
+body.autolex-portal-3 .alx3-grade.is-a {
+  border-color: rgba(24, 133, 81, .25);
+  background: #eef9f3;
+  color: #137447;
+}
+
+body.autolex-portal-3 .alx3-grade.is-b {
+  border-color: rgba(190, 124, 23, .25);
+  background: #fff8ea;
+  color: #9a620d;
+}
+
+body.autolex-portal-3 .alx3-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 15px 0;
+}
+
+body.autolex-portal-3 .alx3-card-badges span {
+  max-width: 100%;
+  padding: 6px 9px;
+  border: 1px solid var(--alx3-line);
+  border-radius: 999px;
+  background: #f7f9fc;
+  color: var(--alx3-muted);
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+body.autolex-portal-3 .alx3-card-badges .is-verified,
+body.autolex-portal-3 .alx3-card-badges .is-reviewed {
+  border-color: rgba(24, 133, 81, .22);
+  background: #eef9f3;
+  color: #137447;
+}
+
+body.autolex-portal-3 .alx3-card-badges .is-conflict,
+body.autolex-portal-3 .alx3-card-badges .is-vin_required {
+  border-color: rgba(196, 61, 75, .24);
+  background: #fff3f4;
+  color: #a72f3d;
+}
+
+body.autolex-portal-3 .alx3-specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  margin: 0;
+  border: 1px solid var(--alx3-line);
+  border-radius: 15px;
+  background: var(--alx3-line);
+  overflow: hidden;
+}
+
+body.autolex-portal-3 .alx3-specs > div {
+  min-width: 0;
+  padding: 12px;
+  background: #fbfdff;
+}
+
+body.autolex-portal-3 .alx3-specs dt {
+  color: var(--alx3-muted);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+}
+
+body.autolex-portal-3 .alx3-specs dd {
+  margin: 5px 0 0;
+  color: var(--alx3-text);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+body.autolex-portal-3 .alx3-vehicle-card > footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+body.autolex-portal-3 .alx3-vehicle-card > footer small {
+  max-width: 55%;
+  color: var(--alx3-muted);
+  line-height: 1.35;
+}
+
+body.autolex-portal-3 .alx3-vehicle-card > footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--alx3-accent);
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+body.autolex-portal-3 .alx3-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+body.autolex-portal-3 .alx3-pagination a,
+body.autolex-portal-3 .alx3-pagination span {
+  padding: 10px 14px;
+  border: 1px solid var(--alx3-line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--alx3-muted);
+  font-weight: 800;
+}
+
+body.autolex-portal-3 .alx3-pagination a:hover {
+  border-color: var(--alx3-accent);
+  color: var(--alx3-accent);
+}
+
+@media (max-width: 1280px) {
+  body.autolex-portal-3 .alx3-vehicle-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  body.autolex-portal-3 .alx3-catalog-hero {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  body.autolex-portal-3 .alx3-catalog-layout {
+    display: block;
+  }
+
+  body.autolex-portal-3 .alx3-filters {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 10000;
+    width: min(92vw, 410px);
+    max-height: 100dvh;
+    border-radius: 0 22px 22px 0;
+    overflow-y: auto;
+    transform: translateX(-105%);
+    transition: transform .22s ease;
+  }
+
+  body.autolex-portal-3 .alx3-filters.is-open,
+  body.autolex-portal-3 .alx3-filters[data-open="true"] {
+    transform: translateX(0);
+  }
+
+  body.autolex-portal-3 .alx3-filters > header button,
+  body.autolex-portal-3 .alx3-filter-toggle {
+    display: inline-flex;
+  }
+
+  body.autolex-portal-3 .alx3-results-toolbar {
+    top: 76px;
+    margin-top: 16px;
+  }
+}
+
+@media (max-width: 680px) {
+  body.autolex-portal-3 .alx3-catalog {
+    width: min(100% - 20px, 1520px);
+    padding-top: 10px;
+  }
+
+  body.autolex-portal-3 .alx3-catalog-hero {
+    padding: 28px 20px;
+    border-radius: 24px;
+  }
+
+  body.autolex-portal-3 .alx3-catalog-hero h1 {
+    font-size: clamp(40px, 13vw, 60px);
+  }
+
+  body.autolex-portal-3 .alx3-catalog-hero > aside {
+    padding: 18px;
+  }
+
+  body.autolex-portal-3 .alx3-results-toolbar {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  body.autolex-portal-3 .alx3-results-toolbar > label {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  body.autolex-portal-3 .alx3-vehicle-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.autolex-portal-3 .alx3-vehicle-card {
+    min-height: 0;
+    padding: 17px;
+    border-radius: 19px;
+  }
+
+  body.autolex-portal-3 .alx3-specs {
+    grid-template-columns: 1fr;
+  }
+
+  body.autolex-portal-3 .alx3-vehicle-card > footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  body.autolex-portal-3 .alx3-vehicle-card > footer small {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.autolex-portal-3 .alx3-filters,
   body.autolex-portal-3 .alx3-vehicle-card,
-  body.autolex-portal-3 .alx3-vehicle-card:hover { transition:none;transform:none; }
+  body.autolex-portal-3 .alx3-vehicle-card:hover {
+    transition: none;
+    transform: none;
+  }
 }

@@ -20,7 +20,7 @@ jobs:
   quality:
     name: Full quality gate on home-server
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: [self-hosted, Linux, X64, autolex]
+    runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 15
 
     steps:
@@ -58,16 +58,20 @@ jobs:
           php tests/eurostat-smoke.php
           php tests/eafo-smoke.php
 
-      - name: Run portal and Safety Gate smoke tests
+      - name: Run portal and deterministic Safety Gate smoke tests
         run: |
           php tests/portal-smoke.php
           php tests/catalog-filter-smoke.php
           php tests/portal-design-smoke.php
           php tests/vehicle-detail-smoke.php
           php tests/safety-gate-smoke.php
-          php tests/safety-gate-live-smoke.php
           node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
           node --check plugin/autolex-platform/assets/js/autolex-maintenance-evidence.js
+
+      - name: Confirm live Safety Gate ownership
+        run: |
+          echo 'The fail-closed official Safety Gate XML check is enforced by Validate Autolex Portal 3.'
+          echo 'It is intentionally not duplicated on the home-server PHP/OpenSSL stack.'
 
       - name: Run operations center smoke test
         run: php tests/operations-center-smoke.php
