@@ -2,6 +2,8 @@
  * Autolex 4.2 public design entrypoint.
  *
  * The previous 4.1 homepage override has been retired. The final shell owns the
- * shared header, navigation, page frame, hero, cards, mobile drawer and footer.
+ * shared header, navigation, page frame and footer, while the 4.2 homepage layer
+ * styles the existing dynamic hero, search and real-data sections.
  */
 @import url("autolex-4-shell.css");
+@import url("autolex-home-42.css");
