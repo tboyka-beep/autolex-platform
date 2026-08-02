@@ -1,0 +1,69 @@
+name: One-shot Autolex 4.1 release bump
+
+on:
+  push:
+    branches:
+      - feature/autolex-4-1-redesign
+    paths:
+      - .github/workflows/release-bump-autolex-41.yml
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v7
+        with:
+          ref: feature/autolex-4-1-redesign
+          fetch-depth: 0
+
+      - name: Bump plugin and readme to 4.1.0
+        shell: python
+        run: |
+          from pathlib import Path
+
+          plugin = Path('plugin/autolex-platform/autolex-platform.php')
+          text = plugin.read_text(encoding='utf-8')
+          replacements = {
+              ' * Version: 4.0.0': ' * Version: 4.1.0',
+              "define('AUTOLEX_PLATFORM_VERSION', '4.0.0');": "define('AUTOLEX_PLATFORM_VERSION', '4.1.0');",
+          }
+          for old, new in replacements.items():
+              if text.count(old) != 1:
+                  raise SystemExit(f'Expected exactly one occurrence of {old!r}')
+              text = text.replace(old, new)
+          plugin.write_text(text, encoding='utf-8')
+
+          readme = Path('plugin/autolex-platform/readme.txt')
+          text = readme.read_text(encoding='utf-8')
+          if text.count('Stable tag: 3.3.0') != 1:
+              raise SystemExit('Unexpected Stable tag state')
+          text = text.replace('Stable tag: 3.3.0', 'Stable tag: 4.1.0')
+          marker = '== Changelog ==\n\n'
+          if marker not in text:
+              raise SystemExit('Changelog marker missing')
+          release = '''= 4.1.0 =
+          * Egységes prémium világos designrendszer a teljes nyilvános Autolex portálon.
+          * Új sticky fejléc, mobil navigáció, footer és teljes oldalkeret.
+          * Látványos új főoldal központi keresővel és valós adatblokkokkal.
+          * Újratervezett katalógus, szűrők, márka-/modellnézetek és járműkártyák.
+          * Magazinjellegű jármű-adatlap és egységes háromjárműves összehasonlítás.
+          * Mobil-, tablet-, accessibility-, reduced-motion- és cache-busting finomítások.
+          * Megbízható közös home-server quality gate és külön fail-closed élő Safety Gate ellenőrzés.
+
+          '''
+          text = text.replace(marker, marker + release, 1)
+          readme.write_text(text, encoding='utf-8')
+
+      - name: Commit release metadata
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add plugin/autolex-platform/autolex-platform.php plugin/autolex-platform/readme.txt
+          git commit -m 'release: bump Autolex to 4.1.0'
+          git push origin HEAD:feature/autolex-4-1-redesign
