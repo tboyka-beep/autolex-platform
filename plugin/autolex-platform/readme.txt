@@ -2,7 +2,7 @@
 Contributors: autolex
 Requires at least: 6.4
 Requires PHP: 8.1
-Stable tag: 3.3.0
+Stable tag: 4.1.0
 License: Proprietary
 
 Az Autolex autós adatplatform központi WordPress-bővítménye.
@@ -15,6 +15,15 @@ motoradatok, a forrásbizonyítékok, valamint a FrissAuto-integráció elkülö
 modulokból épül fel.
 
 == Changelog ==
+
+= 4.1.0 =
+* Egységes prémium világos designrendszer a teljes nyilvános Autolex portálon.
+* Új sticky fejléc, mobil navigáció, footer és teljes oldalkeret.
+* Látványos új főoldal központi keresővel és valós adatblokkokkal.
+* Újratervezett katalógus, szűrők, márka-/modellnézetek és járműkártyák.
+* Magazinjellegű jármű-adatlap és egységes háromjárműves összehasonlítás.
+* Mobil-, tablet-, accessibility-, reduced-motion- és cache-busting finomítások.
+* Megbízható közös home-server quality gate és külön fail-closed élő Safety Gate ellenőrzés.
 
 = 3.3.0 =
 * Akadálymentes globális autókeresés márka, modell, generáció, motor és motorkód alapján.
