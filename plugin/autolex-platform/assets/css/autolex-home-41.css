@@ -3,11 +3,12 @@
  *
  * The previous 4.1 homepage override has been retired. The final shell owns the
  * shared header, navigation, page frame and footer. The 4.2 homepage, catalogue,
- * vehicle detail and comparison layers style only existing dynamic,
- * server-rendered output.
+ * taxonomy hierarchy, vehicle detail and comparison layers style only existing
+ * dynamic, server-rendered output.
  */
 @import url("autolex-4-shell.css");
 @import url("autolex-home-42.css");
 @import url("autolex-catalog-42.css");
+@import url("autolex-taxonomy-42.css");
 @import url("autolex-vehicle-detail-42.css");
 @import url("autolex-compare-42.css");
