@@ -9,6 +9,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once __DIR__ . '/class-autolex-source-provenance.php';
+
 final class Autolex_Platform
 {
     /**
@@ -43,6 +45,7 @@ final class Autolex_Platform
         Autolex_EU_Catalog::install_schema();
         Autolex_Engine_Catalog::install_schema();
         Autolex_EEA_Sync::install_schema();
+        Autolex_Source_Provenance::install_schema();
     }
 
     /**
@@ -56,6 +59,7 @@ final class Autolex_Platform
         Autolex_Engine_Catalog::instance();
         Autolex_EEA_Sync::instance();
         Autolex_Maintenance_Evidence::instance();
+        Autolex_Source_Provenance::instance();
 
         add_action('admin_menu', array($this, 'register_admin_page'));
         add_action('rest_api_init', array($this, 'register_rest_routes'));
