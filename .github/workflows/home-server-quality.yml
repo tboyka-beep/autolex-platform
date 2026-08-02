@@ -60,6 +60,7 @@ jobs:
           php tests/source-provenance-smoke.php
           php tests/source-provenance-write-smoke.php
           php tests/provenance-batch-importer-smoke.php
+          php tests/official-source-adapter-smoke.php
 
       - name: Run portal and deterministic Safety Gate smoke tests
         run: |
