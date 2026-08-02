@@ -16,6 +16,7 @@ foreach (array($entry, $shell) as $file) {
 
 $entry_css = (string) file_get_contents($entry);
 $shell_css = (string) file_get_contents($shell);
+$remote_import_count = preg_match('~@import\s+url\(["\']?https?://~i', $shell_css);
 
 $assertions = array(
     '4.1 entrypoint imports the final shell' => false !== strpos($entry_css, '@import url("autolex-4-shell.css")'),
@@ -32,7 +33,7 @@ $assertions = array(
     'reduced motion contract' => false !== strpos($shell_css, '@media (prefers-reduced-motion: reduce)'),
     'mobile breakpoint' => false !== strpos($shell_css, '@media (max-width: 689px)'),
     'tablet breakpoint' => false !== strpos($shell_css, '@media (max-width: 1024px)'),
-    'no remote paid asset import' => false === preg_match('~@import\s+url\(["\']?https?://~i', $shell_css),
+    'no remote paid asset import' => 0 === $remote_import_count,
 );
 
 $failed = array_keys(array_filter($assertions, static fn ($passed) => !$passed));
