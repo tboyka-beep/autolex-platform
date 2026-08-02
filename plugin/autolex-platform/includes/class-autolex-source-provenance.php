@@ -18,7 +18,7 @@ final class Autolex_Source_Provenance
     const STATUS_MANUFACTURER = 'manufacturer_source';
     const STATUS_OFFICIAL = 'official_registry';
     const STATUS_MULTI_SOURCE = 'multi_source_match';
-    const STATUS_SINGLE_SOURCE = 'single_source_verified';
+    const STATUS_SINGLE_SOURCE = 'single_source_confirmed';
     const STATUS_CONFLICT = 'source_conflict';
     const STATUS_INCOMPLETE = 'incomplete';
     const STATUS_VIN_REQUIRED = 'vin_required';
@@ -109,7 +109,7 @@ final class Autolex_Source_Provenance
                 observed_value longtext DEFAULT NULL,
                 observed_value_hash char(64) NOT NULL,
                 field_scope varchar(191) NOT NULL DEFAULT '',
-                evidence_status varchar(40) NOT NULL DEFAULT 'single_source_verified',
+                evidence_status varchar(40) NOT NULL DEFAULT 'single_source_confirmed',
                 source_locator varchar(255) NOT NULL DEFAULT '',
                 observed_at datetime DEFAULT NULL,
                 imported_at datetime NOT NULL,
