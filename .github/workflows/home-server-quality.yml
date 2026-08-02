@@ -66,7 +66,9 @@ jobs:
           php tests/catalog-filter-smoke.php
           php tests/portal-design-smoke.php
           php tests/portal-shell-42-smoke.php
+          php tests/catalog-design-42-smoke.php
           php tests/vehicle-detail-smoke.php
+          php tests/vehicle-detail-design-42-smoke.php
           php tests/safety-gate-smoke.php
           node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
           node --check plugin/autolex-platform/assets/js/autolex-maintenance-evidence.js
