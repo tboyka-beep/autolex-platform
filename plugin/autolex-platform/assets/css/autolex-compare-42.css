@@ -1,0 +1,156 @@
+/* Autolex 4.2 comparison experience. */
+.alxp-compare-page,
+.alxp-comparison {
+  color: var(--alx42-graphite);
+}
+
+.alxp-compare-hero {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+  border: 1px solid var(--alx42-border);
+  border-radius: var(--alx42-radius-lg);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.10), rgba(255, 255, 255, 0.96) 58%);
+  box-shadow: var(--alx42-shadow-md);
+}
+
+.alxp-compare-toolbar,
+.alxp-compare-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: end;
+  padding: 1rem;
+  border: 1px solid var(--alx42-border);
+  border-radius: var(--alx42-radius-md);
+  background: var(--alx42-surface);
+}
+
+.alxp-compare-grid {
+  display: grid;
+  grid-template-columns: minmax(11rem, .8fr) repeat(var(--alxp-compare-columns, 2), minmax(15rem, 1fr));
+  gap: 1px;
+  overflow-x: auto;
+  margin-top: 1.25rem;
+  border: 1px solid var(--alx42-border);
+  border-radius: var(--alx42-radius-lg);
+  background: var(--alx42-border);
+  box-shadow: var(--alx42-shadow-sm);
+  scrollbar-gutter: stable;
+}
+
+.alxp-compare-cell {
+  min-width: 0;
+  padding: .9rem 1rem;
+  background: var(--alx42-surface);
+}
+
+.alxp-compare-cell[role="rowheader"],
+.alxp-compare-label {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  font-weight: 700;
+  background: var(--alx42-surface-muted);
+}
+
+.alxp-compare-vehicle {
+  position: sticky;
+  top: var(--alx42-header-height, 76px);
+  z-index: 3;
+  display: grid;
+  gap: .45rem;
+  background: var(--alx42-surface);
+  box-shadow: 0 1px 0 var(--alx42-border);
+}
+
+.alxp-compare-difference {
+  background: rgba(37, 99, 235, .08);
+  box-shadow: inset 3px 0 0 var(--alx42-accent);
+}
+
+.alxp-compare-status,
+.alxp-compare-source {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  width: fit-content;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  border: 1px solid var(--alx42-border);
+  background: var(--alx42-surface-muted);
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.alxp-compare-status[data-source-status="multi_source_match"],
+.alxp-compare-status[data-source-status="manufacturer_source"],
+.alxp-compare-status[data-source-status="official_registry"] {
+  color: var(--alx42-accent-strong);
+  border-color: rgba(37, 99, 235, .28);
+  background: rgba(37, 99, 235, .08);
+}
+
+.alxp-compare-status[data-source-status="source_conflict"],
+.alxp-compare-status[data-source-status="vin_required"] {
+  color: var(--alx42-safety);
+  border-color: color-mix(in srgb, var(--alx42-safety) 32%, transparent);
+  background: color-mix(in srgb, var(--alx42-safety) 8%, white);
+}
+
+.alxp-compare-empty,
+.alxp-compare-error {
+  padding: 2rem;
+  text-align: center;
+  border: 1px dashed var(--alx42-border-strong);
+  border-radius: var(--alx42-radius-md);
+  background: var(--alx42-surface-muted);
+}
+
+.alxp-compare-page :is(button, a, input, select):focus-visible,
+.alxp-comparison :is(button, a, input, select):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--alx42-accent) 35%, transparent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1024px) {
+  .alxp-compare-grid {
+    grid-template-columns: minmax(9rem, .7fr) repeat(var(--alxp-compare-columns, 2), minmax(13rem, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .alxp-compare-toolbar,
+  .alxp-compare-picker {
+    align-items: stretch;
+  }
+
+  .alxp-compare-toolbar > *,
+  .alxp-compare-picker > * {
+    flex: 1 1 100%;
+  }
+
+  .alxp-compare-grid {
+    grid-template-columns: minmax(8rem, .7fr) repeat(var(--alxp-compare-columns, 2), minmax(12rem, 1fr));
+  }
+}
+
+@media (max-width: 375px) {
+  .alxp-compare-hero {
+    padding: 1.25rem;
+  }
+
+  .alxp-compare-cell {
+    padding: .75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alxp-compare-page *,
+  .alxp-comparison * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
