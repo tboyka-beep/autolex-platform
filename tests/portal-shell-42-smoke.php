@@ -1,25 +1,30 @@
 <?php
 /**
- * Deterministic contract for the final Autolex 4.2 public shell.
+ * Deterministic contract for the final Autolex 4.2 public shell and homepage.
  */
 
 $root = dirname(__DIR__);
 $entry = $root . '/plugin/autolex-platform/assets/css/autolex-home-41.css';
 $shell = $root . '/plugin/autolex-platform/assets/css/autolex-4-shell.css';
+$home = $root . '/plugin/autolex-platform/assets/css/autolex-home-42.css';
 
-foreach (array($entry, $shell) as $file) {
+foreach (array($entry, $shell, $home) as $file) {
     if (!is_readable($file)) {
-        fwrite(STDERR, "Missing Autolex 4.2 shell asset: {$file}\n");
+        fwrite(STDERR, "Missing Autolex 4.2 visual asset: {$file}\n");
         exit(1);
     }
 }
 
 $entry_css = (string) file_get_contents($entry);
 $shell_css = (string) file_get_contents($shell);
-$remote_import_count = preg_match('~@import\s+url\(["\']?https?://~i', $shell_css);
+$home_css = (string) file_get_contents($home);
+$combined_css = $shell_css . "\n" . $home_css;
+$remote_import_count = preg_match_all('~@import\s+url\(["\']?https?://~i', $combined_css);
+$remote_image_count = preg_match_all('~url\(["\']?https?://~i', $combined_css);
 
 $assertions = array(
     '4.1 entrypoint imports the final shell' => false !== strpos($entry_css, '@import url("autolex-4-shell.css")'),
+    '4.1 entrypoint imports the final homepage' => false !== strpos($entry_css, '@import url("autolex-home-42.css")'),
     'legacy 4.1 hero rules retired' => false === strpos($entry_css, '.alx3-hero {'),
     'off-white page background token' => false !== strpos($shell_css, '--alx42-bg: #f6f8fb'),
     'graphite typography token' => false !== strpos($shell_css, '--alx42-graphite: #17202b'),
@@ -30,10 +35,15 @@ $assertions = array(
     'final light footer' => false !== strpos($shell_css, 'footer.ct-footer'),
     'black outer frame removal' => false !== strpos($shell_css, '#main-container') && false !== strpos($shell_css, 'border: 0 !important'),
     'keyboard focus contract' => false !== strpos($shell_css, ':focus-visible'),
-    'reduced motion contract' => false !== strpos($shell_css, '@media (prefers-reduced-motion: reduce)'),
-    'mobile breakpoint' => false !== strpos($shell_css, '@media (max-width: 689px)'),
-    'tablet breakpoint' => false !== strpos($shell_css, '@media (max-width: 1024px)'),
+    'reduced motion contract' => false !== strpos($combined_css, '@media (prefers-reduced-motion: reduce)'),
+    'mobile breakpoint' => false !== strpos($combined_css, '@media (max-width: 689px)'),
+    'tablet breakpoint' => false !== strpos($combined_css, '@media (max-width: 1024px)'),
+    'light existing homepage hero' => false !== strpos($home_css, '.alx-ui-hero') && false !== strpos($home_css, 'linear-gradient(132deg, #ffffff'),
+    'homepage search is light and accessible' => false !== strpos($home_css, '.alxbc-search input') && false !== strpos($home_css, 'var(--alx42-focus)'),
+    'homepage uses real existing markup' => false !== strpos($home_css, '.alx-front') && false !== strpos($home_css, '.alxbc-section'),
+    'remote background image retired' => false === strpos($home_css, 'images.unsplash.com'),
     'no remote paid asset import' => 0 === $remote_import_count,
+    'no remote visual asset' => 0 === $remote_image_count,
 );
 
 $failed = array_keys(array_filter($assertions, static fn ($passed) => !$passed));
@@ -42,4 +52,4 @@ if ($failed) {
     exit(1);
 }
 
-echo "Autolex 4.2 portal shell smoke test passed.\n";
+echo "Autolex 4.2 portal shell and homepage smoke test passed.\n";
