@@ -67,6 +67,7 @@ jobs:
           php tests/portal-design-smoke.php
           php tests/portal-shell-42-smoke.php
           php tests/catalog-design-42-smoke.php
+          php tests/taxonomy-design-42-smoke.php
           php tests/vehicle-detail-smoke.php
           php tests/vehicle-detail-design-42-smoke.php
           php tests/compare-design-42-smoke.php
