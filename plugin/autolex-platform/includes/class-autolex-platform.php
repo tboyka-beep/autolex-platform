@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) {
 
 require_once __DIR__ . '/class-autolex-source-provenance.php';
 require_once __DIR__ . '/class-autolex-source-cards.php';
+require_once __DIR__ . '/class-autolex-provenance-coverage.php';
 
 final class Autolex_Platform
 {
@@ -46,6 +47,7 @@ final class Autolex_Platform
         Autolex_Maintenance_Evidence::instance();
         Autolex_Source_Provenance::instance();
         Autolex_Source_Cards::instance()->register();
+        Autolex_Provenance_Coverage::instance()->register();
 
         add_action('admin_menu', array($this, 'register_admin_page'));
         add_action('rest_api_init', array($this, 'register_rest_routes'));
