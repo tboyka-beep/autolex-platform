@@ -64,6 +64,7 @@ jobs:
           php tests/safety-gate-source-adapter-smoke.php
           php tests/eea-source-adapter-smoke.php
           php tests/eurostat-source-adapter-smoke.php
+          php tests/eafo-source-adapter-smoke.php
 
       - name: Run portal and deterministic Safety Gate smoke tests
         run: |
