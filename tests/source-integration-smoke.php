@@ -20,7 +20,7 @@ $expect(false !== strpos($integration, "'alx_model'      => 'model'"), 'Model po
 $expect(false !== strpos($integration, "false !== strpos(\$content, 'alxp-source-panel')"), 'Duplicate source panels must be prevented.');
 $expect(false !== strpos($integration, "Autolex_Source_Cards::instance()->render_shortcode"), 'The integration must reuse the tested source-card renderer.');
 $expect(false !== strpos($integration, "is_admin() || !in_the_loop() || !is_main_query()"), 'The integration must be restricted to the public main loop.');
-$expect(false === preg_match('/\b(?:INSERT|UPDATE|DELETE|REPLACE|DROP|TRUNCATE|ALTER)\b/i', $integration), 'The public integration must remain read-only.');
+$expect(0 === preg_match('/\b(?:INSERT|UPDATE|DELETE|REPLACE|DROP|TRUNCATE|ALTER)\b/i', $integration), 'The public integration must remain read-only.');
 $expect(false !== strpos($platform, "require_once __DIR__ . '/class-autolex-source-integration.php';"), 'The integration class must be loaded by the platform bootstrap.');
 $expect(false !== strpos($platform, 'Autolex_Source_Integration::instance()->register();'), 'The integration class must be registered by the platform bootstrap.');
 
