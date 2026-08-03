@@ -52,13 +52,13 @@ final class Autolex_Eurostat_Source_Adapter
      */
     public function normalize_source(array $source)
     {
-        foreach (array('url', 'retrieved_at', 'usage_reviewed', 'usage_note', 'document_id') as $field) {
+        foreach (array('url', 'retrieved_at', 'usage_note', 'document_id') as $field) {
             if (!isset($source[$field]) || '' === trim((string) $source[$field])) {
                 return new WP_Error('autolex_eurostat_missing_source_field', sprintf('Hiányzó Eurostat forrásmező: %s.', $field));
             }
         }
 
-        if (empty($source['usage_reviewed'])) {
+        if (!array_key_exists('usage_reviewed', $source) || true !== $source['usage_reviewed']) {
             return new WP_Error('autolex_eurostat_usage_not_reviewed', 'A Eurostat forrás felhasználhatóságát dokumentáltan ellenőrizni kell.');
         }
 
