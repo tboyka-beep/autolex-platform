@@ -90,7 +90,7 @@ final class Autolex_Provenance_Coverage
             return new WP_Error('autolex_provenance_coverage_query_failed', __('A proveniencia-lefedettség nem kérdezhető le.', 'autolex-platform'), array('status' => 500));
         }
 
-        $statuses = array();
+        $statuses = array_fill_keys(Autolex_Source_Provenance::verification_statuses(), 0);
         foreach ($status_rows as $row) {
             $status = Autolex_Source_Provenance::normalize_status(isset($row['verification_status']) ? $row['verification_status'] : '');
             $statuses[$status] = absint(isset($row['claim_count']) ? $row['claim_count'] : 0);
@@ -108,7 +108,10 @@ final class Autolex_Provenance_Coverage
             );
         }
 
-        $entities = array();
+        $entities = array_fill_keys(
+            array('vehicle', 'engine', 'generation', 'model', 'market_stat'),
+            array('entities' => 0, 'claims' => 0)
+        );
         foreach ($entity_rows as $row) {
             $type = sanitize_key(isset($row['entity_type']) ? $row['entity_type'] : '');
             if (!Autolex_Source_Cards::validate_entity_type($type)) {
@@ -121,6 +124,7 @@ final class Autolex_Provenance_Coverage
         }
 
         return array(
+            'schema_version'     => '1.1.0',
             'claims'             => absint(isset($totals['claims']) ? $totals['claims'] : 0),
             'entities'           => absint(isset($totals['entities']) ? $totals['entities'] : 0),
             'conflicting_claims' => absint(isset($totals['conflicting_claims']) ? $totals['conflicting_claims'] : 0),
