@@ -40,6 +40,9 @@ jobs:
       - name: Test engine catalogue mapping
         run: php tests/engine-catalog-smoke.php
 
+      - name: Test cPanel response contract
+        run: bash tests/cpanel-response-contract.sh
+
       - name: Create plugin ZIP
         run: |
           cd plugin
@@ -140,33 +143,38 @@ jobs:
 
           upload_file() {
             local local_file="$1"
-            local relative_file remote_dir response
+            local relative_file remote_dir tmpdir body_file headers_file http_status
             relative_file="${local_file#${local_root}/}"
             remote_dir="$CPANEL_PLUGIN_DIR"
             if [ "$(dirname "$relative_file")" != '.' ]; then
               remote_dir="${remote_dir}/$(dirname "$relative_file")"
             fi
 
-            if ! response="$(curl --silent --show-error --fail-with-body \
+            tmpdir="$(mktemp -d)"
+            body_file="${tmpdir}/body"
+            headers_file="${tmpdir}/headers"
+            trap 'rm -rf "$tmpdir"' RETURN
+
+            if ! http_status="$(curl --silent --show-error \
               --retry 4 \
               --retry-delay 3 \
               --retry-all-errors \
               --connect-timeout 15 \
               --max-time 90 \
               --header "$auth_header" \
+              --dump-header "$headers_file" \
+              --output "$body_file" \
+              --write-out '%{http_code}' \
               --form "dir=${remote_dir}" \
               --form 'overwrite=1' \
               --form "file-1=@${local_file};filename=$(basename "$local_file")" \
               "${api_base}/execute/Fileman/upload_files")"; then
-              echo "cPanel upload request failed for ${relative_file}"
+              echo "cPanel upload transport failure for ${relative_file}" >&2
               return 1
             fi
 
-            if ! jq -e '.status == 1' <<<"$response" >/dev/null; then
-              echo "cPanel rejected upload of ${relative_file}"
-              jq -r '.errors[]? // .messages[]? // "Unknown cPanel API error"' <<<"$response"
-              return 1
-            fi
+            bash scripts/validate-cpanel-response.sh \
+              "$body_file" "$headers_file" "$http_status" "$relative_file"
           }
 
           while IFS= read -r -d '' local_file; do
