@@ -62,6 +62,7 @@ jobs:
           php tests/provenance-batch-importer-smoke.php
           php tests/official-source-adapter-smoke.php
           php tests/safety-gate-source-adapter-smoke.php
+          php tests/eea-source-adapter-smoke.php
 
       - name: Run portal and deterministic Safety Gate smoke tests
         run: |
