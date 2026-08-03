@@ -36,14 +36,15 @@ $required_markers = array(
     'ORDER BY c.conflict_count DESC',
     'target="_blank" rel="noopener noreferrer nofollow"',
     'data-source-status',
-    'manufacturer_source',
-    'official_registry',
-    'multi_source_match',
-    'single_source_confirmed',
-    'source_conflict',
-    'incomplete',
-    'vin_required',
-    'usage_reviewed',
+    'STATUS_MANUFACTURER',
+    'STATUS_OFFICIAL',
+    'STATUS_MULTI_SOURCE',
+    'STATUS_SINGLE_SOURCE',
+    'STATUS_CONFLICT',
+    'STATUS_INCOMPLETE',
+    'STATUS_VIN_REQUIRED',
+    'mysql2date',
+    'source_type_label',
 );
 
 foreach ($required_markers as $marker) {
