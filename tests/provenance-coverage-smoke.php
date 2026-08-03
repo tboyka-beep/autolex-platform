@@ -65,10 +65,10 @@ $required_statuses = array(
     'manufacturer_source',
     'official_registry',
     'multi_source_match',
-    'single_source_verified',
+    'single_source_confirmed',
     'source_conflict',
     'incomplete',
-    'vin_check_required',
+    'vin_required',
 );
 $provenance_file = $root . '/plugin/autolex-platform/includes/class-autolex-source-provenance.php';
 $provenance_php = is_file($provenance_file) ? file_get_contents($provenance_file) : '';
