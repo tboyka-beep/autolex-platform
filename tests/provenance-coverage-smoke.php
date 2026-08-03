@@ -54,15 +54,62 @@ foreach ($required_markers as $marker) {
     }
 }
 
+// Public reporting must stay bounded: one totals query plus three grouped queries.
+$query_calls = substr_count($coverage_php, '$wpdb->get_row(') + substr_count($coverage_php, '$wpdb->get_results(');
+if (4 !== $query_calls) {
+    fwrite(STDERR, "Coverage query budget changed unexpectedly: {$query_calls} queries.\n");
+    exit(1);
+}
+
+$required_statuses = array(
+    'manufacturer_source',
+    'official_registry',
+    'multi_source_match',
+    'single_source_verified',
+    'source_conflict',
+    'incomplete',
+    'vin_check_required',
+);
+$provenance_file = $root . '/plugin/autolex-platform/includes/class-autolex-source-provenance.php';
+$provenance_php = is_file($provenance_file) ? file_get_contents($provenance_file) : '';
+foreach ($required_statuses as $status) {
+    if (false === strpos($provenance_php, "'{$status}'")) {
+        fwrite(STDERR, "Required verification status missing from provenance schema: {$status}\n");
+        exit(1);
+    }
+}
+
+// Every SQL statement in the endpoint must remain an aggregate SELECT.
+preg_match_all('/"(SELECT[^\"]+)"/s', $coverage_php, $sql_matches);
+if (4 !== count($sql_matches[1])) {
+    fwrite(STDERR, "Coverage SQL contract must expose exactly four SELECT statements.\n");
+    exit(1);
+}
+foreach ($sql_matches[1] as $sql) {
+    if (0 !== stripos(ltrim($sql), 'SELECT ')) {
+        fwrite(STDERR, "Coverage contains a non-SELECT SQL statement.\n");
+        exit(1);
+    }
+    if (false !== stripos($sql, 'SELECT *')) {
+        fwrite(STDERR, "Coverage queries must not use SELECT *.\n");
+        exit(1);
+    }
+}
+
 $forbidden_patterns = array(
     '/DELETE\s+FROM/i',
     '/TRUNCATE\s+/i',
     '/DROP\s+TABLE/i',
+    '/ALTER\s+TABLE/i',
+    '/CREATE\s+TABLE/i',
     '/INSERT\s+INTO/i',
+    '/REPLACE\s+INTO/i',
     '/UPDATE\s+[^\n]+SET/i',
     '/methods[^\n]+POST/i',
     '/methods[^\n]+PUT/i',
+    '/methods[^\n]+PATCH/i',
     '/methods[^\n]+DELETE/i',
+    '/wp_remote_(get|post|request)/i',
 );
 foreach ($forbidden_patterns as $pattern) {
     if (1 === preg_match($pattern, $coverage_php)) {
@@ -71,4 +118,4 @@ foreach ($forbidden_patterns as $pattern) {
     }
 }
 
-echo "Autolex 4.2 provenance coverage contract passed.\n";
+echo "Autolex 4.2 provenance coverage QA contract passed.\n";
