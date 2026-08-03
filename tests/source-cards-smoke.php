@@ -1,6 +1,6 @@
 <?php
 /**
- * Deterministic contract for public Autolex 4.2 source cards.
+ * Deterministic contract for public Autolex 4.2 source cards and REST output.
  */
 
 $root = dirname(__DIR__);
@@ -28,6 +28,17 @@ foreach ($required_bootstrap as $marker) {
 
 $required_markers = array(
     "add_shortcode('autolex_sources'",
+    "add_action('rest_api_init'",
+    "register_rest_route(",
+    "'/sources/(?P<entity_type>[a-z0-9_-]+)/(?P<entity_id>\\d+)'",
+    "'methods'             => 'GET'",
+    "'permission_callback' => '__return_true'",
+    'get_sources_response',
+    'validate_entity_type',
+    "array('vehicle', 'engine', 'generation', 'model', 'market_stat')",
+    "'Cache-Control', 'public, max-age=300, stale-while-revalidate=60'",
+    "'X-Autolex-Source-Count'",
+    "'generated_at'=> gmdate('c')",
     'Források és megerősítés',
     'get_entity_sources',
     'Autolex_Source_Provenance::claims_table()',
@@ -59,6 +70,9 @@ $forbidden_patterns = array(
     '/DELETE\s+FROM/i',
     '/TRUNCATE\s+/i',
     '/DROP\s+TABLE/i',
+    '/methods[^\n]+POST/i',
+    '/methods[^\n]+PUT/i',
+    '/methods[^\n]+DELETE/i',
     '/verification_status\s*=\s*[\'\"]multi_source_match[\'\"]/i',
 );
 foreach ($forbidden_patterns as $pattern) {
@@ -78,4 +92,9 @@ if (false === strpos($cards_php, "0 === strpos(\$url, 'https://')")) {
     exit(1);
 }
 
-echo "Autolex 4.2 source cards contract passed.\n";
+if (false === strpos($cards_php, '$limit >= 1 && $limit <= 100')) {
+    fwrite(STDERR, "Source REST limit validation contract is missing.\n");
+    exit(1);
+}
+
+echo "Autolex 4.2 source cards and REST contract passed.\n";
