@@ -66,6 +66,7 @@ jobs:
           php tests/eurostat-source-adapter-smoke.php
           php tests/eafo-source-adapter-smoke.php
           php tests/source-cards-smoke.php
+          php tests/provenance-coverage-smoke.php
 
       - name: Run portal and deterministic Safety Gate smoke tests
         run: |
