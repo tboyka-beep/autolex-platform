@@ -11,7 +11,7 @@ content_type="${content_type:-unknown}"
 
 safe_excerpt() {
   tr '\r\n\t' '   ' < "$body_file" \
-    | sed -E 's/[[:space:]]+/ /g; s/(Authorization:[[:space:]]*cpanel[[:space:]]+)[^ ]+/\1[REDACTED]/Ig; s/(token|api[_-]?token|authorization)(["'"'=:[:space:]]+)[^ ,;"'"']+/\1\2[REDACTED]/Ig' \
+    | sed -E 's/[[:space:]]+/ /g; s/(Authorization:[[:space:]]*cpanel[[:space:]]+)[^ ]+/\1[REDACTED]/Ig; s/(token|api[_-]?token|authorization)([=":[:space:]]+)[^ ,;"]+/\1\2[REDACTED]/Ig' \
     | cut -c1-500
 }
 
