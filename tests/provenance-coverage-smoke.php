@@ -42,6 +42,9 @@ $required_markers = array(
     'entity_types',
     "'Cache-Control', 'public, max-age=300, stale-while-revalidate=60'",
     "'generated_at'       => gmdate('c')",
+    "'schema_version'     => '1.1.0'",
+    'array_fill_keys(Autolex_Source_Provenance::verification_statuses(), 0)',
+    "array('vehicle', 'engine', 'generation', 'model', 'market_stat')",
     'Autolex_Source_Cards::validate_entity_type',
 );
 foreach ($required_markers as $marker) {
