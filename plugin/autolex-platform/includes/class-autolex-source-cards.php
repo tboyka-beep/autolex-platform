@@ -27,28 +27,99 @@ final class Autolex_Source_Cards
     public function register()
     {
         add_shortcode('autolex_sources', array($this, 'render_shortcode'));
+        add_action('rest_api_init', array($this, 'register_rest_routes'));
     }
 
-    /**
-     * @param array<string,mixed> $atts Shortcode attributes.
-     * @return string
-     */
+    /** @return void */
+    public function register_rest_routes()
+    {
+        register_rest_route(
+            'autolex/v1',
+            '/sources/(?P<entity_type>[a-z0-9_-]+)/(?P<entity_id>\d+)',
+            array(
+                'methods'             => 'GET',
+                'callback'            => array($this, 'get_sources_response'),
+                'permission_callback' => '__return_true',
+                'args'                => array(
+                    'entity_type' => array(
+                        'required'          => true,
+                        'sanitize_callback' => 'sanitize_key',
+                        'validate_callback' => array(__CLASS__, 'validate_entity_type'),
+                    ),
+                    'entity_id' => array(
+                        'required'          => true,
+                        'sanitize_callback' => 'absint',
+                        'validate_callback' => array(__CLASS__, 'validate_entity_id'),
+                    ),
+                    'limit' => array(
+                        'default'           => 40,
+                        'sanitize_callback' => 'absint',
+                        'validate_callback' => array(__CLASS__, 'validate_limit'),
+                    ),
+                ),
+            )
+        );
+    }
+
+    /** @param mixed $value Value. @return bool */
+    public static function validate_entity_type($value)
+    {
+        return in_array(sanitize_key($value), array('vehicle', 'engine', 'generation', 'model', 'market_stat'), true);
+    }
+
+    /** @param mixed $value Value. @return bool */
+    public static function validate_entity_id($value)
+    {
+        return absint($value) > 0;
+    }
+
+    /** @param mixed $value Value. @return bool */
+    public static function validate_limit($value)
+    {
+        $limit = absint($value);
+        return $limit >= 1 && $limit <= 100;
+    }
+
+    /** @param WP_REST_Request $request Request. @return WP_REST_Response|WP_Error */
+    public function get_sources_response($request)
+    {
+        $entity_type = sanitize_key($request->get_param('entity_type'));
+        $entity_id = absint($request->get_param('entity_id'));
+        $limit = absint($request->get_param('limit'));
+        $limit = $limit > 0 ? min(100, $limit) : 40;
+
+        if (!self::validate_entity_type($entity_type) || !self::validate_entity_id($entity_id)) {
+            return new WP_Error('autolex_invalid_source_entity', __('Érvénytelen forrásentitás.', 'autolex-platform'), array('status' => 400));
+        }
+
+        $rows = $this->get_entity_sources($entity_type, $entity_id, $limit);
+        if (is_wp_error($rows)) {
+            return $rows;
+        }
+
+        $response = rest_ensure_response(
+            array(
+                'entity_type' => $entity_type,
+                'entity_id'   => $entity_id,
+                'summary'     => self::summarize($rows),
+                'sources'     => array_values($rows),
+                'generated_at'=> gmdate('c'),
+            )
+        );
+        $response->header('Cache-Control', 'public, max-age=300, stale-while-revalidate=60');
+        $response->header('X-Autolex-Source-Count', (string) count($rows));
+        return $response;
+    }
+
+    /** @param array<string,mixed> $atts Attributes. @return string */
     public function render_shortcode($atts)
     {
-        $atts = shortcode_atts(
-            array(
-                'entity_type' => 'vehicle',
-                'entity_id'   => 0,
-                'limit'       => 40,
-            ),
-            is_array($atts) ? $atts : array(),
-            'autolex_sources'
-        );
-
+        $atts = shortcode_atts(array('entity_type' => 'vehicle', 'entity_id' => 0, 'limit' => 40), is_array($atts) ? $atts : array(), 'autolex_sources');
         $entity_type = sanitize_key($atts['entity_type']);
         $entity_id = absint($atts['entity_id']);
         $limit = min(100, max(1, absint($atts['limit'])));
-        if ('' === $entity_type || 0 === $entity_id) {
+
+        if (!self::validate_entity_type($entity_type) || 0 === $entity_id) {
             return self::render_state('incomplete', __('Nincs megadható forráskapcsolat ehhez az adatlaphoz.', 'autolex-platform'));
         }
 
@@ -75,33 +146,26 @@ final class Autolex_Source_Cards
             </div>
             <div class="alxp-source-statuses" role="list" aria-label="<?php echo esc_attr__('Megerősítési állapotok', 'autolex-platform'); ?>">
                 <?php foreach ($summary['statuses'] as $status => $count) : ?>
-                    <span role="listitem" class="alxp-source-status" data-source-status="<?php echo esc_attr($status); ?>">
-                        <?php echo esc_html(self::status_label($status)); ?> · <?php echo esc_html($count); ?>
-                    </span>
+                    <span role="listitem" class="alxp-source-status" data-source-status="<?php echo esc_attr($status); ?>"><?php echo esc_html(self::status_label($status)); ?> · <?php echo esc_html($count); ?></span>
                 <?php endforeach; ?>
             </div>
             <div class="alxp-source-list">
                 <?php foreach ($rows as $row) : ?>
                     <article class="alxp-source-card" data-source-status="<?php echo esc_attr($row['verification_status']); ?>">
                         <div class="alxp-source-card__topline">
-                            <span class="alxp-source-status" data-source-status="<?php echo esc_attr($row['verification_status']); ?>">
-                                <?php echo esc_html(self::status_label($row['verification_status'])); ?>
-                            </span>
+                            <span class="alxp-source-status" data-source-status="<?php echo esc_attr($row['verification_status']); ?>"><?php echo esc_html(self::status_label($row['verification_status'])); ?></span>
                             <code><?php echo esc_html($row['field_path']); ?></code>
                         </div>
                         <h3><?php echo esc_html($row['title']); ?></h3>
                         <p class="alxp-source-card__publisher"><?php echo esc_html($row['publisher']); ?></p>
                         <dl class="alxp-source-card__meta">
-                            <?php if ('' !== $row['document_identifier']) : ?>
-                                <div><dt><?php echo esc_html__('Dokumentum', 'autolex-platform'); ?></dt><dd><?php echo esc_html($row['document_identifier']); ?></dd></div>
-                            <?php endif; ?>
+                            <?php if ('' !== $row['document_identifier']) : ?><div><dt><?php echo esc_html__('Dokumentum', 'autolex-platform'); ?></dt><dd><?php echo esc_html($row['document_identifier']); ?></dd></div><?php endif; ?>
                             <div><dt><?php echo esc_html__('Lekérés', 'autolex-platform'); ?></dt><dd><?php echo esc_html(mysql2date('Y-m-d', $row['retrieved_at'], true)); ?></dd></div>
                             <div><dt><?php echo esc_html__('Forrástípus', 'autolex-platform'); ?></dt><dd><?php echo esc_html(self::source_type_label($row['source_type'])); ?></dd></div>
                         </dl>
-                        <a class="alxp-source-card__link" href="<?php echo esc_url($row['source_url']); ?>" target="_blank" rel="noopener noreferrer nofollow">
-                            <?php echo esc_html__('Hivatalos forrás megnyitása', 'autolex-platform'); ?>
-                            <span aria-hidden="true">↗</span>
-                        </a>
+                        <?php if ('' !== $row['source_url']) : ?>
+                            <a class="alxp-source-card__link" href="<?php echo esc_url($row['source_url']); ?>" target="_blank" rel="noopener noreferrer nofollow"><?php echo esc_html__('Hivatalos forrás megnyitása', 'autolex-platform'); ?><span aria-hidden="true">↗</span></a>
+                        <?php endif; ?>
                     </article>
                 <?php endforeach; ?>
             </div>
@@ -110,19 +174,14 @@ final class Autolex_Source_Cards
         return (string) ob_get_clean();
     }
 
-    /**
-     * @param string $entity_type Entity type.
-     * @param int    $entity_id Entity ID.
-     * @param int    $limit Maximum rows.
-     * @return array<int,array<string,mixed>>|WP_Error
-     */
+    /** @return array<int,array<string,mixed>>|WP_Error */
     public function get_entity_sources($entity_type, $entity_id, $limit = 40)
     {
         global $wpdb;
         $entity_type = sanitize_key($entity_type);
         $entity_id = absint($entity_id);
         $limit = min(100, max(1, absint($limit)));
-        if ('' === $entity_type || 0 === $entity_id) {
+        if (!self::validate_entity_type($entity_type) || 0 === $entity_id) {
             return new WP_Error('autolex_invalid_source_entity', 'Érvénytelen forrásentitás.');
         }
 
@@ -142,11 +201,10 @@ final class Autolex_Source_Cards
         if (null === $rows) {
             return new WP_Error('autolex_source_query_failed', 'A forráslekérdezés sikertelen.');
         }
-
         return array_map(array(__CLASS__, 'normalize_row'), is_array($rows) ? $rows : array());
     }
 
-    /** @param array<string,mixed> $row Database row. @return array<string,mixed> */
+    /** @return array<string,mixed> */
     public static function normalize_row(array $row)
     {
         $status = Autolex_Source_Provenance::normalize_status(isset($row['verification_status']) ? $row['verification_status'] : '');
@@ -166,7 +224,7 @@ final class Autolex_Source_Cards
         );
     }
 
-    /** @param array<int,array<string,mixed>> $rows Rows. @return array<string,mixed> */
+    /** @return array<string,mixed> */
     public static function summarize(array $rows)
     {
         $statuses = array();
@@ -178,7 +236,7 @@ final class Autolex_Source_Cards
         return array('claims' => count($rows), 'statuses' => $statuses);
     }
 
-    /** @param string $status Status. @return string */
+    /** @return string */
     public static function status_label($status)
     {
         $labels = array(
@@ -190,11 +248,10 @@ final class Autolex_Source_Cards
             Autolex_Source_Provenance::STATUS_INCOMPLETE => __('Hiányos', 'autolex-platform'),
             Autolex_Source_Provenance::STATUS_VIN_REQUIRED => __('VIN alapján ellenőrizendő', 'autolex-platform'),
         );
-        $status = Autolex_Source_Provenance::normalize_status($status);
-        return $labels[$status];
+        return $labels[Autolex_Source_Provenance::normalize_status($status)];
     }
 
-    /** @param string $type Source type. @return string */
+    /** @return string */
     public static function source_type_label($type)
     {
         $labels = array(
@@ -207,7 +264,7 @@ final class Autolex_Source_Cards
         return isset($labels[$type]) ? $labels[$type] : __('Egyéb ellenőrzött forrás', 'autolex-platform');
     }
 
-    /** @param string $status State. @param string $message Message. @return string */
+    /** @return string */
     private static function render_state($status, $message)
     {
         return sprintf(
