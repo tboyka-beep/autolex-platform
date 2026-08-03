@@ -1,0 +1,193 @@
+/* Autolex 4.2 brand, model, generation and engine hierarchy. */
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page) {
+  --alx-taxonomy-surface: #ffffff;
+  --alx-taxonomy-soft: #f3f6fa;
+  --alx-taxonomy-text: #17202b;
+  --alx-taxonomy-muted: #617083;
+  --alx-taxonomy-line: #dce3ec;
+  --alx-taxonomy-accent: #1769e0;
+  --alx-taxonomy-danger: #bb2d3b;
+  width: min(100% - 32px, 1440px);
+  margin-inline: auto;
+  padding-block: clamp(24px, 4vw, 64px) clamp(64px, 8vw, 112px);
+  color: var(--alx-taxonomy-text);
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-taxonomy-hero, .alxbc-page-hero, .alxbc-brand-hero, .alxbc-model-hero, .alxbc-generation-hero, .alxbc-engine-hero) {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(240px, .55fr);
+  gap: clamp(24px, 4vw, 64px);
+  align-items: end;
+  padding: clamp(30px, 5vw, 76px);
+  border: 1px solid var(--alx-taxonomy-line);
+  border-radius: clamp(24px, 3vw, 40px);
+  background:
+    radial-gradient(circle at 92% 8%, rgba(23, 105, 224, .16), transparent 34%),
+    linear-gradient(145deg, #ffffff 0%, #f4f7fb 100%);
+  box-shadow: 0 28px 80px rgba(23, 32, 43, .1);
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-taxonomy-hero, .alxbc-page-hero, .alxbc-brand-hero, .alxbc-model-hero, .alxbc-generation-hero, .alxbc-engine-hero) h1 {
+  max-width: 14ch;
+  margin: 10px 0 16px;
+  color: var(--alx-taxonomy-text);
+  font-size: clamp(38px, 5vw, 76px);
+  line-height: .98;
+  letter-spacing: -.05em;
+  text-wrap: balance;
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-eyebrow, .alxbc-kicker, .alxbc-page-label) {
+  color: var(--alx-taxonomy-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-taxonomy-summary, .alxbc-coverage-summary, .alxbc-page-stats) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-taxonomy-summary, .alxbc-coverage-summary, .alxbc-page-stats) > * {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid rgba(23, 105, 224, .16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .78);
+  box-shadow: 0 12px 34px rgba(23, 32, 43, .06);
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-taxonomy-grid, .alxbc-model-grid, .alxbc-generation-grid, .alxbc-engine-grid, .alxbc-variant-grid) {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 24px);
+  margin-top: clamp(28px, 4vw, 56px);
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-taxonomy-card, .alxbc-model-card, .alxbc-generation-card, .alxbc-engine-card, .alxbc-variant-card) {
+  display: flex;
+  min-width: 0;
+  min-height: 210px;
+  padding: clamp(22px, 2.5vw, 32px);
+  flex-direction: column;
+  justify-content: space-between;
+  color: var(--alx-taxonomy-text);
+  border: 1px solid var(--alx-taxonomy-line);
+  border-radius: 22px;
+  background: var(--alx-taxonomy-surface);
+  box-shadow: 0 16px 44px rgba(23, 32, 43, .07);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-taxonomy-card, .alxbc-model-card, .alxbc-generation-card, .alxbc-engine-card, .alxbc-variant-card):is(:hover, :focus-within) {
+  border-color: rgba(23, 105, 224, .52);
+  box-shadow: 0 22px 56px rgba(23, 105, 224, .12);
+  transform: translateY(-3px);
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-taxonomy-card, .alxbc-model-card, .alxbc-generation-card, .alxbc-engine-card, .alxbc-variant-card) h2,
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-taxonomy-card, .alxbc-model-card, .alxbc-generation-card, .alxbc-engine-card, .alxbc-variant-card) h3 {
+  margin: 10px 0;
+  color: var(--alx-taxonomy-text);
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.08;
+  letter-spacing: -.025em;
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-data-status, [data-source-status]) {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  color: #174d96;
+  border: 1px solid #bfd5f6;
+  border-radius: 999px;
+  background: #edf5ff;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-data-status, [data-source-status])[data-source-status="source_conflict"] {
+  color: #8c1f2c;
+  border-color: #efc0c6;
+  background: #fff1f3;
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-data-status, [data-source-status])[data-source-status="needs_vin"] {
+  color: #6b4b00;
+  border-color: #ead69e;
+  background: #fff9e8;
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(a, button, input, select, summary):focus-visible {
+  outline: 3px solid rgba(23, 105, 224, .32);
+  outline-offset: 3px;
+}
+
+:where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+:where(.alxbc-empty, .alxbc-partial, .alxbc-error) {
+  margin-top: 28px;
+  padding: clamp(24px, 4vw, 48px);
+  color: var(--alx-taxonomy-muted);
+  text-align: center;
+  border: 1px dashed var(--alx-taxonomy-line);
+  border-radius: 22px;
+  background: var(--alx-taxonomy-soft);
+}
+
+@media (max-width: 1024px) {
+  :where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+  :where(.alxbc-taxonomy-grid, .alxbc-model-grid, .alxbc-generation-grid, .alxbc-engine-grid, .alxbc-variant-grid) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  :where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+  :where(.alxbc-taxonomy-hero, .alxbc-page-hero, .alxbc-brand-hero, .alxbc-model-hero, .alxbc-generation-hero, .alxbc-engine-hero) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  :where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page) {
+    width: min(100% - 20px, 1440px);
+  }
+
+  :where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+  :where(.alxbc-taxonomy-grid, .alxbc-model-grid, .alxbc-generation-grid, .alxbc-engine-grid, .alxbc-variant-grid),
+  :where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page)
+  :where(.alxbc-taxonomy-summary, .alxbc-coverage-summary, .alxbc-page-stats) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.alxbc-brand-page, .alxbc-model-page, .alxbc-generation-page, .alxbc-engine-page, .alxbc-taxonomy-page) * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

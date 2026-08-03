@@ -9,45 +9,35 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+require_once __DIR__ . '/class-autolex-source-provenance.php';
+require_once __DIR__ . '/class-autolex-source-cards.php';
+require_once __DIR__ . '/class-autolex-source-integration.php';
+require_once __DIR__ . '/class-autolex-provenance-coverage.php';
+
 final class Autolex_Platform
 {
-    /**
-     * Shared plugin instance.
-     *
-     * @var Autolex_Platform|null
-     */
+    /** @var Autolex_Platform|null */
     private static $instance = null;
 
-    /**
-     * Returns the shared plugin instance.
-     *
-     * @return Autolex_Platform
-     */
+    /** @return Autolex_Platform */
     public static function instance()
     {
         if (null === self::$instance) {
             self::$instance = new self();
         }
-
         return self::$instance;
     }
 
-    /**
-     * Stores the installed version without modifying site content.
-     *
-     * @return void
-     */
+    /** @return void */
     public static function activate()
     {
         update_option('autolex_platform_version', AUTOLEX_PLATFORM_VERSION, false);
         Autolex_EU_Catalog::install_schema();
         Autolex_Engine_Catalog::install_schema();
         Autolex_EEA_Sync::install_schema();
+        Autolex_Source_Provenance::install_schema();
     }
 
-    /**
-     * Registers WordPress hooks.
-     */
     private function __construct()
     {
         Autolex_EU_Catalog::instance();
@@ -56,20 +46,17 @@ final class Autolex_Platform
         Autolex_Engine_Catalog::instance();
         Autolex_EEA_Sync::instance();
         Autolex_Maintenance_Evidence::instance();
+        Autolex_Source_Provenance::instance();
+        Autolex_Source_Cards::instance()->register();
+        Autolex_Source_Integration::instance()->register();
+        Autolex_Provenance_Coverage::instance()->register();
 
         add_action('admin_menu', array($this, 'register_admin_page'));
         add_action('rest_api_init', array($this, 'register_rest_routes'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_public_assets'), 30);
     }
 
-    /**
-     * Loads the shared Autolex visual layer after the legacy Blocksy styles.
-     *
-     * The selectors in this stylesheet are deliberately scoped to existing
-     * Autolex components so regular WordPress and Blocksy screens stay intact.
-     *
-     * @return void
-     */
+    /** @return void */
     public function enqueue_public_assets()
     {
         wp_enqueue_style(
@@ -80,11 +67,7 @@ final class Autolex_Platform
         );
     }
 
-    /**
-     * Registers public, read-only platform endpoints.
-     *
-     * @return void
-     */
+    /** @return void */
     public function register_rest_routes()
     {
         register_rest_route(
@@ -108,11 +91,7 @@ final class Autolex_Platform
         );
     }
 
-    /**
-     * Returns a minimal health response without exposing sensitive data.
-     *
-     * @return WP_REST_Response
-     */
+    /** @return WP_REST_Response */
     public function get_platform_status()
     {
         return rest_ensure_response(
@@ -125,11 +104,7 @@ final class Autolex_Platform
         );
     }
 
-    /**
-     * Adds the platform status page.
-     *
-     * @return void
-     */
+    /** @return void */
     public function register_admin_page()
     {
         add_menu_page(
@@ -143,11 +118,7 @@ final class Autolex_Platform
         );
     }
 
-    /**
-     * Renders the minimal platform status screen.
-     *
-     * @return void
-     */
+    /** @return void */
     public function render_admin_page()
     {
         if (!current_user_can('manage_options')) {
@@ -178,7 +149,6 @@ final class Autolex_Platform
             <p>
                 <?php
                 printf(
-                    /* translators: 1: vehicle count, 2: make count, 3: model count. */
                     esc_html__('%1$s járműváltozat, %2$s márka és %3$s modell az új, ellenőrzött EU-adatmagban.', 'autolex-platform'),
                     esc_html(number_format_i18n($coverage['vehicles'])),
                     esc_html(number_format_i18n($coverage['makes'])),
@@ -196,7 +166,6 @@ final class Autolex_Platform
             <p>
                 <?php
                 printf(
-                    /* translators: 1: catalogue rows, 2: identified engines, 3: verified variants. */
                     esc_html__('%1$s katalógussor, %2$s meglévő motorazonosítás és %3$s forrással ellenőrzött motorváltozat.', 'autolex-platform'),
                     esc_html(number_format_i18n($engine_coverage['catalog_vehicles'])),
                     esc_html(number_format_i18n($engine_coverage['catalog_vehicles'] - $engine_coverage['rows_missing_engine'])),
@@ -214,7 +183,6 @@ final class Autolex_Platform
             <p>
                 <?php
                 printf(
-                    /* translators: 1: completed targets, 2: all targets, 3: engine proposals, 4: link proposals. */
                     esc_html__('%1$s/%2$s forráscél feldolgozva, %3$s motorváltozat- és %4$s járműkapcsolati javaslat.', 'autolex-platform'),
                     esc_html(number_format_i18n($eea_sync['completed_targets'])),
                     esc_html(number_format_i18n($eea_sync['targets'])),

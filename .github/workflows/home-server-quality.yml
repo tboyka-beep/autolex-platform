@@ -57,13 +57,29 @@ jobs:
           php tests/engine-catalog-smoke.php
           php tests/eurostat-smoke.php
           php tests/eafo-smoke.php
+          php tests/source-provenance-smoke.php
+          php tests/source-provenance-write-smoke.php
+          php tests/provenance-batch-importer-smoke.php
+          php tests/official-source-adapter-smoke.php
+          php tests/safety-gate-source-adapter-smoke.php
+          php tests/eea-source-adapter-smoke.php
+          php tests/eurostat-source-adapter-smoke.php
+          php tests/eafo-source-adapter-smoke.php
+          php tests/source-cards-smoke.php
+          php tests/source-integration-smoke.php
+          php tests/provenance-coverage-smoke.php
 
       - name: Run portal and deterministic Safety Gate smoke tests
         run: |
           php tests/portal-smoke.php
           php tests/catalog-filter-smoke.php
           php tests/portal-design-smoke.php
+          php tests/portal-shell-42-smoke.php
+          php tests/catalog-design-42-smoke.php
+          php tests/taxonomy-design-42-smoke.php
           php tests/vehicle-detail-smoke.php
+          php tests/vehicle-detail-design-42-smoke.php
+          php tests/compare-design-42-smoke.php
           php tests/safety-gate-smoke.php
           node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
           node --check plugin/autolex-platform/assets/js/autolex-maintenance-evidence.js

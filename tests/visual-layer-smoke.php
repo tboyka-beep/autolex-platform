@@ -4,15 +4,18 @@ $plugin = file_get_contents($root . '/plugin/autolex-platform/autolex-platform.p
 $catalog_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-catalog-light.css');
 $vehicle_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-vehicle-experience-light.css');
 $home_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-home-41.css');
+$shell_css = file_get_contents($root . '/plugin/autolex-platform/assets/css/autolex-4-shell.css');
 
 $checks = array(
     'plugin source is readable' => $plugin !== false,
     'catalogue stylesheet is readable' => $catalog_css !== false,
     'vehicle stylesheet is readable' => $vehicle_css !== false,
     'home stylesheet is readable' => $home_css !== false,
+    '4.2 shell stylesheet is readable' => $shell_css !== false,
     'single light catalogue layer is enqueued' => strpos($plugin, "'autolex-catalog-light'") !== false,
     'vehicle layer follows catalogue layer' => strpos($plugin, "'autolex-vehicle-experience-light'") !== false && strpos($plugin, "array('autolex-catalog-light')") !== false,
     'home layer follows vehicle layer' => strpos($plugin, "'autolex-home-41'") !== false && strpos($plugin, "array('autolex-vehicle-experience-light')") !== false,
+    'home entrypoint delegates to final 4.2 shell' => strpos($home_css, '@import url("autolex-4-shell.css")') !== false,
     'assets use deterministic filemtime cache busting' => strpos($plugin, 'filemtime($absolute_path)') !== false,
     'legacy night layer is not enqueued' => strpos($plugin, "wp_enqueue_style(\n            'autolex-visual-night'") === false,
     'legacy adaptive layer is not enqueued' => strpos($plugin, "wp_enqueue_style(\n            'autolex-adaptive-theme'") === false,
@@ -25,7 +28,10 @@ $checks = array(
     'verification states are visually distinct' => strpos($catalog_css, '.is-verified') !== false && strpos($catalog_css, '.is-conflict') !== false,
     'mobile catalogue breakpoint exists' => strpos($catalog_css, '@media (max-width: 680px)') !== false,
     'reduced motion contract exists' => strpos($catalog_css, 'prefers-reduced-motion: reduce') !== false,
-    'home hero remains premium and responsive' => strpos($home_css, '.alx3-hero') !== false && strpos($home_css, '@media (max-width: 689px)') !== false,
+    'home hero remains premium and responsive' => strpos($shell_css, '.alx3-hero') !== false && strpos($shell_css, '@media (max-width: 689px)') !== false,
+    '4.2 shell removes dark outer frame' => strpos($shell_css, 'body.autolex-portal-3::before') !== false && strpos($shell_css, 'display: none !important') !== false,
+    '4.2 shell has accessible focus state' => strpos($shell_css, ':focus-visible') !== false && strpos($shell_css, '--alx42-focus') !== false,
+    '4.2 shell supports reduced motion' => strpos($shell_css, '@media (prefers-reduced-motion: reduce)') !== false,
     'vehicle experience remains portal scoped' => strpos($vehicle_css, 'body.autolex-portal-3') !== false,
 );
 

@@ -1,0 +1,222 @@
+/**
+ * Autolex 4.2 vehicle detail and source evidence experience.
+ *
+ * Styles existing server-rendered detail, maintenance, source, recall and
+ * recommendation components. It never manufactures data or verification.
+ */
+body.autolex-portal-3 :is(.alxbc-dynamic-vehicle, .alxp-vehicle-detail) {
+  width: min(100% - 40px, 1480px);
+  margin: 30px auto clamp(72px, 8vw, 116px);
+  color: var(--alx42-text);
+}
+
+body.autolex-portal-3 :is(.alxbc-dynamic-vehicle, .alxp-vehicle-detail) > header,
+body.autolex-portal-3 .alxp-vehicle-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 360px);
+  align-items: end;
+  gap: clamp(28px, 5vw, 72px);
+  padding: clamp(36px, 5vw, 72px);
+  overflow: hidden;
+  border: 1px solid var(--alx42-line);
+  border-radius: clamp(28px, 3vw, 42px);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(20, 99, 255, .16), transparent 25rem),
+    linear-gradient(132deg, #fff 0%, #f6f9fd 64%, #eaf1fa 100%);
+  box-shadow: var(--alx42-shadow);
+}
+
+body.autolex-portal-3 :is(.alxbc-dynamic-vehicle, .alxp-vehicle-detail) h1 {
+  max-width: 16ch;
+  margin: 12px 0 18px;
+  color: var(--alx42-graphite) !important;
+  font-size: clamp(40px, 5.2vw, 74px);
+  line-height: .98;
+  letter-spacing: -.052em;
+  text-wrap: balance;
+}
+
+body.autolex-portal-3 .alxp-vehicle-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 22px;
+  border: 1px solid var(--alx42-line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: var(--alx42-shadow-sm);
+  backdrop-filter: blur(16px);
+}
+body.autolex-portal-3 .alxp-vehicle-summary > div {
+  padding: 13px;
+  border-radius: 14px;
+  background: var(--alx42-surface-muted);
+}
+body.autolex-portal-3 .alxp-vehicle-summary span {
+  display: block;
+  color: var(--alx42-muted);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+body.autolex-portal-3 .alxp-vehicle-summary strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--alx42-graphite);
+  font-size: 18px;
+}
+
+body.autolex-portal-3 .alxp-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 330px);
+  align-items: start;
+  gap: clamp(22px, 3vw, 36px);
+  margin-top: 30px;
+}
+body.autolex-portal-3 .alxp-detail-main { min-width: 0; }
+body.autolex-portal-3 .alxp-detail-nav {
+  position: sticky;
+  top: 104px;
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--alx42-line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .95);
+  box-shadow: var(--alx42-shadow-sm);
+}
+body.autolex-portal-3 .alxp-detail-nav a {
+  padding: 11px 13px;
+  border-radius: 11px;
+  color: var(--alx42-muted) !important;
+  font-weight: 750;
+}
+body.autolex-portal-3 .alxp-detail-nav a:is(:hover, :focus-visible, [aria-current="true"]) {
+  color: var(--alx42-blue-dark) !important;
+  background: var(--alx42-blue-soft);
+  outline: none;
+}
+
+body.autolex-portal-3 :is(.alxbc-section, .alxp-detail-section) {
+  margin-top: 22px;
+  padding: clamp(24px, 3vw, 38px);
+  border: 1px solid var(--alx42-line) !important;
+  border-radius: 24px !important;
+  background: #fff !important;
+  box-shadow: var(--alx42-shadow-sm) !important;
+  scroll-margin-top: 118px;
+}
+body.autolex-portal-3 :is(.alxbc-section, .alxp-detail-section) h2 {
+  margin: 0 0 20px;
+  color: var(--alx42-graphite) !important;
+  font-size: clamp(25px, 2.8vw, 36px);
+  letter-spacing: -.025em;
+}
+
+body.autolex-portal-3 :is(.alxp-maintenance-grid, .alxp-source-list, .alxp-product-rules, .alxp-spec-grid) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+body.autolex-portal-3 :is(.alxp-maintenance-grid article, .alxp-source-list a, .alxp-product-rules a, .alxp-spec-grid > div) {
+  min-width: 0;
+  padding: 20px;
+  color: var(--alx42-text) !important;
+  border: 1px solid var(--alx42-line);
+  border-radius: 17px;
+  background: linear-gradient(180deg, #fff, #f8fafd);
+}
+body.autolex-portal-3 :is(.alxp-maintenance-grid, .alxp-source-list, .alxp-product-rules) :is(strong, h3) {
+  color: var(--alx42-graphite) !important;
+}
+body.autolex-portal-3 :is(.alxp-maintenance-grid, .alxp-source-list, .alxp-product-rules) :is(p, small) {
+  color: var(--alx42-muted) !important;
+}
+
+body.autolex-portal-3 .alxp-source-list a {
+  position: relative;
+  padding-left: 52px;
+}
+body.autolex-portal-3 .alxp-source-list a::before {
+  content: "↗";
+  position: absolute;
+  top: 19px;
+  left: 19px;
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--alx42-blue-dark);
+  background: var(--alx42-blue-soft);
+  font-weight: 900;
+}
+body.autolex-portal-3 .alxp-source-list a:focus-visible {
+  outline: none;
+  box-shadow: var(--alx42-focus);
+}
+
+body.autolex-portal-3 :is(.alxp-source-status, [data-source-status]) {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  padding: 6px 10px;
+  border: 1px solid var(--alx42-line);
+  border-radius: 999px;
+  color: var(--alx42-muted);
+  background: var(--alx42-surface-muted);
+  font-size: 11px;
+  font-weight: 850;
+}
+body.autolex-portal-3 [data-source-status="multi_source_match"] { color: #0d6946; border-color: #bce7d2; background: #e7f7ef; }
+body.autolex-portal-3 [data-source-status="manufacturer_source"],
+body.autolex-portal-3 [data-source-status="official_registry"] { color: var(--alx42-blue-dark); border-color: rgba(20, 99, 255, .22); background: var(--alx42-blue-soft); }
+body.autolex-portal-3 [data-source-status="source_conflict"] { color: #8f2028; border-color: rgba(214, 60, 69, .28); background: #fff3f4; }
+body.autolex-portal-3 [data-source-status="incomplete"],
+body.autolex-portal-3 [data-source-status="vin_required"] { color: #735500; border-color: #ead48e; background: #fff7da; }
+
+body.autolex-portal-3 :is(.alxp-fitment-warning, .alxp-recall-warning, .alxp-source-conflict) {
+  margin-top: 18px;
+  padding: 16px 18px;
+  color: #742029;
+  border: 1px solid rgba(214, 60, 69, .26);
+  border-left: 4px solid var(--alx42-safety);
+  border-radius: 14px;
+  background: #fff3f4;
+}
+body.autolex-portal-3 .alxp-recommendation-intro {
+  margin-top: 18px;
+  padding: 16px 18px;
+  color: var(--alx42-muted);
+  border-left: 4px solid var(--alx42-blue);
+  border-radius: 14px;
+  background: var(--alx42-blue-soft);
+}
+
+@media (max-width: 1024px) {
+  body.autolex-portal-3 .alxp-detail-layout { grid-template-columns: 1fr; }
+  body.autolex-portal-3 .alxp-detail-nav {
+    position: static;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 768px) {
+  body.autolex-portal-3 :is(.alxbc-dynamic-vehicle, .alxp-vehicle-detail) { width: min(100% - 28px, 1480px); margin-top: 18px; }
+  body.autolex-portal-3 :is(.alxbc-dynamic-vehicle, .alxp-vehicle-detail) > header,
+  body.autolex-portal-3 .alxp-vehicle-hero { grid-template-columns: 1fr; padding: 30px 24px; }
+  body.autolex-portal-3 .alxp-detail-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.autolex-portal-3 :is(.alxp-maintenance-grid, .alxp-source-list, .alxp-product-rules, .alxp-spec-grid) { grid-template-columns: 1fr; }
+}
+@media (max-width: 375px) {
+  body.autolex-portal-3 .alxp-vehicle-summary,
+  body.autolex-portal-3 .alxp-detail-nav { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.autolex-portal-3 :is(.alxp-detail-nav a, .alxp-source-list a, .alxp-product-rules a) {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
