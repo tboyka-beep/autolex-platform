@@ -1,0 +1,126 @@
+.alx-vehicle-page {
+    padding: clamp(2rem, 5vw, 4.5rem) 0;
+}
+
+.alx-vehicle-shell {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.alx-vehicle-hero,
+.alx-vehicle-workspace,
+.alx-vehicle-safety-note,
+.alx-vehicle-source-note {
+    background: var(--alx-surface, #ffffff);
+    border: 1px solid var(--alx-border, #dce4ef);
+    border-radius: 18px;
+    box-shadow: 0 14px 40px rgba(24, 39, 75, 0.08);
+}
+
+.alx-vehicle-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    align-items: flex-end;
+    padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.alx-vehicle-hero h1 {
+    margin: 0.25rem 0 0.75rem;
+    max-width: 18ch;
+}
+
+.alx-vehicle-lead {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--alx-muted, #526173);
+}
+
+.alx-vehicle-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.alx-vehicle-section-nav {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.25rem;
+    scrollbar-width: thin;
+}
+
+.alx-vehicle-section-nav a {
+    flex: 0 0 auto;
+    padding: 0.7rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--alx-border, #dce4ef);
+    background: var(--alx-surface, #ffffff);
+    color: var(--alx-text, #1b2430);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.alx-vehicle-section-nav a:hover,
+.alx-vehicle-section-nav a:focus-visible {
+    border-color: var(--alx-primary, #1769e8);
+    color: var(--alx-primary, #1769e8);
+}
+
+.alx-vehicle-workspace,
+.alx-vehicle-safety-note,
+.alx-vehicle-source-note {
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+}
+
+.alx-vehicle-plugin-output {
+    min-width: 0;
+}
+
+.alx-vehicle-plugin-output table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.alx-vehicle-plugin-output th,
+.alx-vehicle-plugin-output td {
+    padding: 0.8rem 0.9rem;
+    border-bottom: 1px solid var(--alx-border, #dce4ef);
+    text-align: left;
+    vertical-align: top;
+}
+
+.alx-vehicle-empty {
+    max-width: 62ch;
+}
+
+.alx-vehicle-safety-note {
+    border-color: color-mix(in srgb, var(--alx-safety, #d92d3f) 35%, #ffffff);
+    background: color-mix(in srgb, var(--alx-safety, #d92d3f) 6%, #ffffff);
+}
+
+.alx-vehicle-safety-note h2,
+.alx-vehicle-source-note h2 {
+    margin-top: 0;
+}
+
+.alx-vehicle-safety-note a {
+    color: var(--alx-safety, #d92d3f);
+    font-weight: 800;
+}
+
+@media (max-width: 760px) {
+    .alx-vehicle-hero {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .alx-vehicle-actions {
+        flex-direction: column;
+    }
+
+    .alx-vehicle-actions .alx-button {
+        width: 100%;
+        text-align: center;
+    }
+}
