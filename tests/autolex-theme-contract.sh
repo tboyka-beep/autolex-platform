@@ -2,12 +2,12 @@
 set -euo pipefail
 
 THEME='theme/autolex-theme'
-required=(style.css functions.php header.php footer.php index.php front-page.php search.php 404.php page.php single.php archive.php page-autok.php page-jarmu.php page-osszehasonlitas.php page-visszahivasok.php assets/css/states.css assets/css/content.css assets/css/catalog.css assets/css/vehicle.css assets/css/comparison.css assets/css/safety.css assets/js/theme-shell.js)
+required=(style.css functions.php header.php footer.php index.php front-page.php search.php 404.php page.php single.php archive.php page-autok.php page-jarmu.php page-osszehasonlitas.php page-visszahivasok.php page-forrasok.php assets/css/states.css assets/css/content.css assets/css/catalog.css assets/css/vehicle.css assets/css/comparison.css assets/css/safety.css assets/css/sources.css assets/js/theme-shell.js)
 for file in "${required[@]}"; do
   test -f "$THEME/$file" || { echo "missing theme file: $file"; exit 1; }
 done
 
-php_files=(functions.php header.php footer.php index.php front-page.php search.php 404.php page.php single.php archive.php page-autok.php page-jarmu.php page-osszehasonlitas.php page-visszahivasok.php)
+php_files=(functions.php header.php footer.php index.php front-page.php search.php 404.php page.php single.php archive.php page-autok.php page-jarmu.php page-osszehasonlitas.php page-visszahivasok.php page-forrasok.php)
 for file in "${php_files[@]}"; do
   php -l "$THEME/$file" >/dev/null
 done
@@ -32,6 +32,8 @@ grep -Fq "is_page('osszehasonlitas')" "$THEME/functions.php"
 grep -Fq "autolex-theme-comparison" "$THEME/functions.php"
 grep -Fq "is_page('visszahivasok')" "$THEME/functions.php"
 grep -Fq "autolex-theme-safety" "$THEME/functions.php"
+grep -Fq "is_page('forrasok')" "$THEME/functions.php"
+grep -Fq "autolex-theme-sources" "$THEME/functions.php"
 
 grep -Fq 'role="tablist"' "$THEME/front-page.php"
 grep -Fq 'role="tabpanel"' "$THEME/front-page.php"
@@ -99,6 +101,17 @@ grep -Fq 'alx-safety-empty' "$THEME/page-visszahivasok.php"
 grep -Fq 'gyártó' "$THEME/page-visszahivasok.php"
 grep -Fq '.alx-safety-workspace' "$THEME/assets/css/safety.css"
 grep -Fq 'var(--alx-safety' "$THEME/assets/css/safety.css"
+
+grep -Fq 'id="alx-sources-title"' "$THEME/page-forrasok.php"
+grep -Fq 'aria-live="polite"' "$THEME/page-forrasok.php"
+grep -Fq 'alx-sources-plugin-output' "$THEME/page-forrasok.php"
+grep -Fq 'get_the_content()' "$THEME/page-forrasok.php"
+grep -Fq 'alx-sources-empty' "$THEME/page-forrasok.php"
+grep -Fq 'Megerősített' "$THEME/page-forrasok.php"
+grep -Fq 'Konfliktusos' "$THEME/page-forrasok.php"
+grep -Fq '.alx-sources-workspace' "$THEME/assets/css/sources.css"
+grep -Fq 'grid-template-columns: repeat(3' "$THEME/assets/css/sources.css"
+grep -Fq 'grid-template-columns: minmax(0, 1fr)' "$THEME/assets/css/sources.css"
 
 if grep -R -n -E 'prefers-color-scheme:[[:space:]]*dark|\.ct-|#000000|background:[[:space:]]*#000' "$THEME"; then
   echo 'forbidden dark or Blocksy-specific marker found in own theme'
