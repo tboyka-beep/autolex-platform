@@ -41,6 +41,12 @@ function autolex_theme_assets()
 {
     $version = wp_get_theme()->get('Version');
     wp_enqueue_style('autolex-theme', get_stylesheet_uri(), array(), $version);
+    wp_enqueue_style(
+        'autolex-theme-states',
+        get_template_directory_uri() . '/assets/css/states.css',
+        array('autolex-theme'),
+        $version
+    );
     wp_enqueue_script(
         'autolex-theme-shell',
         get_template_directory_uri() . '/assets/js/theme-shell.js',
