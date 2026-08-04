@@ -20,7 +20,15 @@ for file in page-markak.php page-modellek.php page-generaciok.php page-motorok.p
 done
 
 for context in brand model generation engine; do
-  grep -Fq "'context' => '$context'" "$THEME/page-$([ "$context" = brand ] && echo markak || [ "$context" = model ] && echo modellek || [ "$context" = generation ] && echo generaciok || echo motorok).php"
+  case "$context" in
+    brand) page='markak' ;;
+    model) page='modellek' ;;
+    generation) page='generaciok' ;;
+    engine) page='motorok' ;;
+    *) echo "unknown hierarchy context: $context"; exit 1 ;;
+  esac
+
+  grep -Fq "'context' => '$context'" "$THEME/page-$page.php"
 done
 
 grep -Fq 'id="alx-hierarchy-title"' "$THEME/template-parts/hierarchy-shell.php"
