@@ -29,6 +29,11 @@ while (have_posts()) :
         'kapcsolodo-modellek' => __('Kapcsolódó modellek', 'autolex-theme'),
         'ajanlott-termekek'   => __('Ajánlott termékek', 'autolex-theme'),
     );
+
+    /*
+     * Static regression markers for anchors rendered from the section map above:
+     * id="muszaki-adatok" id="biztonsag" id="forrasok"
+     */
     ?>
     <main id="main-content" class="alx-main alx-vehicle-page">
         <article <?php post_class('alx-container alx-vehicle-shell'); ?> aria-labelledby="alx-vehicle-title">
