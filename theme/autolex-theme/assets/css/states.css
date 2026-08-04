@@ -1,0 +1,196 @@
+.alx-state-page,
+.alx-search-page {
+  max-width: 1080px;
+}
+
+.alx-state-page {
+  display: grid;
+  min-height: 62vh;
+  place-items: center;
+}
+
+.alx-state-card,
+.alx-page-heading,
+.alx-result-card {
+  border: 1px solid var(--alx-line);
+  border-radius: var(--alx-radius-lg);
+  background: var(--alx-surface);
+  box-shadow: var(--alx-shadow-sm);
+}
+
+.alx-state-card {
+  width: min(100%, 760px);
+  padding: clamp(28px, 6vw, 64px);
+  text-align: center;
+}
+
+.alx-state-code {
+  margin: 0;
+  color: var(--alx-primary-soft);
+  font-size: clamp(88px, 18vw, 180px);
+  font-weight: 900;
+  line-height: .78;
+  letter-spacing: -.08em;
+}
+
+.alx-state-card h1,
+.alx-page-heading h1 {
+  margin: 8px 0 12px;
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1.05;
+  letter-spacing: -.04em;
+}
+
+.alx-state-card > p:not(.alx-eyebrow, .alx-state-code),
+.alx-page-heading > p:not(.alx-eyebrow) {
+  color: var(--alx-text-muted);
+}
+
+.alx-state-search {
+  margin-top: 28px;
+  text-align: left;
+}
+
+.alx-state-search label {
+  display: block;
+  margin-bottom: 8px;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.alx-state-search > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.alx-state-search input,
+.alx-state-search button {
+  min-height: 50px;
+  border-radius: 12px;
+}
+
+.alx-state-search input {
+  min-width: 0;
+  border: 1px solid var(--alx-line);
+  background: #fff;
+  padding: 0 14px;
+}
+
+.alx-state-search button,
+.alx-button {
+  border: 0;
+  color: #fff;
+  background: var(--alx-primary);
+  padding: 13px 18px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.alx-state-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.alx-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.alx-button-secondary {
+  border: 1px solid var(--alx-line);
+  color: #344054;
+  background: var(--alx-surface-soft);
+}
+
+.alx-page-heading {
+  padding: clamp(24px, 4vw, 46px);
+}
+
+.alx-result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.alx-result-card {
+  padding: 24px;
+}
+
+.alx-result-card h2 {
+  margin: 4px 0 10px;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.alx-result-card h2 a {
+  color: var(--alx-text);
+  text-decoration: none;
+}
+
+.alx-result-card p:not(.alx-result-type) {
+  color: var(--alx-text-muted);
+}
+
+.alx-result-type {
+  margin: 0;
+  color: var(--alx-primary);
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.alx-search-empty {
+  margin-top: 16px;
+}
+
+.alx-pagination {
+  margin-top: 24px;
+}
+
+.alx-pagination .nav-links {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.alx-pagination .page-numbers {
+  display: inline-grid;
+  min-width: 42px;
+  min-height: 42px;
+  place-items: center;
+  border: 1px solid var(--alx-line);
+  border-radius: 10px;
+  background: var(--alx-surface);
+  text-decoration: none;
+}
+
+.alx-pagination .current {
+  border-color: var(--alx-primary);
+  color: #fff;
+  background: var(--alx-primary);
+}
+
+@media (max-width: 720px) {
+  .alx-result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .alx-state-search > div {
+    grid-template-columns: 1fr;
+  }
+
+  .alx-state-search button {
+    width: 100%;
+  }
+}
