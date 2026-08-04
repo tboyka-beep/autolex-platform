@@ -4,14 +4,16 @@
 }
 
 .alx-document,
-.alx-archive-header {
+.alx-archive-header,
+.alx-knowledge-page {
   border: 1px solid var(--alx-line);
   border-radius: var(--alx-radius-lg);
   background: var(--alx-surface);
   box-shadow: var(--alx-shadow-sm);
 }
 
-.alx-document {
+.alx-document,
+.alx-knowledge-page {
   overflow: hidden;
 }
 
@@ -114,6 +116,81 @@
   text-align: left;
 }
 
+.alx-knowledge-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-bottom: 1px solid var(--alx-line);
+  padding: 18px clamp(24px, 5vw, 64px);
+  background: var(--alx-surface-soft);
+}
+
+.alx-knowledge-topics a {
+  border: 1px solid var(--alx-line);
+  border-radius: 999px;
+  background: var(--alx-surface);
+  padding: 10px 14px;
+  color: var(--alx-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.alx-knowledge-topics a:hover,
+.alx-knowledge-topics a:focus-visible {
+  border-color: var(--alx-primary);
+  color: var(--alx-primary);
+}
+
+.alx-knowledge-workspace,
+.alx-knowledge-directory {
+  padding: clamp(24px, 5vw, 64px);
+}
+
+.alx-knowledge-workspace {
+  border-bottom: 1px solid var(--alx-line);
+}
+
+.alx-knowledge-plugin-output {
+  padding: 0;
+}
+
+.alx-knowledge-empty {
+  max-width: 760px;
+  border: 1px dashed var(--alx-line-strong);
+  border-radius: var(--alx-radius);
+  background: var(--alx-surface-soft);
+  padding: clamp(24px, 4vw, 40px);
+}
+
+.alx-knowledge-empty h2,
+.alx-knowledge-directory h2 {
+  margin-top: 0;
+}
+
+.alx-knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.alx-knowledge-grid article {
+  scroll-margin-top: 110px;
+  border: 1px solid var(--alx-line);
+  border-radius: var(--alx-radius);
+  background: linear-gradient(145deg, #ffffff, #f7f9fc);
+  padding: 24px;
+}
+
+.alx-knowledge-grid h3 {
+  margin: 0 0 8px;
+  font-size: 21px;
+}
+
+.alx-knowledge-grid p {
+  margin: 0;
+  color: var(--alx-text-muted);
+}
+
 .alx-archive-header {
   margin-bottom: 20px;
 }
@@ -209,10 +286,17 @@
 @media (max-width: 620px) {
   .alx-document-header,
   .alx-document-content,
-  .alx-archive-header {
+  .alx-archive-header,
+  .alx-knowledge-workspace,
+  .alx-knowledge-directory {
     padding: 24px 20px;
   }
 
+  .alx-knowledge-topics {
+    padding: 16px 20px;
+  }
+
+  .alx-knowledge-grid,
   .alx-archive-grid {
     grid-template-columns: 1fr;
   }
