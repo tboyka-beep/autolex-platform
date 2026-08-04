@@ -6,12 +6,14 @@ on:
     paths:
       - 'theme/autolex-theme/**'
       - 'tests/autolex-theme-contract.sh'
+      - 'tests/autolex-theme-hierarchy-contract.sh'
       - '.github/workflows/autolex-theme.yml'
   push:
     branches: [main]
     paths:
       - 'theme/autolex-theme/**'
       - 'tests/autolex-theme-contract.sh'
+      - 'tests/autolex-theme-hierarchy-contract.sh'
       - '.github/workflows/autolex-theme.yml'
   workflow_dispatch:
 
@@ -33,3 +35,4 @@ jobs:
         with:
           node-version: '24'
       - run: bash tests/autolex-theme-contract.sh
+      - run: bash tests/autolex-theme-hierarchy-contract.sh
