@@ -6,6 +6,15 @@ on:
       - 'scripts/autolex-live-production-qa.sh'
       - 'tests/live-production-qa-smoke.sh'
       - '.github/workflows/autolex-live-production-qa.yml'
+      - 'plugin/autolex-platform/includes/class-autolex-comparison-page.php'
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/autolex-live-production-qa.sh'
+      - 'tests/live-production-qa-smoke.sh'
+      - '.github/workflows/autolex-live-production-qa.yml'
+      - 'plugin/autolex-platform/includes/class-autolex-comparison-page.php'
   workflow_dispatch:
     inputs:
       expected_version:
@@ -30,6 +39,7 @@ jobs:
 
   live-hosted:
     name: Verify production from GitHub-hosted runner
+    if: github.event_name != 'pull_request'
     needs: contract
     runs-on: ubuntu-24.04
     steps:
@@ -39,6 +49,7 @@ jobs:
 
   live-home-server:
     name: Verify production from home-server
+    if: github.event_name != 'pull_request'
     needs: contract
     runs-on: [self-hosted, linux, home-server-autolex]
     timeout-minutes: 15
