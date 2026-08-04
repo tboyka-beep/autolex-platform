@@ -16,6 +16,9 @@ on:
 permissions:
   contents: read
 
+env:
+  AUTOLEX_EXPECTED_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_version || '4.2.0' }}
+
 jobs:
   contract:
     name: Validate live QA contract
@@ -27,25 +30,19 @@ jobs:
 
   live-hosted:
     name: Verify production from GitHub-hosted runner
-    if: github.event_name == 'workflow_dispatch'
     needs: contract
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - name: Run fail-closed live production QA
-        env:
-          AUTOLEX_EXPECTED_VERSION: ${{ inputs.expected_version }}
         run: bash scripts/autolex-live-production-qa.sh
 
   live-home-server:
     name: Verify production from home-server
-    if: github.event_name == 'workflow_dispatch'
     needs: contract
     runs-on: [self-hosted, linux, home-server-autolex]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - name: Run fail-closed live production QA
-        env:
-          AUTOLEX_EXPECTED_VERSION: ${{ inputs.expected_version }}
         run: bash scripts/autolex-live-production-qa.sh
