@@ -80,3 +80,147 @@ function autolex_theme_primary_fallback()
     }
     echo '</ul>';
 }
+
+/**
+ * Avoid duplicate metadata when a dedicated SEO plugin owns the document head.
+ */
+function autolex_theme_has_seo_plugin()
+{
+    return defined('WPSEO_VERSION')
+        || defined('RANK_MATH_VERSION')
+        || defined('SEOPRESS_VERSION')
+        || defined('AIOSEO_VERSION');
+}
+
+/**
+ * Return the canonical URL for the current public document.
+ */
+function autolex_theme_canonical_url()
+{
+    if (is_singular()) {
+        return get_permalink();
+    }
+
+    if (is_front_page()) {
+        return home_url('/');
+    }
+
+    if (is_search()) {
+        return get_search_link(get_search_query());
+    }
+
+    return false;
+}
+
+/**
+ * Build a conservative description from real WordPress content only.
+ */
+function autolex_theme_meta_description()
+{
+    if (!is_singular()) {
+        return '';
+    }
+
+    $post = get_queried_object();
+    if (!$post instanceof WP_Post) {
+        return '';
+    }
+
+    $description = has_excerpt($post) ? $post->post_excerpt : wp_strip_all_tags(strip_shortcodes($post->post_content));
+    return wp_trim_words(preg_replace('/\s+/', ' ', trim($description)), 28, '…');
+}
+
+/**
+ * Build BreadcrumbList from the current WordPress hierarchy.
+ */
+function autolex_theme_breadcrumb_schema()
+{
+    $items = array(
+        array(
+            '@type'    => 'ListItem',
+            'position' => 1,
+            'name'     => get_bloginfo('name'),
+            'item'     => home_url('/'),
+        ),
+    );
+
+    if (is_singular()) {
+        $post = get_queried_object();
+        if ($post instanceof WP_Post) {
+            $position = 2;
+            foreach (array_reverse(get_post_ancestors($post)) as $ancestor_id) {
+                $items[] = array(
+                    '@type'    => 'ListItem',
+                    'position' => $position++,
+                    'name'     => get_the_title($ancestor_id),
+                    'item'     => get_permalink($ancestor_id),
+                );
+            }
+
+            $items[] = array(
+                '@type'    => 'ListItem',
+                'position' => $position,
+                'name'     => get_the_title($post),
+                'item'     => get_permalink($post),
+            );
+        }
+    }
+
+    if (count($items) < 2) {
+        return array();
+    }
+
+    return array(
+        '@context'        => 'https://schema.org',
+        '@type'           => 'BreadcrumbList',
+        'itemListElement' => $items,
+    );
+}
+
+/**
+ * Output canonical, description and validated JSON-LD without inventing vehicle data.
+ * The plugin may provide a complete Vehicle node through autolex_theme_vehicle_schema.
+ */
+function autolex_theme_document_metadata()
+{
+    if (autolex_theme_has_seo_plugin()) {
+        return;
+    }
+
+    $canonical = autolex_theme_canonical_url();
+    if ($canonical) {
+        printf("\n<link rel=\"canonical\" href=\"%s\">\n", esc_url($canonical));
+    }
+
+    $description = autolex_theme_meta_description();
+    if ($description !== '') {
+        printf("<meta name=\"description\" content=\"%s\">\n", esc_attr($description));
+    }
+
+    $schemas = array();
+    $breadcrumb_schema = autolex_theme_breadcrumb_schema();
+    if ($breadcrumb_schema) {
+        $schemas[] = $breadcrumb_schema;
+    }
+
+    if (is_page('jarmu')) {
+        $vehicle_schema = apply_filters('autolex_theme_vehicle_schema', array());
+        if (is_array($vehicle_schema)
+            && isset($vehicle_schema['@type'], $vehicle_schema['name'])
+            && $vehicle_schema['@type'] === 'Vehicle'
+            && is_string($vehicle_schema['name'])
+            && trim($vehicle_schema['name']) !== ''
+        ) {
+            $vehicle_schema['@context'] = 'https://schema.org';
+            $schemas[] = $vehicle_schema;
+        }
+    }
+
+    foreach ($schemas as $schema) {
+        printf(
+            "<script type=\"application/ld+json\">%s</script>\n",
+            wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+        );
+    }
+}
+add_action('wp_head', 'autolex_theme_document_metadata', 2);
