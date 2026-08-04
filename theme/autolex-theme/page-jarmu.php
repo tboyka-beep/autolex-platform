@@ -37,6 +37,7 @@ while (have_posts()) :
             </nav>
 
             <div id="attekintes" class="alx-vehicle-workspace" aria-live="polite">
+                <span id="muszaki-adatok" class="alx-anchor-target" aria-hidden="true"></span>
                 <?php if ($content !== '') : ?>
                     <div class="alx-vehicle-plugin-output">
                         <?php the_content(); ?>
