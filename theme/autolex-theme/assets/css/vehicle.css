@@ -8,6 +8,7 @@
 }
 
 .alx-vehicle-hero,
+.alx-vehicle-directory,
 .alx-vehicle-workspace,
 .alx-vehicle-safety-note,
 .alx-vehicle-source-note {
@@ -67,14 +68,59 @@
     color: var(--alx-primary, #1769e8);
 }
 
+.alx-vehicle-directory,
 .alx-vehicle-workspace,
 .alx-vehicle-safety-note,
 .alx-vehicle-source-note {
     padding: clamp(1.25rem, 3vw, 2.25rem);
 }
 
+.alx-section-heading > :last-child {
+    margin-bottom: 0;
+}
+
+.alx-vehicle-directory-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.alx-vehicle-directory-grid li {
+    scroll-margin-top: 7rem;
+}
+
+.alx-vehicle-directory-grid a {
+    display: flex;
+    min-height: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--alx-border, #dce4ef);
+    border-radius: 14px;
+    background: var(--alx-surface-subtle, #f7f9fc);
+    color: var(--alx-text, #1b2430);
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.alx-vehicle-directory-grid a:hover,
+.alx-vehicle-directory-grid a:focus-visible {
+    border-color: var(--alx-primary, #1769e8);
+    background: color-mix(in srgb, var(--alx-primary, #1769e8) 6%, #ffffff);
+    color: var(--alx-primary, #1769e8);
+}
+
+.alx-vehicle-workspace {
+    scroll-margin-top: 7rem;
+}
+
 .alx-vehicle-plugin-output {
     min-width: 0;
+    margin-top: 1.5rem;
 }
 
 .alx-vehicle-plugin-output table {
@@ -92,6 +138,7 @@
 
 .alx-vehicle-empty {
     max-width: 62ch;
+    margin-top: 1.5rem;
 }
 
 .alx-vehicle-safety-note {
@@ -109,6 +156,17 @@
     font-weight: 800;
 }
 
+.alx-vehicle-source-note a {
+    color: var(--alx-primary, #1769e8);
+    font-weight: 800;
+}
+
+@media (max-width: 980px) {
+    .alx-vehicle-directory-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media (max-width: 760px) {
     .alx-vehicle-hero {
         align-items: stretch;
@@ -122,5 +180,9 @@
     .alx-vehicle-actions .alx-button {
         width: 100%;
         text-align: center;
+    }
+
+    .alx-vehicle-directory-grid {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
