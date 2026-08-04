@@ -1,0 +1,96 @@
+.alx-hierarchy-page {
+    padding: clamp(2rem, 5vw, 4.5rem) 0;
+}
+
+.alx-hierarchy-shell {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.alx-breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    color: var(--alx-text-muted);
+    font-size: 0.875rem;
+}
+
+.alx-breadcrumbs a {
+    color: var(--alx-primary);
+}
+
+.alx-hierarchy-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    align-items: flex-end;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    border: 1px solid var(--alx-border);
+    border-radius: 20px;
+    background: var(--alx-surface);
+    box-shadow: var(--alx-shadow-sm);
+}
+
+.alx-hierarchy-hero h1 {
+    max-width: 18ch;
+    margin: 0.35rem 0 0;
+}
+
+.alx-hierarchy-lead {
+    max-width: 68ch;
+    margin: 0.85rem 0 0;
+    color: var(--alx-text-muted);
+}
+
+.alx-hierarchy-workspace {
+    min-width: 0;
+    padding: clamp(1rem, 3vw, 2rem);
+    border: 1px solid var(--alx-border);
+    border-radius: 18px;
+    background: var(--alx-surface);
+}
+
+.alx-hierarchy-plugin-output {
+    min-width: 0;
+}
+
+.alx-hierarchy-plugin-output > :first-child {
+    margin-top: 0;
+}
+
+.alx-hierarchy-plugin-output > :last-child {
+    margin-bottom: 0;
+}
+
+.alx-hierarchy-empty {
+    display: grid;
+    gap: 0.9rem;
+    justify-items: start;
+    max-width: 54rem;
+    padding: clamp(1.25rem, 4vw, 2rem);
+    border: 1px dashed var(--alx-border-strong);
+    border-radius: 16px;
+    background: var(--alx-surface-subtle);
+}
+
+.alx-hierarchy-empty h2,
+.alx-hierarchy-empty p {
+    margin: 0;
+}
+
+.alx-hierarchy-empty p {
+    color: var(--alx-text-muted);
+}
+
+@media (max-width: 768px) {
+    .alx-hierarchy-hero {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .alx-hierarchy-hero .alx-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
