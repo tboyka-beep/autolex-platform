@@ -54,6 +54,15 @@ function autolex_theme_assets()
         $version
     );
 
+    if (is_page('autok')) {
+        wp_enqueue_style(
+            'autolex-theme-catalog',
+            get_template_directory_uri() . '/assets/css/catalog.css',
+            array('autolex-theme', 'autolex-theme-states'),
+            $version
+        );
+    }
+
     if (is_page('osszehasonlitas')) {
         wp_enqueue_style(
             'autolex-theme-comparison',
