@@ -27,38 +27,57 @@ function autolex_theme_setup()
 }
 add_action('after_setup_theme', 'autolex_theme_setup');
 
+/**
+ * Return a deterministic cache-busting version for one theme asset.
+ *
+ * The theme version remains a safe fallback when the file cannot be read.
+ */
+function autolex_theme_asset_version($relative_path)
+{
+    $relative_path = ltrim((string) $relative_path, '/');
+    $absolute_path = get_template_directory() . '/' . $relative_path;
+
+    if (is_file($absolute_path)) {
+        $modified = filemtime($absolute_path);
+        if ($modified !== false) {
+            return (string) $modified;
+        }
+    }
+
+    return (string) wp_get_theme()->get('Version');
+}
+
 function autolex_theme_assets()
 {
-    $version = wp_get_theme()->get('Version');
-    wp_enqueue_style('autolex-theme', get_stylesheet_uri(), array(), $version);
-    wp_enqueue_style('autolex-theme-states', get_template_directory_uri() . '/assets/css/states.css', array('autolex-theme'), $version);
-    wp_enqueue_style('autolex-theme-content', get_template_directory_uri() . '/assets/css/content.css', array('autolex-theme'), $version);
+    wp_enqueue_style('autolex-theme', get_stylesheet_uri(), array(), autolex_theme_asset_version('style.css'));
+    wp_enqueue_style('autolex-theme-states', get_template_directory_uri() . '/assets/css/states.css', array('autolex-theme'), autolex_theme_asset_version('assets/css/states.css'));
+    wp_enqueue_style('autolex-theme-content', get_template_directory_uri() . '/assets/css/content.css', array('autolex-theme'), autolex_theme_asset_version('assets/css/content.css'));
 
     if (is_page('autok')) {
-        wp_enqueue_style('autolex-theme-catalog', get_template_directory_uri() . '/assets/css/catalog.css', array('autolex-theme', 'autolex-theme-states'), $version);
+        wp_enqueue_style('autolex-theme-catalog', get_template_directory_uri() . '/assets/css/catalog.css', array('autolex-theme', 'autolex-theme-states'), autolex_theme_asset_version('assets/css/catalog.css'));
     }
 
     if (is_page(array('markak', 'modellek', 'generaciok', 'motorok'))) {
-        wp_enqueue_style('autolex-theme-hierarchy', get_template_directory_uri() . '/assets/css/hierarchy.css', array('autolex-theme', 'autolex-theme-states'), $version);
+        wp_enqueue_style('autolex-theme-hierarchy', get_template_directory_uri() . '/assets/css/hierarchy.css', array('autolex-theme', 'autolex-theme-states'), autolex_theme_asset_version('assets/css/hierarchy.css'));
     }
 
     if (is_page('jarmu')) {
-        wp_enqueue_style('autolex-theme-vehicle', get_template_directory_uri() . '/assets/css/vehicle.css', array('autolex-theme', 'autolex-theme-states'), $version);
+        wp_enqueue_style('autolex-theme-vehicle', get_template_directory_uri() . '/assets/css/vehicle.css', array('autolex-theme', 'autolex-theme-states'), autolex_theme_asset_version('assets/css/vehicle.css'));
     }
 
     if (is_page('osszehasonlitas')) {
-        wp_enqueue_style('autolex-theme-comparison', get_template_directory_uri() . '/assets/css/comparison.css', array('autolex-theme', 'autolex-theme-states'), $version);
+        wp_enqueue_style('autolex-theme-comparison', get_template_directory_uri() . '/assets/css/comparison.css', array('autolex-theme', 'autolex-theme-states'), autolex_theme_asset_version('assets/css/comparison.css'));
     }
 
     if (is_page('visszahivasok')) {
-        wp_enqueue_style('autolex-theme-safety', get_template_directory_uri() . '/assets/css/safety.css', array('autolex-theme', 'autolex-theme-states'), $version);
+        wp_enqueue_style('autolex-theme-safety', get_template_directory_uri() . '/assets/css/safety.css', array('autolex-theme', 'autolex-theme-states'), autolex_theme_asset_version('assets/css/safety.css'));
     }
 
     if (is_page('forrasok')) {
-        wp_enqueue_style('autolex-theme-sources', get_template_directory_uri() . '/assets/css/sources.css', array('autolex-theme', 'autolex-theme-states'), $version);
+        wp_enqueue_style('autolex-theme-sources', get_template_directory_uri() . '/assets/css/sources.css', array('autolex-theme', 'autolex-theme-states'), autolex_theme_asset_version('assets/css/sources.css'));
     }
 
-    wp_enqueue_script('autolex-theme-shell', get_template_directory_uri() . '/assets/js/theme-shell.js', array(), $version, true);
+    wp_enqueue_script('autolex-theme-shell', get_template_directory_uri() . '/assets/js/theme-shell.js', array(), autolex_theme_asset_version('assets/js/theme-shell.js'), true);
 }
 add_action('wp_enqueue_scripts', 'autolex_theme_assets');
 
