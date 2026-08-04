@@ -53,6 +53,16 @@ function autolex_theme_assets()
         array('autolex-theme'),
         $version
     );
+
+    if (is_page('osszehasonlitas')) {
+        wp_enqueue_style(
+            'autolex-theme-comparison',
+            get_template_directory_uri() . '/assets/css/comparison.css',
+            array('autolex-theme', 'autolex-theme-states'),
+            $version
+        );
+    }
+
     wp_enqueue_script(
         'autolex-theme-shell',
         get_template_directory_uri() . '/assets/js/theme-shell.js',
