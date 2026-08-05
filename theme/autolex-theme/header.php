@@ -4,6 +4,7 @@
  *
  * @package Autolex_Theme
  */
+$autolex_header_query = isset($_GET['q']) ? sanitize_text_field(wp_unslash($_GET['q'])) : '';
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -35,7 +36,18 @@
         <div class="alx-header-actions">
             <form role="search" method="get" action="<?php echo esc_url(home_url('/autok/')); ?>">
                 <label class="screen-reader-text" for="alx-header-search"><?php esc_html_e('Jármű keresése', 'autolex-theme'); ?></label>
-                <input class="alx-header-search" id="alx-header-search" type="search" name="q" placeholder="<?php esc_attr_e('Keresés…', 'autolex-theme'); ?>">
+                <span class="screen-reader-text" id="alx-header-search-hint"><?php esc_html_e('Keressen márka, modell, generáció vagy motorkód alapján.', 'autolex-theme'); ?></span>
+                <input
+                    class="alx-header-search"
+                    id="alx-header-search"
+                    type="search"
+                    name="q"
+                    value="<?php echo esc_attr($autolex_header_query); ?>"
+                    placeholder="<?php esc_attr_e('Keresés…', 'autolex-theme'); ?>"
+                    aria-describedby="alx-header-search-hint"
+                    enterkeyhint="search"
+                    autocomplete="off"
+                >
             </form>
             <button class="alx-menu-toggle" type="button" aria-expanded="false" aria-controls="alx-mobile-menu">
                 <span aria-hidden="true">☰</span>
