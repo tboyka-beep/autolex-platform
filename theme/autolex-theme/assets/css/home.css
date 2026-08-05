@@ -410,6 +410,16 @@
   background: rgba(217, 45, 63, .04);
 }
 
+/* Keep the reference continuation visually connected to the footer. The
+ * global shell retains its roomier rhythm on inner routes. */
+body.home .alx-main {
+  padding-bottom: 28px;
+}
+
+body.home .alx-site-footer {
+  margin-top: 24px;
+}
+
 @media (max-width: 1180px) {
   .alx-home-grid {
     grid-template-columns: 220px minmax(0, 1fr);
