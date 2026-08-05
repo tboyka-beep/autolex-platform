@@ -32,7 +32,7 @@ grep -Fq 'id="alx-car-glass"' "$FRONT_PAGE"
 grep -Fq 'id="alx-car-shadow"' "$FRONT_PAGE"
 grep -Fq 'viewBox="0 0 760 300"' "$FRONT_PAGE"
 
-if grep -n -E '<img[^>]+src="https?://|url\(["'"']?https?://' "$FRONT_PAGE" "$HOME_CSS"; then
+if grep -n -E '<img[^>]+src="https?://' "$FRONT_PAGE" || grep -n -E 'url\([^)]*https?://' "$HOME_CSS"; then
   echo 'remote homepage visual found; hero artwork must stay repository-owned'
   exit 1
 fi
