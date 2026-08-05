@@ -49,6 +49,11 @@ $autolex_header_query = isset($_GET['q']) ? sanitize_text_field(wp_unslash($_GET
                     autocomplete="off"
                 >
             </form>
+            <div class="alx-header-utilities" aria-label="<?php esc_attr_e('Oldalbeállítások', 'autolex-theme'); ?>">
+                <span class="alx-utility-pill" lang="hu" aria-label="<?php esc_attr_e('Nyelv: magyar', 'autolex-theme'); ?>">HU</span>
+                <span class="alx-utility-icon" aria-label="<?php esc_attr_e('Világos megjelenés aktív', 'autolex-theme'); ?>" title="<?php esc_attr_e('Világos megjelenés', 'autolex-theme'); ?>">☀</span>
+                <a class="alx-login-link" href="<?php echo esc_url(wp_login_url(home_url('/'))); ?>"><?php esc_html_e('Belépés', 'autolex-theme'); ?></a>
+            </div>
             <button class="alx-menu-toggle" type="button" aria-expanded="false" aria-controls="alx-mobile-menu" data-autolex-menu-toggle>
                 <span aria-hidden="true">☰</span>
                 <span class="screen-reader-text"><?php esc_html_e('Menü megnyitása', 'autolex-theme'); ?></span>
