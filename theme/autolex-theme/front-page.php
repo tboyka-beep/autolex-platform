@@ -73,7 +73,45 @@ get_header();
                     <noscript><p class="alx-search-note"><?php esc_html_e('JavaScript nélkül a járműkeresés használható; VIN- vagy motorkód-kereséshez nyisd meg a katalógust.', 'autolex-theme'); ?></p></noscript>
                 </form>
             </div>
-            <div class="alx-hero-visual" aria-hidden="true"><div class="alx-car-silhouette"><span></span></div></div>
+            <div class="alx-hero-visual" aria-hidden="true">
+                <svg class="alx-car-silhouette" viewBox="0 0 760 300" role="presentation" focusable="false">
+                    <defs>
+                        <linearGradient id="alx-car-body" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#ffffff"/>
+                            <stop offset="0.58" stop-color="#eef4fb"/>
+                            <stop offset="1" stop-color="#cbd8e8"/>
+                        </linearGradient>
+                        <linearGradient id="alx-car-glass" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#49627d"/>
+                            <stop offset="1" stop-color="#15293d"/>
+                        </linearGradient>
+                        <filter id="alx-car-shadow" x="-20%" y="-30%" width="140%" height="180%">
+                            <feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#274564" flood-opacity="0.2"/>
+                        </filter>
+                    </defs>
+                    <ellipse cx="390" cy="253" rx="292" ry="24" fill="#7890aa" opacity="0.16"/>
+                    <g filter="url(#alx-car-shadow)">
+                        <path d="M82 196c15-36 47-62 92-72l93-19 63-58c14-13 34-21 54-21h143c25 0 49 9 68 25l82 70c34 8 59 24 74 49l13 22-13 33H96l-26-16z" fill="url(#alx-car-body)" stroke="#9fb1c5" stroke-width="4" stroke-linejoin="round"/>
+                        <path d="M285 103l60-51c10-9 23-14 36-14h82v72z" fill="url(#alx-car-glass)" stroke="#dce7f2" stroke-width="4"/>
+                        <path d="M477 38h45c18 0 35 7 49 19l68 59-153-6z" fill="url(#alx-car-glass)" stroke="#dce7f2" stroke-width="4"/>
+                        <path d="M96 199h114l22 24H91z" fill="#d7e1ec" opacity="0.92"/>
+                        <path d="M618 126l64 12c24 4 41 17 54 37l-84 2z" fill="#e3edf7"/>
+                        <path d="M657 145l56 12 17 18-75 2z" fill="#d92d3f" opacity="0.9"/>
+                        <path d="M106 176h72l24 19H92z" fill="#1769e8" opacity="0.25"/>
+                        <path d="M248 122h217" stroke="#aec0d3" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M478 118l-2 80" stroke="#a9bacd" stroke-width="3"/>
+                        <path d="M333 119l-8 80" stroke="#a9bacd" stroke-width="3"/>
+                        <path d="M246 204h350" stroke="#7f94aa" stroke-width="5" stroke-linecap="round" opacity="0.46"/>
+                        <path d="M598 207h112l-17 22h-97z" fill="#34495e"/>
+                        <circle cx="236" cy="218" r="53" fill="#21364a" stroke="#f7fafc" stroke-width="10"/>
+                        <circle cx="236" cy="218" r="25" fill="#8fa3b8" stroke="#dfe8f1" stroke-width="7"/>
+                        <circle cx="610" cy="218" r="53" fill="#21364a" stroke="#f7fafc" stroke-width="10"/>
+                        <circle cx="610" cy="218" r="25" fill="#8fa3b8" stroke="#dfe8f1" stroke-width="7"/>
+                        <circle cx="236" cy="218" r="8" fill="#1769e8"/>
+                        <circle cx="610" cy="218" r="8" fill="#1769e8"/>
+                    </g>
+                </svg>
+            </div>
         </section>
 
         <aside class="alx-home-rail alx-home-rail--right" aria-label="<?php esc_attr_e('Adatok és népszerű márkák', 'autolex-theme'); ?>">
