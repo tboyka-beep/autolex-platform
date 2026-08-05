@@ -32,6 +32,15 @@ grep -Fq 'id="alx-car-glass"' "$FRONT_PAGE"
 grep -Fq 'id="alx-car-shadow"' "$FRONT_PAGE"
 grep -Fq 'viewBox="0 0 760 300"' "$FRONT_PAGE"
 
+# The SVG must render as artwork, not inherit the retired CSS-only silhouette
+# border/skew treatment from the foundation stylesheet.
+grep -Fq 'position: absolute;' "$HOME_CSS"
+grep -Fq 'max-width: none;' "$HOME_CSS"
+grep -Fq 'overflow: visible;' "$HOME_CSS"
+grep -Fq 'border: 0;' "$HOME_CSS"
+grep -Fq 'transform: none;' "$HOME_CSS"
+grep -Fq 'width: 112%;' "$HOME_CSS"
+
 if grep -n -E '<img[^>]+src="https?://' "$FRONT_PAGE" || grep -n -E 'url\([^)]*https?://' "$HOME_CSS"; then
   echo 'remote homepage visual found; hero artwork must stay repository-owned'
   exit 1
