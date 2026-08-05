@@ -27,11 +27,6 @@ function autolex_theme_setup()
 }
 add_action('after_setup_theme', 'autolex_theme_setup');
 
-/**
- * Return a deterministic cache-busting version for one theme asset.
- *
- * The theme version remains a safe fallback when the file cannot be read.
- */
 function autolex_theme_asset_version($relative_path)
 {
     $relative_path = ltrim((string) $relative_path, '/');
@@ -52,6 +47,10 @@ function autolex_theme_assets()
     wp_enqueue_style('autolex-theme', get_stylesheet_uri(), array(), autolex_theme_asset_version('style.css'));
     wp_enqueue_style('autolex-theme-states', get_template_directory_uri() . '/assets/css/states.css', array('autolex-theme'), autolex_theme_asset_version('assets/css/states.css'));
     wp_enqueue_style('autolex-theme-content', get_template_directory_uri() . '/assets/css/content.css', array('autolex-theme'), autolex_theme_asset_version('assets/css/content.css'));
+
+    if (is_front_page()) {
+        wp_enqueue_style('autolex-theme-home', get_template_directory_uri() . '/assets/css/home.css', array('autolex-theme', 'autolex-theme-states'), autolex_theme_asset_version('assets/css/home.css'));
+    }
 
     if (is_page('autok')) {
         wp_enqueue_style('autolex-theme-catalog', get_template_directory_uri() . '/assets/css/catalog.css', array('autolex-theme', 'autolex-theme-states'), autolex_theme_asset_version('assets/css/catalog.css'));
@@ -81,10 +80,6 @@ function autolex_theme_assets()
 }
 add_action('wp_enqueue_scripts', 'autolex_theme_assets');
 
-/**
- * Keep attachment images responsive and non-blocking without overriding an
- * explicitly selected loading or fetch-priority strategy from WordPress/plugin code.
- */
 function autolex_theme_image_attributes($attributes, $attachment, $size)
 {
     if (!is_array($attributes)) {
@@ -126,9 +121,6 @@ function autolex_theme_primary_fallback()
     echo '</ul>';
 }
 
-/**
- * Avoid duplicate metadata when a dedicated SEO plugin owns the document head.
- */
 function autolex_theme_has_seo_plugin()
 {
     return defined('WPSEO_VERSION')
@@ -137,9 +129,6 @@ function autolex_theme_has_seo_plugin()
         || defined('AIOSEO_VERSION');
 }
 
-/**
- * Return the canonical URL for the current public document.
- */
 function autolex_theme_canonical_url()
 {
     if (is_singular()) {
@@ -157,9 +146,6 @@ function autolex_theme_canonical_url()
     return false;
 }
 
-/**
- * Build a conservative description from real WordPress content only.
- */
 function autolex_theme_meta_description()
 {
     if (!is_singular()) {
@@ -175,9 +161,6 @@ function autolex_theme_meta_description()
     return wp_trim_words(preg_replace('/\s+/', ' ', trim($description)), 28, '…');
 }
 
-/**
- * Build BreadcrumbList from the current WordPress hierarchy.
- */
 function autolex_theme_breadcrumb_schema()
 {
     $items = array(
@@ -222,10 +205,6 @@ function autolex_theme_breadcrumb_schema()
     );
 }
 
-/**
- * Output canonical, description and validated JSON-LD without inventing vehicle data.
- * The plugin may provide a complete Vehicle node through autolex_theme_vehicle_schema.
- */
 function autolex_theme_document_metadata()
 {
     if (autolex_theme_has_seo_plugin()) {
