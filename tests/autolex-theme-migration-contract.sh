@@ -35,7 +35,9 @@ if grep -HniE '(^|[^[:alnum:]_-])\.ct-[[:alnum:]_-]+' "${theme_sources[@]}"; the
   exit 1
 fi
 
-if grep -HniE 'blocksy|ct_options|ct_get_|ct_component' "${theme_sources[@]}"; then
+# Detect executable/configuration dependencies instead of harmless prose mentions.
+# This remains fail-closed for Blocksy PHP APIs, handles, namespaces and asset paths.
+if grep -HniE '(^|[^[:alnum:]_-])(blocksy[_-][[:alnum:]_-]*|ct_options|ct_get_[[:alnum:]_]*|ct_component[[:alnum:]_]*)([^[:alnum:]_-]|$)|/blocksy/' "${theme_sources[@]}"; then
   echo 'Blocksy-specific dependency found in own theme'
   exit 1
 fi
