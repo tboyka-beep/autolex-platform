@@ -5,6 +5,10 @@ run_wp() {
   npx wp-env run cli -- "$@"
 }
 
+extract_numeric_id() {
+  grep -Eo '^[0-9]+$' | tail -n 1
+}
+
 run_wp wp theme activate autolex-theme
 run_wp wp plugin activate autolex-platform || true
 run_wp wp option update blogname 'Autolex'
@@ -17,14 +21,14 @@ ensure_page() {
   local template="$3"
   local id
 
-  id="$(run_wp wp post list --post_type=page --name="$slug" --field=ID --format=ids | tr -d '\r' | tail -n 1)"
+  id="$(run_wp wp post list --post_type=page --name="$slug" --field=ID --format=ids | tr -d '\r' | extract_numeric_id || true)"
   if [[ -z "$id" ]]; then
-    id="$(run_wp wp post create --post_type=page --post_status=publish --post_title="$title" --post_name="$slug" --porcelain | tr -d '\r' | tail -n 1)"
+    id="$(run_wp wp post create --post_type=page --post_status=publish --post_title="$title" --post_name="$slug" --porcelain | tr -d '\r' | extract_numeric_id)"
   fi
   if [[ -n "$template" ]]; then
-    run_wp wp post meta update "$id" _wp_page_template "$template"
+    run_wp wp post meta update "$id" _wp_page_template "$template" >/dev/null
   fi
-  printf '%s' "$id"
+  printf '%s\n' "$id"
 }
 
 home_id="$(ensure_page 'Főoldal' 'fooldal' 'default')"
@@ -37,6 +41,7 @@ ensure_page 'Források' 'forrasok' 'page-forrasok.php' >/dev/null
 ensure_page 'Visszahívások' 'visszahivasok' 'page-visszahivasok.php' >/dev/null
 ensure_page 'Összehasonlítás' 'osszehasonlitas' 'page-osszehasonlitas.php' >/dev/null
 
+[[ "$home_id" =~ ^[0-9]+$ ]]
 run_wp wp option update show_on_front page
 run_wp wp option update page_on_front "$home_id"
 run_wp wp rewrite flush --hard
