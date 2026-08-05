@@ -16,6 +16,13 @@ grep -Fq 'rgba(217, 45, 63, .075)' "$HOME_CSS"
 grep -Fq '@media (max-width: 640px)' "$HOME_CSS"
 grep -Fq 'grid-template-columns: 1fr' "$HOME_CSS"
 
+# The homepage-only continuation rhythm must remain compact while inner routes
+# keep the roomier global shell spacing.
+grep -Fq 'body.home .alx-main' "$HOME_CSS"
+grep -Fq 'padding-bottom: 28px;' "$HOME_CSS"
+grep -Fq 'body.home .alx-site-footer' "$HOME_CSS"
+grep -Fq 'margin-top: 24px;' "$HOME_CSS"
+
 grep -Fq 'alx-metrics' "$FRONT_PAGE"
 grep -Fq 'alx-home-cards' "$FRONT_PAGE"
 grep -Fq 'Kiemelt jármű' "$FRONT_PAGE"
