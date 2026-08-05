@@ -81,6 +81,32 @@ function autolex_theme_assets()
 }
 add_action('wp_enqueue_scripts', 'autolex_theme_assets');
 
+/**
+ * Keep attachment images responsive and non-blocking without overriding an
+ * explicitly selected loading or fetch-priority strategy from WordPress/plugin code.
+ */
+function autolex_theme_image_attributes($attributes, $attachment, $size)
+{
+    if (!is_array($attributes)) {
+        return $attributes;
+    }
+
+    if (empty($attributes['decoding'])) {
+        $attributes['decoding'] = 'async';
+    }
+
+    if (empty($attributes['loading']) && empty($attributes['fetchpriority'])) {
+        $attributes['loading'] = 'lazy';
+    }
+
+    if (empty($attributes['sizes'])) {
+        $attributes['sizes'] = '(max-width: 768px) 100vw, 50vw';
+    }
+
+    return $attributes;
+}
+add_filter('wp_get_attachment_image_attributes', 'autolex_theme_image_attributes', 10, 3);
+
 function autolex_theme_primary_fallback()
 {
     $links = array(
