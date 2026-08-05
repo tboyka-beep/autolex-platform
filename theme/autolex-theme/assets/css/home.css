@@ -1,0 +1,286 @@
+.alx-home-grid {
+  grid-template-columns: 240px minmax(0, 1fr) 286px;
+  align-items: start;
+}
+
+.alx-home-rail {
+  display: grid;
+  gap: 14px;
+}
+
+.alx-quick-panel,
+.alx-coverage-panel,
+.alx-rail-card {
+  border: 1px solid var(--alx-line);
+  border-radius: var(--alx-radius);
+  background: var(--alx-surface);
+  box-shadow: var(--alx-shadow-sm);
+}
+
+.alx-quick-panel,
+.alx-coverage-panel,
+.alx-rail-card {
+  padding: 18px;
+}
+
+.alx-quick-panel h2,
+.alx-coverage-panel h2,
+.alx-rail-card h2 {
+  margin: 0;
+  color: var(--alx-text);
+  font-size: 14px;
+  line-height: 1.3;
+  letter-spacing: -.015em;
+  text-transform: uppercase;
+}
+
+.alx-panel-intro,
+.alx-rail-card p {
+  margin: 6px 0 0;
+  color: var(--alx-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.alx-quick-links {
+  display: grid;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.alx-quick-panel .alx-quick-links a {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 10px;
+  align-items: center;
+  border-radius: 12px;
+  padding: 9px;
+  color: var(--alx-text);
+  text-decoration: none;
+}
+
+.alx-quick-panel .alx-quick-links a:hover {
+  background: var(--alx-primary-soft);
+}
+
+.alx-quick-links strong,
+.alx-quick-links small {
+  display: block;
+}
+
+.alx-quick-links strong {
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.alx-quick-links small {
+  margin-top: 2px;
+  color: var(--alx-text-muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.alx-quick-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  color: var(--alx-primary);
+  background: var(--alx-primary-soft);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.alx-mobile-card {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.alx-phone-icon {
+  position: relative;
+  display: block;
+  width: 27px;
+  height: 48px;
+  margin-inline: auto;
+  border: 2px solid #344054;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #fff 0%, #eaf2ff 100%);
+}
+
+.alx-phone-icon::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--alx-primary);
+  transform: translateX(-50%);
+}
+
+.alx-mobile-card a,
+.alx-safety-card a,
+.alx-panel-heading a {
+  color: var(--alx-primary);
+  font-size: 11px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.alx-safety-card {
+  min-height: 190px;
+}
+
+.alx-safety-card .alx-safety-label {
+  margin: 0 0 18px;
+  color: var(--alx-safety);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.alx-safety-card h2 {
+  font-size: 18px;
+  text-transform: none;
+}
+
+.alx-safety-card a {
+  display: inline-block;
+  margin-top: 18px;
+}
+
+.alx-hero {
+  min-height: 500px;
+}
+
+.alx-hero-copy {
+  max-width: 650px;
+  padding: 42px 42px 34px;
+}
+
+.alx-hero h1 {
+  max-width: 500px;
+  font-size: clamp(42px, 4vw, 62px);
+}
+
+.alx-hero-copy > p {
+  max-width: 520px;
+  font-size: 14px;
+}
+
+.alx-vehicle-search {
+  margin-top: 24px;
+}
+
+.alx-search-tabs [aria-selected="true"] {
+  color: #fff;
+  background: var(--alx-primary);
+}
+
+.alx-hero-visual {
+  inset: 0 0 0 53%;
+  background:
+    radial-gradient(circle at 58% 44%, rgba(23, 105, 232, .15), transparent 43%),
+    linear-gradient(135deg, transparent 10%, rgba(255, 255, 255, .25) 100%);
+}
+
+.alx-car-silhouette {
+  right: -5%;
+  bottom: 18%;
+  width: 92%;
+  height: 38%;
+  border-color: rgba(23, 105, 232, .2);
+}
+
+.alx-coverage-panel {
+  min-height: 250px;
+}
+
+.alx-dynamic-slot {
+  margin-top: 14px;
+  background: #f8fafc;
+  font-size: 12px;
+}
+
+.alx-brand-panel {
+  min-height: 220px;
+}
+
+.alx-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--alx-line);
+}
+
+.alx-brand-slot {
+  margin-top: 14px;
+  border-radius: 12px;
+  background: var(--alx-surface-soft);
+  padding: 14px;
+  color: var(--alx-text-muted);
+  font-size: 11px;
+}
+
+.alx-brand-slot p {
+  margin: 0;
+}
+
+@media (max-width: 1180px) {
+  .alx-home-grid {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .alx-home-rail--right {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 960px) {
+  .alx-home-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .alx-home-rail--left,
+  .alx-home-rail--right {
+    grid-column: auto;
+  }
+
+  .alx-home-rail--left {
+    order: 2;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .alx-quick-panel {
+    grid-row: span 2;
+  }
+
+  .alx-hero {
+    order: 1;
+  }
+
+  .alx-home-rail--right {
+    order: 3;
+  }
+}
+
+@media (max-width: 640px) {
+  .alx-home-rail--left,
+  .alx-home-rail--right {
+    grid-template-columns: 1fr;
+  }
+
+  .alx-quick-panel {
+    grid-row: auto;
+  }
+
+  .alx-hero-copy {
+    padding: 28px 20px 180px;
+  }
+}
