@@ -188,11 +188,17 @@
 }
 
 .alx-car-silhouette {
-  right: -5%;
-  bottom: 18%;
-  width: 92%;
-  height: 38%;
-  border-color: rgba(23, 105, 232, .2);
+  position: absolute;
+  right: -8%;
+  bottom: 13%;
+  display: block;
+  width: 105%;
+  height: auto;
+  max-width: none;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  transform: none;
 }
 
 .alx-coverage-panel {
@@ -464,6 +470,12 @@
 
   .alx-hero-copy {
     padding: 28px 20px 180px;
+  }
+
+  .alx-car-silhouette {
+    right: -14%;
+    bottom: 8%;
+    width: 112%;
   }
 
   .alx-metrics {
