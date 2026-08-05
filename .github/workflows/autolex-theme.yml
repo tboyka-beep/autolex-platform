@@ -13,6 +13,7 @@ on:
       - 'tests/autolex-theme-assets-contract.sh'
       - 'tests/autolex-theme-images-contract.sh'
       - 'tests/autolex-theme-search-contract.sh'
+      - 'tests/autolex-theme-mobile-drawer-contract.sh'
       - 'tests/autolex-theme-migration-contract.sh'
       - '.github/workflows/autolex-theme.yml'
   push:
@@ -27,6 +28,7 @@ on:
       - 'tests/autolex-theme-assets-contract.sh'
       - 'tests/autolex-theme-images-contract.sh'
       - 'tests/autolex-theme-search-contract.sh'
+      - 'tests/autolex-theme-mobile-drawer-contract.sh'
       - 'tests/autolex-theme-migration-contract.sh'
       - '.github/workflows/autolex-theme.yml'
   workflow_dispatch:
@@ -55,4 +57,5 @@ jobs:
       - run: bash tests/autolex-theme-assets-contract.sh
       - run: bash tests/autolex-theme-images-contract.sh
       - run: bash tests/autolex-theme-search-contract.sh
+      - run: bash tests/autolex-theme-mobile-drawer-contract.sh
       - run: bash tests/autolex-theme-migration-contract.sh
