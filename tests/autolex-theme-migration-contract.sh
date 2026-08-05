@@ -21,12 +21,21 @@ for file in "${required[@]}"; do
   test -f "$file" || { echo "missing migration artifact: $file"; exit 1; }
 done
 
-if grep -RniE '(^|[^[:alnum:]_-])\.ct-[[:alnum:]_-]+' "$THEME"; then
+mapfile -d '' theme_sources < <(
+  find "$THEME" -type f \( -name '*.php' -o -name '*.css' -o -name '*.js' -o -name '*.json' -o -name '*.svg' \) -print0
+)
+
+if ((${#theme_sources[@]} == 0)); then
+  echo 'no theme source files found'
+  exit 1
+fi
+
+if grep -HniE '(^|[^[:alnum:]_-])\.ct-[[:alnum:]_-]+' "${theme_sources[@]}"; then
   echo 'Blocksy .ct-* selector found in own theme'
   exit 1
 fi
 
-if grep -RniE 'blocksy|ct_options|ct_get_|ct_component' "$THEME"; then
+if grep -HniE 'blocksy|ct_options|ct_get_|ct_component' "${theme_sources[@]}"; then
   echo 'Blocksy-specific dependency found in own theme'
   exit 1
 fi
@@ -36,17 +45,28 @@ if grep -qiE '^Template:[[:space:]]*' "$STYLE"; then
   exit 1
 fi
 
-if grep -Rni '!important' "$THEME"; then
+if grep -Hni '!important' "${theme_sources[@]}"; then
   echo '!important is forbidden in the own theme migration layer'
   exit 1
 fi
 
-grep -Fq "array('autolex-theme')" "$FUNCTIONS"
-grep -Fq "array('autolex-theme', 'autolex-theme-states')" "$FUNCTIONS"
-grep -Fq "wp_enqueue_script('autolex-theme-shell'" "$FUNCTIONS"
+assert_contains() {
+  local needle="$1"
+  local file="$2"
+  local label="$3"
 
-grep -Fq 'rögzíti az előző aktív téma stylesheet-nevét' "$AUDIT"
-grep -Fq 'automatikusan visszaaktiválja az előző témát' "$AUDIT"
-grep -Fq 'production aktiválás tilos' "$AUDIT"
+  if ! grep -Fq "$needle" "$file"; then
+    echo "missing migration contract marker: $label"
+    exit 1
+  fi
+}
+
+assert_contains "array('autolex-theme')" "$FUNCTIONS" 'base stylesheet dependency'
+assert_contains "array('autolex-theme', 'autolex-theme-states')" "$FUNCTIONS" 'route stylesheet dependency'
+assert_contains "wp_enqueue_script('autolex-theme-shell'" "$FUNCTIONS" 'theme shell script enqueue'
+
+assert_contains 'rögzíti az előző aktív téma stylesheet-nevét' "$AUDIT" 'previous theme capture requirement'
+assert_contains 'automatikusan visszaaktiválja az előző témát' "$AUDIT" 'automatic rollback requirement'
+assert_contains 'production aktiválás tilos' "$AUDIT" 'production activation blocker'
 
 echo 'Autolex theme migration contract passed.'
