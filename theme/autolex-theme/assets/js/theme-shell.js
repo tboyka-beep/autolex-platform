@@ -5,21 +5,64 @@
   const menu = document.getElementById('alx-mobile-menu');
 
   if (toggle && menu) {
-    const closeMenu = () => {
+    const focusableSelector = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    const getFocusableItems = () => Array.from(menu.querySelectorAll(focusableSelector));
+
+    const closeMenu = (restoreFocus = false) => {
       toggle.setAttribute('aria-expanded', 'false');
       menu.hidden = true;
+      document.body.classList.remove('alx-menu-open');
+      if (restoreFocus) toggle.focus();
+    };
+
+    const openMenu = () => {
+      toggle.setAttribute('aria-expanded', 'true');
+      menu.hidden = false;
+      document.body.classList.add('alx-menu-open');
+      const firstItem = getFocusableItems()[0];
+      if (firstItem) firstItem.focus();
     };
 
     toggle.addEventListener('click', () => {
       const open = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!open));
-      menu.hidden = open;
+      if (open) {
+        closeMenu(true);
+      } else {
+        openMenu();
+      }
+    });
+
+    menu.addEventListener('click', (event) => {
+      if (event.target.closest('a[href]')) closeMenu();
     });
 
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && !menu.hidden) {
-        closeMenu();
+      if (menu.hidden) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeMenu(true);
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+
+      const focusableItems = getFocusableItems();
+      if (!focusableItems.length) {
+        event.preventDefault();
         toggle.focus();
+        return;
+      }
+
+      const firstItem = focusableItems[0];
+      const lastItem = focusableItems[focusableItems.length - 1];
+
+      if (event.shiftKey && document.activeElement === firstItem) {
+        event.preventDefault();
+        lastItem.focus();
+      } else if (!event.shiftKey && document.activeElement === lastItem) {
+        event.preventDefault();
+        firstItem.focus();
       }
     });
 
