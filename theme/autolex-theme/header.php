@@ -49,7 +49,7 @@ $autolex_header_query = isset($_GET['q']) ? sanitize_text_field(wp_unslash($_GET
                     autocomplete="off"
                 >
             </form>
-            <button class="alx-menu-toggle" type="button" aria-expanded="false" aria-controls="alx-mobile-menu">
+            <button class="alx-menu-toggle" type="button" aria-expanded="false" aria-controls="alx-mobile-menu" data-autolex-menu-toggle>
                 <span aria-hidden="true">☰</span>
                 <span class="screen-reader-text"><?php esc_html_e('Menü megnyitása', 'autolex-theme'); ?></span>
             </button>
