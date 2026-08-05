@@ -1,0 +1,60 @@
+name: Autolex Theme Visual QA
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'theme/autolex-theme/**'
+      - 'plugin/autolex-platform/**'
+      - 'tests/visual/**'
+      - '.wp-env.json'
+      - 'package.json'
+      - '.github/workflows/autolex-theme-visual-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autolex-theme-visual-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual-qa:
+    name: Render WordPress screenshot matrix
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start isolated WordPress
+        run: npx wp-env start
+      - name: Seed and activate Autolex theme
+        run: bash tests/visual/setup-wordpress.sh
+      - name: Run visual route matrix
+        run: npm run visual:qa
+      - name: Record artifact digest
+        if: always()
+        run: |
+          mkdir -p artifacts
+          find artifacts/screenshots -type f -name '*.png' -print0 2>/dev/null \
+            | sort -z \
+            | xargs -0 sha256sum > artifacts/screenshots.sha256 || true
+      - name: Upload screenshots and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: autolex-theme-visual-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Stop isolated WordPress
+        if: always()
+        run: npx wp-env stop || true
