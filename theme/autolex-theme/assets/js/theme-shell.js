@@ -91,6 +91,7 @@
     panels.forEach((panel) => {
       const active = panel.dataset.searchPanel === mode;
       panel.hidden = !active;
+      panel.style.display = active ? '' : 'none';
       panel.querySelectorAll('input, select, textarea, button').forEach((control) => {
         control.disabled = !active;
       });
