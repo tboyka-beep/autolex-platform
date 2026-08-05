@@ -43,14 +43,21 @@ table { max-width: 100%; }
 
 .alx-container { width: min(calc(100% - 32px), var(--alx-container)); margin-inline: auto; }
 .alx-site-header { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(223, 229, 238, 0.92); background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(16px); }
-.alx-header-row { min-height: 72px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 28px; }
+.alx-header-row { min-height: 72px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; }
 .alx-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--alx-text); font-weight: 850; text-decoration: none; letter-spacing: -0.02em; }
 .alx-brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: #fff; background: linear-gradient(135deg, #2f80ff, #1256c8); }
-.alx-primary-nav ul { display: flex; justify-content: center; gap: 26px; margin: 0; padding: 0; list-style: none; }
+.alx-primary-nav ul { display: flex; justify-content: center; gap: 24px; margin: 0; padding: 0; list-style: none; }
 .alx-primary-nav a { color: #344054; font-size: 14px; font-weight: 700; text-decoration: none; }
 .alx-primary-nav a:hover, .alx-primary-nav .current-menu-item > a { color: var(--alx-primary); }
 .alx-header-actions { display: flex; align-items: center; gap: 10px; }
-.alx-header-search { min-width: 220px; border: 1px solid var(--alx-line); border-radius: var(--alx-radius-sm); background: var(--alx-surface-soft); padding: 10px 13px; }
+.alx-header-actions form { margin: 0; }
+.alx-header-search { width: 188px; min-width: 0; border: 1px solid var(--alx-line); border-radius: 12px; background: var(--alx-surface-soft); padding: 9px 12px; }
+.alx-header-utilities { display: flex; align-items: center; gap: 6px; }
+.alx-utility-pill, .alx-utility-icon, .alx-login-link { display: inline-grid; place-items: center; min-height: 36px; border: 1px solid var(--alx-line); border-radius: 10px; color: #344054; background: #fff; font-size: 12px; font-weight: 800; text-decoration: none; }
+.alx-utility-pill { min-width: 42px; padding-inline: 10px; }
+.alx-utility-icon { width: 36px; font-size: 16px; }
+.alx-login-link { padding-inline: 13px; }
+.alx-login-link:hover { border-color: #b9cdf1; color: var(--alx-primary); background: var(--alx-primary-soft); }
 .alx-menu-toggle { display: none; min-width: 44px; min-height: 44px; border: 1px solid var(--alx-line); border-radius: 12px; background: var(--alx-surface); cursor: pointer; }
 
 .alx-main { min-height: 60vh; padding-block: 28px 72px; }
@@ -105,6 +112,9 @@ table { max-width: 100%; }
 .alx-footer-links a { color: var(--alx-text-muted); text-decoration: none; }
 .alx-footer-meta { border-top: 1px solid var(--alx-line); padding-block: 18px; color: var(--alx-text-muted); font-size: 13px; }
 
+@media (max-width: 1320px) {
+  .alx-header-utilities { display: none; }
+}
 @media (max-width: 1180px) {
   .alx-primary-nav { display: none; }
   .alx-header-search { display: none; }
