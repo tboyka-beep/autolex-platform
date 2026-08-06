@@ -1,0 +1,77 @@
+name: Release Autolex Theme
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Release environment
+        required: true
+        type: choice
+        default: staging
+        options: [staging, production]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autolex-theme-release-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: ${{ inputs.target }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Enforce immutable release policy
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_THEME_DIR: ${{ secrets.CPANEL_THEME_DIR }}
+          CPANEL_MU_PLUGIN_DIR: ${{ secrets.CPANEL_MU_PLUGIN_DIR }}
+          AUTOLEX_BASE_URL: ${{ secrets.AUTOLEX_BASE_URL }}
+          AUTOLEX_THEME_RELEASE_TOKEN: ${{ secrets.AUTOLEX_THEME_RELEASE_TOKEN }}
+        run: |
+          if [ "${{ inputs.target }}" = production ] && [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo 'Production release is allowed only from main.' >&2
+            exit 1
+          fi
+          bash tests/theme-release-contract.sh
+          find theme/autolex-theme release -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          bash scripts/release-autolex-theme.sh validate
+      - name: Deploy, activate and run immediate live QA
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_THEME_DIR: ${{ secrets.CPANEL_THEME_DIR }}
+          CPANEL_MU_PLUGIN_DIR: ${{ secrets.CPANEL_MU_PLUGIN_DIR }}
+          AUTOLEX_BASE_URL: ${{ secrets.AUTOLEX_BASE_URL }}
+          AUTOLEX_THEME_RELEASE_TOKEN: ${{ secrets.AUTOLEX_THEME_RELEASE_TOKEN }}
+        run: bash scripts/release-autolex-theme.sh release
+      - name: Rollback on failed live QA
+        if: failure()
+        env:
+          AUTOLEX_BASE_URL: ${{ secrets.AUTOLEX_BASE_URL }}
+          AUTOLEX_THEME_RELEASE_TOKEN: ${{ secrets.AUTOLEX_THEME_RELEASE_TOKEN }}
+        run: |
+          mkdir -p release-evidence
+          curl --silent --show-error --retry 5 --retry-all-errors --request POST \
+            --header "X-Autolex-Release-Token: ${AUTOLEX_THEME_RELEASE_TOKEN}" \
+            "${AUTOLEX_BASE_URL%/}/wp-json/autolex-release/v1/rollback" \
+            | tee release-evidence/rollback.json
+          jq -e '.status == "rolled_back" and .after.stylesheet != "autolex-theme"' release-evidence/rollback.json
+      - name: Upload SHA-bound release evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: autolex-theme-release-${{ inputs.target }}-${{ github.sha }}
+          path: release-evidence
+          if-no-files-found: error
+          retention-days: 30
