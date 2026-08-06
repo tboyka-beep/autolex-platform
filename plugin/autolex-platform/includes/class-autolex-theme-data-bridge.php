@@ -37,8 +37,30 @@ final class Autolex_Theme_Data_Bridge
         add_action('autolex_theme_coverage_panel', array($this, 'render_coverage_panel'));
         add_action('autolex_theme_popular_brands', array($this, 'render_popular_brands'));
         add_action('autolex_theme_metric_strip', array($this, 'render_metric_strip'));
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_assets'), 35);
 
         $this->registered = true;
+    }
+
+    /** Load the bridge stylesheet only for the dedicated Autolex theme. */
+    public function enqueue_assets()
+    {
+        if (is_admin() || !function_exists('get_stylesheet') || get_stylesheet() !== 'autolex-theme') {
+            return;
+        }
+
+        $relative = 'assets/css/autolex-theme-data-bridge.css';
+        $absolute = AUTOLEX_PLATFORM_DIR . $relative;
+        if (!is_readable($absolute)) {
+            return;
+        }
+
+        wp_enqueue_style(
+            'autolex-theme-data-bridge',
+            plugins_url($relative, AUTOLEX_PLATFORM_FILE),
+            array('autolex-theme-home'),
+            (string) filemtime($absolute)
+        );
     }
 
     /** Render verified aggregate catalogue coverage. */
