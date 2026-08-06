@@ -23,8 +23,8 @@ do
   fi
 done
 
-if [ "$(grep -Fc '$autolex_render_home_slot(' "$front")" -ne 4 ]; then
-  echo 'Expected one renderer declaration and exactly three homepage slot calls.' >&2
+if [ "$(grep -Fc '$autolex_render_home_slot(' "$front")" -ne 3 ]; then
+  echo 'Expected exactly three homepage slot renderer calls.' >&2
   exit 1
 fi
 
