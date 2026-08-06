@@ -14,6 +14,7 @@ on:
       - agent/autolex-light-theme-foundation
     paths:
       - '.github/workflows/release-autolex-theme.yml'
+      - 'tests/theme-release-contract.sh'
       - 'scripts/prove-autolex-theme-release.sh'
       - 'scripts/release-autolex-theme.sh'
       - 'release/**'
@@ -56,6 +57,12 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
+      - name: Validate release proof contracts
+        run: |
+          bash tests/theme-release-contract.sh
+          php -l release/autolex-theme-release-gate.php
+          bash -n scripts/prove-autolex-theme-release.sh
+          bash -n scripts/release-autolex-theme.sh
       - name: Install release proof dependencies
         run: |
           npm install --no-audit --no-fund
