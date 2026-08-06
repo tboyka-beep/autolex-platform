@@ -6,11 +6,46 @@ token="${AUTOLEX_THEME_RELEASE_TOKEN:?AUTOLEX_THEME_RELEASE_TOKEN is required}"
 release_sha="${GITHUB_SHA:?GITHUB_SHA is required}"
 baseline="${BASELINE_THEME:?BASELINE_THEME is required}"
 header="X-Autolex-Release-Token: ${token}"
+rolled_back=0
 
 mkdir -p release-evidence/screenshots
 
+rollback_on_exit() {
+  local status=$?
+  local state_json=''
+  local rollback_status=0
+  trap - EXIT
+
+  if [ "$rolled_back" -eq 0 ]; then
+    set +e
+    state_json="$(curl --silent --show-error --fail --header "$header" \
+      "${base%/}/wp-json/autolex-release/v1/theme-state")"
+    if printf '%s' "$state_json" | jq -e '.state.stylesheet == "autolex-theme"' >/dev/null 2>&1; then
+      curl --silent --show-error --fail --request POST \
+        --header "$header" \
+        "${base%/}/wp-json/autolex-release/v1/rollback" \
+        | tee release-evidence/emergency-rollback.json
+      rollback_status=${PIPESTATUS[0]}
+      if [ "$rollback_status" -eq 0 ]; then
+        jq -e --arg baseline "$baseline" \
+          '.status == "rolled_back" and .after.stylesheet == $baseline and .after.release == ""' \
+          release-evidence/emergency-rollback.json >/dev/null
+        rollback_status=$?
+      fi
+      if [ "$rollback_status" -ne 0 ]; then
+        echo 'Emergency rollback could not be proven.' >&2
+        status=1
+      fi
+    fi
+    set -e
+  fi
+
+  exit "$status"
+}
+trap rollback_on_exit EXIT
+
 for attempt in $(seq 1 30); do
-  if curl --silent --show-error --fail "${base%/}/" >/dev/null; then
+  if curl --silent --show-error --fail --location "${base%/}/" >/dev/null; then
     break
   fi
   if [ "$attempt" -eq 30 ]; then
@@ -44,7 +79,7 @@ jq -e --arg sha "$release_sha" \
   '.status == "ok" and .state.stylesheet == "autolex-theme" and .state.release == $sha and (.state.design_marker | length) > 0' \
   release-evidence/after.json >/dev/null
 
-curl --silent --show-error --fail "${base%/}/" > release-evidence/home.html
+curl --silent --show-error --fail --location "${base%/}/" > release-evidence/home.html
 grep -Fq 'Minden jármű. Minden adat. Egy helyen.' release-evidence/home.html
 grep -Fq '/themes/autolex-theme/' release-evidence/home.html
 
@@ -64,6 +99,7 @@ curl --silent --show-error --fail --request POST \
 jq -e --arg baseline "$baseline" \
   '.status == "rolled_back" and .after.stylesheet == $baseline and .after.release == ""' \
   release-evidence/rollback.json >/dev/null
+rolled_back=1
 
 curl --silent --show-error --fail --header "$header" \
   "${base%/}/wp-json/autolex-release/v1/theme-state" \
