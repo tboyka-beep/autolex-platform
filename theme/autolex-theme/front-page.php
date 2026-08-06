@@ -132,13 +132,7 @@ get_header();
     <div class="alx-container">
         <section class="alx-metrics" aria-label="<?php esc_attr_e('Autolex lefedettségi mutatók', 'autolex-theme'); ?>">
             <?php do_action('autolex_theme_metric_strip'); ?>
-            <div class="alx-metric-fallback" aria-label="<?php esc_attr_e('A lefedettségi mutatók kategóriái; az értékek adatkapcsolatra várnak.', 'autolex-theme'); ?>">
-                <div><strong>—</strong><span><?php esc_html_e('Márkák', 'autolex-theme'); ?></span></div>
-                <div><strong>—</strong><span><?php esc_html_e('Modellek', 'autolex-theme'); ?></span></div>
-                <div><strong>—</strong><span><?php esc_html_e('Generációk', 'autolex-theme'); ?></span></div>
-                <div><strong>—</strong><span><?php esc_html_e('Motorváltozatok', 'autolex-theme'); ?></span></div>
-                <div><strong>—</strong><span><?php esc_html_e('Forrásrekordok', 'autolex-theme'); ?></span></div>
-            </div>
+            <div class="alx-empty-state"><?php esc_html_e('Márkák · Modellek · Generációk · Motorváltozatok · Forrásrekordok', 'autolex-theme'); ?></div>
         </section>
 
         <section class="alx-home-cards" aria-label="<?php esc_attr_e('Kiemelt Autolex funkciók', 'autolex-theme'); ?>">
