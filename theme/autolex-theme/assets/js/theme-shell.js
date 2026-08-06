@@ -71,6 +71,21 @@
     });
   }
 
+  const desktopRailQuery = window.matchMedia('(min-width: 1181px)');
+  const secondaryRailCards = Array.from(document.querySelectorAll('.alx-home-rail--left .alx-mobile-card, .alx-home-rail--left .alx-safety-card'));
+  const syncSecondaryRailCards = (event) => {
+    const desktop = typeof event.matches === 'boolean' ? event.matches : desktopRailQuery.matches;
+    secondaryRailCards.forEach((card) => {
+      card.hidden = desktop;
+      card.setAttribute('aria-hidden', String(desktop));
+    });
+  };
+
+  if (secondaryRailCards.length) {
+    syncSecondaryRailCards(desktopRailQuery);
+    desktopRailQuery.addEventListener('change', syncSecondaryRailCards);
+  }
+
   const searchForm = document.querySelector('[data-alx-search-form]');
   if (!searchForm) return;
 
