@@ -80,17 +80,53 @@ jq -e --arg sha "$release_sha" \
   release-evidence/after.json >/dev/null
 
 curl --silent --show-error --fail --location "${base%/}/" > release-evidence/home.html
-grep -Fq 'Minden jármű. Minden adat. Egy helyen.' release-evidence/home.html
-grep -Fq '/themes/autolex-theme/' release-evidence/home.html
 
-for width in 320 375 768 1024 1440; do
-  npx playwright screenshot \
-    --device="Desktop Chrome" \
-    --viewport-size="${width},1100" \
-    --full-page \
-    "${base%/}/" \
-    "release-evidence/screenshots/home-${width}.png"
-done
+node - "${base%/}/" <<'NODE'
+const fs = require('node:fs');
+const { chromium } = require('playwright');
+
+(async () => {
+  const url = process.argv[2];
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+
+  await page.goto(url, { waitUntil: 'networkidle' });
+  const headings = await page.locator('h1').allInnerTexts();
+  const normalized = headings.map((value) => value.replace(/\s+/g, ' ').trim());
+  if (normalized.length !== 1 || normalized[0] !== 'Minden jármű. Minden adat. Egy helyen.') {
+    throw new Error(`Unexpected H1 set: ${JSON.stringify(normalized)}`);
+  }
+
+  const themeStylesheet = await page.locator('link[rel="stylesheet"]').evaluateAll((links) =>
+    links.some((link) => link.href.includes('/themes/autolex-theme/'))
+  );
+  if (!themeStylesheet) {
+    throw new Error('The rendered page does not load the Autolex theme stylesheet.');
+  }
+
+  const evidence = {
+    finalUrl: page.url(),
+    h1: normalized[0],
+    h1Count: normalized.length,
+    themeStylesheet,
+  };
+  fs.writeFileSync('release-evidence/dom-check.json', `${JSON.stringify(evidence, null, 2)}\n`);
+
+  for (const width of [320, 375, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 1100 });
+    await page.goto(url, { waitUntil: 'networkidle' });
+    await page.screenshot({
+      path: `release-evidence/screenshots/home-${width}.png`,
+      fullPage: true,
+    });
+  }
+
+  await browser.close();
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
+NODE
 
 curl --silent --show-error --fail --request POST \
   --header "$header" \
@@ -111,6 +147,6 @@ jq -e --arg baseline "$baseline" \
 printf '{"repository":"%s","sha":"%s","run_id":"%s","baseline_theme":"%s"}\n' \
   "$GITHUB_REPOSITORY" "$release_sha" "$GITHUB_RUN_ID" "$baseline" \
   > release-evidence/manifest.json
-find release-evidence -type f -print0 | sort -z | xargs -0 sha256sum > release-evidence/SHA256SUMS
+find release-evidence -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > release-evidence/SHA256SUMS
 
 echo 'Isolated Autolex activation and rollback proof passed.'
