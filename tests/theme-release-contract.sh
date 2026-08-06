@@ -32,7 +32,7 @@ require_text "$gate" 'update_option(AUTOLEX_THEME_RELEASE_OPTION'
 require_text "$gate" 'switch_theme(AUTOLEX_THEME_RELEASE_SLUG)'
 require_text "$gate" "register_rest_route('autolex-release/v1', '/rollback'"
 require_text "$gate" "delete_option('autolex_theme_release_sha')"
-require_text "$gate" 'autolex-theme@'
+require_text "$gate" "AUTOLEX_THEME_RELEASE_SLUG . '@'"
 
 require_text "$workflow" 'default: staging'
 require_text "$workflow" 'push:'
