@@ -16,6 +16,12 @@ grep -Fq 'rgba(217, 45, 63, .075)' "$HOME_CSS"
 grep -Fq '@media (max-width: 640px)' "$HOME_CSS"
 grep -Fq 'grid-template-columns: 1fr' "$HOME_CSS"
 
+# Desktop rail pruning must remain visually authoritative. Explicit grid rules
+# must never override the semantic hidden state and recreate the hero gap.
+grep -Fq '.alx-mobile-card[hidden]' "$HOME_CSS"
+grep -Fq '.alx-safety-card[hidden]' "$HOME_CSS"
+grep -Fq 'display: none;' "$HOME_CSS"
+
 # The homepage-only continuation rhythm must remain compact while inner routes
 # keep the roomier global shell spacing.
 grep -Fq 'body.home .alx-main' "$HOME_CSS"
