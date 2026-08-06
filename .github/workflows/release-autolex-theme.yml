@@ -65,10 +65,11 @@ jobs:
           set -euo pipefail
           token="$(openssl rand -hex 32)"
           echo "::add-mask::${token}"
+          export AUTOLEX_THEME_RELEASE_TOKEN="$token"
           echo "AUTOLEX_THEME_RELEASE_TOKEN=${token}" >> "$GITHUB_ENV"
           echo 'AUTOLEX_BASE_URL=http://127.0.0.1:8888' >> "$GITHUB_ENV"
 
-          mkdir -p release-build/autolex-theme-release-gate
+          mkdir -p release-build/autolex-theme-release-gate release-evidence
           python3 - <<'PY'
           import os
           from pathlib import Path
