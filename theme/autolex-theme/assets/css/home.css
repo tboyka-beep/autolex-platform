@@ -248,7 +248,7 @@
 .alx-metrics {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  min-height: 92px;
+  min-height: 78px;
   margin-top: 18px;
   overflow: hidden;
   border: 1px solid var(--alx-line);
@@ -266,17 +266,47 @@
 }
 
 .alx-metrics .alx-empty-state {
+  position: relative;
   grid-column: 1 / -1;
   display: grid;
-  place-items: center;
-  min-height: 90px;
+  min-height: 76px;
   margin: 0;
+  place-items: center;
+  overflow: hidden;
   border: 0;
   border-radius: 0;
-  background: linear-gradient(90deg, #fff 0%, #f8fbff 48%, #fff 100%);
+  background:
+    linear-gradient(90deg, transparent calc(20% - .5px), var(--alx-line) 20%, transparent calc(20% + .5px), transparent calc(40% - .5px), var(--alx-line) 40%, transparent calc(40% + .5px), transparent calc(60% - .5px), var(--alx-line) 60%, transparent calc(60% + .5px), transparent calc(80% - .5px), var(--alx-line) 80%, transparent calc(80% + .5px)),
+    linear-gradient(90deg, #fff 0%, #f8fbff 48%, #fff 100%);
+  padding: 18px 24px 18px 58px;
   color: var(--alx-text-muted);
-  font-size: 13px;
-  text-align: center;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.alx-metrics .alx-empty-state::before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #c9d8ec;
+  border-top-color: var(--alx-primary);
+  border-radius: 50%;
+}
+
+.alx-metrics .alx-empty-state::after {
+  content: "Élő adatkapcsolat ellenőrzése";
+  position: absolute;
+  right: 22px;
+  bottom: 9px;
+  color: #667085;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
 }
 
 .alx-home-cards {
@@ -472,6 +502,10 @@ body.home .alx-site-footer {
   .alx-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .alx-metrics .alx-empty-state {
+    background: linear-gradient(90deg, #fff 0%, #f8fbff 48%, #fff 100%);
+  }
 }
 
 @media (max-width: 640px) {
@@ -502,6 +536,20 @@ body.home .alx-site-footer {
   .alx-metrics > * + * {
     border-top: 1px solid var(--alx-line);
     border-left: 0;
+  }
+
+  .alx-metrics .alx-empty-state {
+    min-height: 88px;
+    padding: 18px 18px 24px 50px;
+  }
+
+  .alx-metrics .alx-empty-state::before {
+    left: 18px;
+  }
+
+  .alx-metrics .alx-empty-state::after {
+    right: 16px;
+    bottom: 8px;
   }
 
   .alx-home-cards article {
