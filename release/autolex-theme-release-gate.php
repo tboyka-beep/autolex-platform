@@ -25,11 +25,18 @@ function autolex_theme_release_authorized(WP_REST_Request $request): bool
 
 function autolex_theme_release_state(): array
 {
+    $theme = wp_get_theme();
+    $stylesheet = (string) get_option('stylesheet');
+    $version = trim((string) $theme->get('Version'));
+    $designMarker = $stylesheet === AUTOLEX_THEME_RELEASE_SLUG
+        ? AUTOLEX_THEME_RELEASE_SLUG . '@' . ($version !== '' ? $version : 'unversioned')
+        : '';
+
     return [
         'template' => (string) get_option('template'),
-        'stylesheet' => (string) get_option('stylesheet'),
+        'stylesheet' => $stylesheet,
         'release' => (string) get_option('autolex_theme_release_sha', ''),
-        'design_marker' => defined('AUTOLEX_THEME_DESIGN_MARKER') ? (string) AUTOLEX_THEME_DESIGN_MARKER : '',
+        'design_marker' => $designMarker,
     ];
 }
 
