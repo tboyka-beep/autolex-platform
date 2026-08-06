@@ -1,0 +1,109 @@
+.alx-comparison-page {
+    min-height: 70vh;
+    padding: clamp(2rem, 5vw, 4.5rem) 0;
+    background: var(--alx-surface-subtle, #f6f8fb);
+}
+
+.alx-comparison-shell {
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.alx-comparison-hero {
+    max-width: 880px;
+}
+
+.alx-comparison-hero h1 {
+    margin: 0.4rem 0 1rem;
+    color: var(--alx-text, #172033);
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+}
+
+.alx-comparison-hero > p:last-child {
+    max-width: 760px;
+    margin: 0;
+    color: var(--alx-text-muted, #5f6b7a);
+    font-size: clamp(1rem, 1.5vw, 1.16rem);
+}
+
+.alx-comparison-workspace {
+    border: 1px solid var(--alx-border, #dce3ec);
+    border-radius: 20px;
+    background: var(--alx-surface, #ffffff);
+    box-shadow: 0 20px 55px rgba(30, 51, 84, 0.08);
+    overflow: hidden;
+}
+
+.alx-comparison-status {
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid var(--alx-border, #dce3ec);
+    background: #eef5ff;
+    color: #24436f;
+    font-size: 0.92rem;
+}
+
+.alx-comparison-plugin-output {
+    padding: clamp(1rem, 2.5vw, 2rem);
+    overflow-x: auto;
+}
+
+.alx-comparison-plugin-output table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.alx-comparison-plugin-output th,
+.alx-comparison-plugin-output td {
+    padding: 0.9rem 1rem;
+    border-right: 1px solid var(--alx-border, #dce3ec);
+    border-bottom: 1px solid var(--alx-border, #dce3ec);
+    text-align: left;
+    vertical-align: top;
+}
+
+.alx-comparison-plugin-output th {
+    background: #f7f9fc;
+    color: var(--alx-text, #172033);
+    font-weight: 700;
+}
+
+.alx-comparison-plugin-output tr > :first-child {
+    border-left: 1px solid var(--alx-border, #dce3ec);
+}
+
+.alx-comparison-plugin-output thead tr:first-child > * {
+    border-top: 1px solid var(--alx-border, #dce3ec);
+}
+
+.alx-comparison-empty,
+.alx-comparison-error {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: clamp(1.4rem, 3vw, 2.2rem);
+    text-align: center;
+}
+
+.alx-comparison-error {
+    border-color: rgba(217, 45, 63, 0.28);
+    background: #fff7f8;
+}
+
+@media (max-width: 767px) {
+    .alx-comparison-page {
+        padding: 1.5rem 0 2.5rem;
+    }
+
+    .alx-comparison-workspace {
+        border-radius: 16px;
+    }
+
+    .alx-comparison-status,
+    .alx-comparison-plugin-output {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}

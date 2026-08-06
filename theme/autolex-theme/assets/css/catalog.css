@@ -1,0 +1,115 @@
+.alx-catalog-page {
+    padding: clamp(2rem, 5vw, 4.5rem) 0 clamp(4rem, 7vw, 7rem);
+}
+
+.alx-catalog-shell {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.alx-catalog-hero,
+.alx-catalog-workspace {
+    border: 1px solid var(--alx-border);
+    border-radius: var(--alx-radius-lg);
+    background: var(--alx-surface);
+    box-shadow: var(--alx-shadow-sm);
+}
+
+.alx-catalog-hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.alx-catalog-hero > div {
+    max-width: 50rem;
+}
+
+.alx-catalog-hero h1 {
+    margin: 0.3rem 0 0.8rem;
+}
+
+.alx-catalog-hero p:last-child {
+    margin-bottom: 0;
+    color: var(--alx-text-muted);
+}
+
+.alx-catalog-workspace {
+    overflow: hidden;
+}
+
+.alx-catalog-status {
+    padding: 0.9rem clamp(1.25rem, 3vw, 2rem);
+    border-bottom: 1px solid var(--alx-border);
+    background: var(--alx-surface-subtle);
+    color: var(--alx-text-muted);
+    font-size: 0.94rem;
+}
+
+.alx-catalog-plugin-output {
+    min-width: 0;
+    padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.alx-catalog-plugin-output :where(form, .filters, .filter-bar, .catalog-filters) {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--alx-border);
+    border-radius: var(--alx-radius-md);
+    background: var(--alx-surface-subtle);
+}
+
+.alx-catalog-plugin-output :where(input, select, button) {
+    min-height: 2.75rem;
+}
+
+.alx-catalog-plugin-output :where(.grid, .cards, .vehicle-grid, .catalog-grid) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.alx-catalog-plugin-output :where(article, .card, .vehicle-card, .catalog-card) {
+    min-width: 0;
+    border: 1px solid var(--alx-border);
+    border-radius: var(--alx-radius-md);
+    background: var(--alx-surface);
+    box-shadow: var(--alx-shadow-xs);
+}
+
+.alx-catalog-plugin-output img {
+    max-width: 100%;
+    height: auto;
+    border-radius: calc(var(--alx-radius-md) - 2px);
+}
+
+.alx-catalog-empty,
+.alx-catalog-error {
+    max-width: 48rem;
+    margin: 0 auto;
+}
+
+@media (max-width: 960px) {
+    .alx-catalog-plugin-output :where(.grid, .cards, .vehicle-grid, .catalog-grid) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 680px) {
+    .alx-catalog-page {
+        padding-top: 1rem;
+    }
+
+    .alx-catalog-hero {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .alx-catalog-plugin-output :where(.grid, .cards, .vehicle-grid, .catalog-grid) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

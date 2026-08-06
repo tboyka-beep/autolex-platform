@@ -1,0 +1,200 @@
+name: Release Autolex Theme
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Release environment
+        required: true
+        type: choice
+        default: staging
+        options: [staging, production]
+  push:
+    branches:
+      - agent/autolex-light-theme-foundation
+    paths:
+      - '.github/workflows/release-autolex-theme.yml'
+      - 'tests/theme-release-contract.sh'
+      - 'scripts/prove-autolex-theme-release.sh'
+      - 'scripts/release-autolex-theme.sh'
+      - 'release/**'
+      - 'theme/autolex-theme/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autolex-theme-release-${{ github.event.inputs.target || 'staging' }}
+  cancel-in-progress: false
+
+jobs:
+  release-policy:
+    name: Validate release target
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Enforce production branch boundary
+        env:
+          RELEASE_TARGET: ${{ github.event.inputs.target || 'staging' }}
+        run: |
+          if [ "$RELEASE_TARGET" = production ] && [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo 'Production release is allowed only from main.' >&2
+            exit 1
+          fi
+
+  staging-proof:
+    name: Prove activation and rollback in isolated WordPress
+    needs: release-policy
+    if: github.event_name == 'push' || github.event.inputs.target == 'staging'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Validate release proof contracts
+        run: |
+          bash tests/theme-release-contract.sh
+          php -l release/autolex-theme-release-gate.php
+          bash -n scripts/prove-autolex-theme-release.sh
+          bash -n scripts/release-autolex-theme.sh
+      - name: Install release proof dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Prepare authenticated temporary release gate
+        run: |
+          set -euo pipefail
+          token="$(openssl rand -hex 32)"
+          echo "::add-mask::${token}"
+          export AUTOLEX_THEME_RELEASE_TOKEN="$token"
+          echo "AUTOLEX_THEME_RELEASE_TOKEN=${token}" >> "$GITHUB_ENV"
+          echo 'AUTOLEX_BASE_URL=http://127.0.0.1:8888' >> "$GITHUB_ENV"
+
+          mkdir -p release-build/autolex-theme-release-gate release-evidence
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          source = Path('release/autolex-theme-release-gate.php').read_text()
+          token = os.environ['AUTOLEX_THEME_RELEASE_TOKEN']
+          if '__AUTOLEX_RELEASE_TOKEN__' not in source:
+              raise SystemExit('Release token placeholder is missing.')
+          escaped = token.replace('\\', '\\\\').replace("'", "\\'")
+          target = Path('release-build/autolex-theme-release-gate/autolex-theme-release-gate.php')
+          target.write_text(source.replace('__AUTOLEX_RELEASE_TOKEN__', escaped))
+          PY
+
+          jq '.plugins += ["./release-build/autolex-theme-release-gate"]' .wp-env.json > .wp-env.release.json
+          mv .wp-env.release.json .wp-env.json
+      - name: Start isolated WordPress
+        run: npx wp-env start
+      - name: Seed baseline without activating Autolex
+        run: |
+          set -euo pipefail
+          run_wp() { npx wp-env run cli -- "$@"; }
+
+          baseline="$(run_wp wp theme list --field=name | tr -d '\r' | grep -E '^[A-Za-z0-9._-]+$' | grep -vx 'autolex-theme' | head -n 1)"
+          test -n "$baseline" || { echo 'No rollback baseline theme is installed.' >&2; exit 1; }
+          run_wp wp theme activate "$baseline"
+          run_wp wp plugin activate autolex-platform || true
+          run_wp wp plugin activate autolex-theme-release-gate
+          run_wp wp option update blogname 'Autolex release proof'
+          run_wp wp option update permalink_structure '/%postname%/'
+
+          home_id="$(run_wp wp post create --post_type=page --post_status=publish --post_title='Főoldal' --post_name='fooldal' --porcelain | tr -d '\r' | grep -Eo '^[0-9]+$' | tail -n 1)"
+          test -n "$home_id"
+          run_wp wp option update show_on_front page
+          run_wp wp option update page_on_front "$home_id"
+          run_wp wp rewrite flush --hard
+          echo "BASELINE_THEME=${baseline}" >> "$GITHUB_ENV"
+      - name: Prove activation, live render and rollback
+        run: bash scripts/prove-autolex-theme-release.sh
+      - name: Upload isolated release evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: autolex-theme-release-staging-${{ github.sha }}
+          path: release-evidence
+          if-no-files-found: error
+          retention-days: 30
+      - name: Stop isolated WordPress
+        if: always()
+        run: npx wp-env stop || true
+
+  production-release:
+    name: Deploy and activate production theme
+    needs: release-policy
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.target == 'production' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Prepare production release configuration
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_PLUGIN_DIR: ${{ secrets.CPANEL_PLUGIN_DIR }}
+        run: |
+          set -euo pipefail
+          for name in CPANEL_API_HOST CPANEL_API_USER CPANEL_API_TOKEN CPANEL_PLUGIN_DIR; do
+            test -n "${!name:-}" || { echo "Missing ${name}" >&2; exit 1; }
+          done
+          case "$CPANEL_PLUGIN_DIR" in
+            */wp-content/plugins/autolex-platform) ;;
+            *) echo 'CPANEL_PLUGIN_DIR has an unexpected suffix.' >&2; exit 1 ;;
+          esac
+
+          wp_root="${CPANEL_PLUGIN_DIR%/wp-content/plugins/autolex-platform}"
+          token="$(openssl rand -hex 32)"
+          echo "::add-mask::${token}"
+          {
+            echo "CPANEL_THEME_DIR=${wp_root}/wp-content/themes/autolex-theme"
+            echo "CPANEL_MU_PLUGIN_DIR=${wp_root}/wp-content/mu-plugins"
+            echo 'AUTOLEX_BASE_URL=https://autolex.hu'
+            echo "AUTOLEX_THEME_RELEASE_TOKEN=${token}"
+          } >> "$GITHUB_ENV"
+      - name: Validate immutable production release
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+        run: |
+          bash tests/theme-release-contract.sh
+          find theme/autolex-theme release -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          bash scripts/release-autolex-theme.sh validate
+      - name: Deploy, activate and run immediate live QA
+        id: deploy
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+        run: bash scripts/release-autolex-theme.sh release
+      - name: Rollback after failed production activation
+        if: failure() && steps.deploy.outcome == 'failure'
+        run: |
+          mkdir -p release-evidence
+          curl --silent --show-error --fail --retry 5 --retry-all-errors --request POST \
+            --header "X-Autolex-Release-Token: ${AUTOLEX_THEME_RELEASE_TOKEN}" \
+            "${AUTOLEX_BASE_URL%/}/wp-json/autolex-release/v1/rollback" \
+            | tee release-evidence/rollback.json
+          jq -e '.status == "rolled_back" and .after.stylesheet != "autolex-theme"' release-evidence/rollback.json
+      - name: Upload SHA-bound production evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: autolex-theme-release-production-${{ github.sha }}
+          path: release-evidence
+          if-no-files-found: error
+          retention-days: 30

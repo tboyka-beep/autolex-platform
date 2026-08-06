@@ -1,0 +1,13 @@
+{
+  "name": "autolex-platform-visual-qa",
+  "private": true,
+  "scripts": {
+    "wp-env:start": "wp-env start",
+    "wp-env:stop": "wp-env stop",
+    "visual:qa": "playwright test --config=tests/visual/playwright.config.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.0",
+    "@wordpress/env": "^10.22.0"
+  }
+}
