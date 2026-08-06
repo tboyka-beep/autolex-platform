@@ -99,6 +99,13 @@
   align-items: center;
 }
 
+/* The HTML hidden state must remain authoritative even when a card has an
+ * explicit layout display. This keeps desktop-only rail pruning fail-closed. */
+.alx-mobile-card[hidden],
+.alx-safety-card[hidden] {
+  display: none;
+}
+
 .alx-phone-icon {
   position: relative;
   display: block;
