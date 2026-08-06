@@ -13,6 +13,8 @@ on:
       - 'tests/theme-data-bridge-smoke.php'
       - 'docs/ALX-033-LIVE-DATA-SLOTS.md'
       - '.github/workflows/alx-033-live-data-slots.yml'
+      - '.github/workflows/home-server-quality.yml'
+      - '.github/workflows/portal-smoke.yml'
   workflow_dispatch:
 
 permissions:
@@ -50,6 +52,10 @@ jobs:
           done
       - name: Prove plugin-owned theme data
         run: php tests/theme-data-bridge-smoke.php
+      - name: Confirm standard gates own the bridge smoke
+        run: |
+          grep -Fq 'php tests/theme-data-bridge-smoke.php' .github/workflows/home-server-quality.yml
+          grep -Fq 'php tests/theme-data-bridge-smoke.php' .github/workflows/portal-smoke.yml
       - name: Validate theme JavaScript
         run: find theme/autolex-theme/assets/js -type f -name '*.js' -print0 | xargs -0 -n1 node --check
 
@@ -88,5 +94,9 @@ jobs:
           done
       - name: Prove plugin-owned theme data
         run: php tests/theme-data-bridge-smoke.php
+      - name: Confirm standard gates own the bridge smoke
+        run: |
+          grep -Fq 'php tests/theme-data-bridge-smoke.php' .github/workflows/home-server-quality.yml
+          grep -Fq 'php tests/theme-data-bridge-smoke.php' .github/workflows/portal-smoke.yml
       - name: Validate theme JavaScript
         run: find theme/autolex-theme/assets/js -type f -name '*.js' -print0 | xargs -0 -n1 node --check
