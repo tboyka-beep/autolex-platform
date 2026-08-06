@@ -9,19 +9,30 @@ on:
         type: choice
         default: staging
         options: [staging, production]
+  push:
+    branches:
+      - agent/autolex-light-theme-foundation
+    paths:
+      - '.github/workflows/release-autolex-theme.yml'
+      - 'scripts/release-autolex-theme.sh'
+      - 'release/**'
+      - 'theme/autolex-theme/**'
 
 permissions:
   contents: read
 
+env:
+  RELEASE_TARGET: ${{ github.event.inputs.target || 'staging' }}
+
 concurrency:
-  group: autolex-theme-release-${{ inputs.target }}
+  group: autolex-theme-release-${{ github.event.inputs.target || 'staging' }}
   cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    environment: ${{ inputs.target }}
+    environment: ${{ github.event.inputs.target || 'staging' }}
     steps:
       - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
@@ -38,7 +49,11 @@ jobs:
           AUTOLEX_BASE_URL: ${{ secrets.AUTOLEX_BASE_URL }}
           AUTOLEX_THEME_RELEASE_TOKEN: ${{ secrets.AUTOLEX_THEME_RELEASE_TOKEN }}
         run: |
-          if [ "${{ inputs.target }}" = production ] && [ "$GITHUB_REF" != refs/heads/main ]; then
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ "$GITHUB_REF" != refs/heads/agent/autolex-light-theme-foundation ]; then
+            echo 'Automatic staging release is restricted to the Autolex redesign branch.' >&2
+            exit 1
+          fi
+          if [ "$RELEASE_TARGET" = production ] && [ "$GITHUB_REF" != refs/heads/main ]; then
             echo 'Production release is allowed only from main.' >&2
             exit 1
           fi
@@ -71,7 +86,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: autolex-theme-release-${{ inputs.target }}-${{ github.sha }}
+          name: autolex-theme-release-${{ env.RELEASE_TARGET }}-${{ github.sha }}
           path: release-evidence
           if-no-files-found: error
           retention-days: 30
