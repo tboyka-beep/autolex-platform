@@ -6,7 +6,11 @@ on:
       - agent/alx-033-live-data-slots
     paths:
       - 'theme/autolex-theme/**'
+      - 'plugin/autolex-platform/autolex-platform.php'
+      - 'plugin/autolex-platform/includes/class-autolex-theme-data-bridge.php'
+      - 'plugin/autolex-platform/assets/css/autolex-theme-data-bridge.css'
       - 'tests/autolex-theme-*-contract.sh'
+      - 'tests/theme-data-bridge-smoke.php'
       - 'docs/ALX-033-LIVE-DATA-SLOTS.md'
       - '.github/workflows/alx-033-live-data-slots.yml'
   workflow_dispatch:
@@ -32,8 +36,11 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - name: Lint every theme PHP file
-        run: find theme/autolex-theme -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Lint public theme and bridge PHP
+        run: |
+          find theme/autolex-theme -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l plugin/autolex-platform/autolex-platform.php
+          php -l plugin/autolex-platform/includes/class-autolex-theme-data-bridge.php
       - name: Run complete theme contract suite
         run: |
           set -euo pipefail
@@ -41,6 +48,8 @@ jobs:
             echo "Running ${contract}"
             bash "$contract"
           done
+      - name: Prove plugin-owned theme data
+        run: php tests/theme-data-bridge-smoke.php
       - name: Validate theme JavaScript
         run: find theme/autolex-theme/assets/js -type f -name '*.js' -print0 | xargs -0 -n1 node --check
 
@@ -65,8 +74,11 @@ jobs:
             }
           done
           php -r 'if (PHP_VERSION_ID < 80300) { fwrite(STDERR, "PHP 8.3 or newer is required.\n"); exit(1); }'
-      - name: Lint every theme PHP file
-        run: find theme/autolex-theme -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Lint public theme and bridge PHP
+        run: |
+          find theme/autolex-theme -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l plugin/autolex-platform/autolex-platform.php
+          php -l plugin/autolex-platform/includes/class-autolex-theme-data-bridge.php
       - name: Run complete theme contract suite
         run: |
           set -euo pipefail
@@ -74,5 +86,7 @@ jobs:
             echo "Running ${contract}"
             bash "$contract"
           done
+      - name: Prove plugin-owned theme data
+        run: php tests/theme-data-bridge-smoke.php
       - name: Validate theme JavaScript
         run: find theme/autolex-theme/assets/js -type f -name '*.js' -print0 | xargs -0 -n1 node --check
