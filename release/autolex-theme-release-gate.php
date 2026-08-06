@@ -19,7 +19,7 @@ function autolex_theme_release_authorized(WP_REST_Request $request): bool
     $provided = (string) $request->get_header('x-autolex-release-token');
 
     return $provided !== ''
-        && AUTOLEX_THEME_RELEASE_TOKEN !== '__AUTOLEX_RELEASE_TOKEN__'
+        && strlen(AUTOLEX_THEME_RELEASE_TOKEN) >= 32
         && hash_equals(AUTOLEX_THEME_RELEASE_TOKEN, $provided);
 }
 
