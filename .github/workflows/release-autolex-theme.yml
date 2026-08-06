@@ -1,0 +1,256 @@
+name: Release Autolex Theme
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Release environment. Production is allowed only from main.
+        required: true
+        type: choice
+        default: staging
+        options:
+          - staging
+          - production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autolex-theme-release-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Reversible theme release
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: ${{ inputs.target }}
+
+    steps:
+      - name: Enforce production branch
+        if: inputs.target == 'production' && github.ref != 'refs/heads/main'
+        run: |
+          echo 'Production theme release is allowed only from main.' >&2
+          exit 1
+
+      - name: Checkout immutable release head
+        uses: actions/checkout@v7
+
+      - name: Configure PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Validate release contract and theme PHP
+        run: |
+          bash tests/theme-release-contract.sh
+          find theme/autolex-theme release -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Validate protected release configuration
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_THEME_DIR: ${{ secrets.CPANEL_THEME_DIR }}
+          CPANEL_MU_PLUGIN_DIR: ${{ secrets.CPANEL_MU_PLUGIN_DIR }}
+          AUTOLEX_BASE_URL: ${{ secrets.AUTOLEX_BASE_URL }}
+          AUTOLEX_THEME_RELEASE_TOKEN: ${{ secrets.AUTOLEX_THEME_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          for name in CPANEL_API_HOST CPANEL_API_USER CPANEL_API_TOKEN CPANEL_THEME_DIR CPANEL_MU_PLUGIN_DIR AUTOLEX_BASE_URL AUTOLEX_THEME_RELEASE_TOKEN; do
+            test -n "${!name:-}" || { echo "Missing ${name} secret" >&2; exit 1; }
+          done
+          case "$CPANEL_API_HOST" in *://*|*/*|*:*) exit 1;; esac
+          case "$CPANEL_THEME_DIR" in /*|*..*|*[^A-Za-z0-9._/-]*|*/wp-content/themes/autolex-theme) ;; *) exit 1;; esac
+          case "$CPANEL_MU_PLUGIN_DIR" in /*|*..*|*[^A-Za-z0-9._/-]*|*/wp-content/mu-plugins) ;; *) exit 1;; esac
+          case "$AUTOLEX_BASE_URL" in https://*) ;; *) exit 1;; esac
+          test "${#AUTOLEX_THEME_RELEASE_TOKEN}" -ge 32
+
+      - name: Build immutable theme and authenticated release gate
+        env:
+          AUTOLEX_THEME_RELEASE_TOKEN: ${{ secrets.AUTOLEX_THEME_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-build/theme release-build/gate release-evidence/screenshots
+          cp -a theme/autolex-theme/. release-build/theme/
+          printf '%s\n' "${GITHUB_SHA}" > release-build/theme/.autolex-release-sha
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          source = Path('release/autolex-theme-release-gate.php').read_text()
+          token = os.environ['AUTOLEX_THEME_RELEASE_TOKEN']
+          if '__AUTOLEX_RELEASE_TOKEN__' not in source:
+              raise SystemExit('release token placeholder missing')
+          escaped = token.replace('\\', '\\\\').replace("'", "\\'")
+          Path('release-build/gate/autolex-theme-release-gate.php').write_text(
+              source.replace('__AUTOLEX_RELEASE_TOKEN__', escaped)
+          )
+          PY
+          (cd release-build/theme && find . -type f -print0 | sort -z | xargs -0 sha256sum) > release-evidence/theme-files.sha256
+          sha256sum release-build/gate/autolex-theme-release-gate.php > release-evidence/gate.sha256
+
+      - name: Deploy theme and temporary release gate through cPanel API
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_THEME_DIR: ${{ secrets.CPANEL_THEME_DIR }}
+          CPANEL_MU_PLUGIN_DIR: ${{ secrets.CPANEL_MU_PLUGIN_DIR }}
+        run: |
+          set -euo pipefail
+          api_base="https://${CPANEL_API_HOST}:2083"
+          auth_header="Authorization: cpanel ${CPANEL_API_USER}:${CPANEL_API_TOKEN}"
+
+          mkdir_remote() {
+            local full="$1" parent name
+            parent="$(dirname "$full")"; name="$(basename "$full")"
+            curl --silent --show-error --fail-with-body --get --retry 4 --retry-all-errors \
+              --header "$auth_header" \
+              --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
+              --data-urlencode 'cpanel_jsonapi_apiversion=2' \
+              --data-urlencode 'cpanel_jsonapi_module=Fileman' \
+              --data-urlencode 'cpanel_jsonapi_func=mkdir' \
+              --data-urlencode "path=${parent}" --data-urlencode "name=${name}" \
+              --data-urlencode 'permissions=0755' "${api_base}/json-api/cpanel" >/dev/null || true
+          }
+
+          upload_tree() {
+            local root="$1" destination="$2"
+            mkdir_remote "$destination"
+            while IFS= read -r -d '' dir; do
+              rel="${dir#${root}/}"; test "$rel" = "$dir" && continue
+              mkdir_remote "${destination}/${rel}"
+            done < <(find "$root" -mindepth 1 -type d -print0)
+            while IFS= read -r -d '' file; do
+              rel="${file#${root}/}"; remote="$destination"
+              test "$(dirname "$rel")" = '.' || remote="${destination}/$(dirname "$rel")"
+              curl --silent --show-error --fail-with-body --retry 4 --retry-all-errors \
+                --header "$auth_header" --form "dir=${remote}" --form 'overwrite=1' \
+                --form "file-1=@${file};filename=$(basename "$file")" \
+                "${api_base}/execute/Fileman/upload_files" >/dev/null
+            done < <(find "$root" -type f -print0)
+          }
+
+          upload_tree release-build/theme "$CPANEL_THEME_DIR"
+          upload_tree release-build/gate "$CPANEL_MU_PLUGIN_DIR"
+
+      - name: Snapshot previous theme and activate immutable Autolex release
+        env:
+          AUTOLEX_BASE_URL: ${{ secrets.AUTOLEX_BASE_URL }}
+          AUTOLEX_THEME_RELEASE_TOKEN: ${{ secrets.AUTOLEX_THEME_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          state_url="${AUTOLEX_BASE_URL%/}/wp-json/autolex-release/v1/theme-state"
+          activate_url="${AUTOLEX_BASE_URL%/}/wp-json/autolex-release/v1/activate"
+          curl --silent --show-error --fail --retry 5 --retry-all-errors \
+            --header "X-Autolex-Release-Token: ${AUTOLEX_THEME_RELEASE_TOKEN}" \
+            "$state_url" | tee release-evidence/before.json
+          curl --silent --show-error --fail --retry 3 --retry-all-errors \
+            --request POST --header 'Content-Type: application/json' \
+            --header "X-Autolex-Release-Token: ${AUTOLEX_THEME_RELEASE_TOKEN}" \
+            --data "{\"release_sha\":\"${GITHUB_SHA}\"}" "$activate_url" \
+            | tee release-evidence/activation.json
+          jq -e --arg sha "$GITHUB_SHA" \
+            '.status == "activated" and .after.stylesheet == "autolex-theme" and .after.release == $sha' \
+            release-evidence/activation.json >/dev/null
+
+      - name: Install browser for immediate live QA
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+
+      - name: Run HTTP, marker and responsive browser live QA
+        env:
+          AUTOLEX_BASE_URL: ${{ secrets.AUTOLEX_BASE_URL }}
+          AUTOLEX_THEME_RELEASE_TOKEN: ${{ secrets.AUTOLEX_THEME_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          base="${AUTOLEX_BASE_URL%/}"
+          curl --silent --show-error --fail --retry 5 --retry-all-errors \
+            --header "X-Autolex-Release-Token: ${AUTOLEX_THEME_RELEASE_TOKEN}" \
+            "$base/wp-json/autolex-release/v1/theme-state" | tee release-evidence/after.json
+          jq -e --arg sha "$GITHUB_SHA" \
+            '.status == "ok" and .state.stylesheet == "autolex-theme" and .state.release == $sha' \
+            release-evidence/after.json >/dev/null
+          curl --silent --show-error --fail --retry 5 --retry-all-errors "$base/" > release-evidence/home.html
+          grep -Fq 'Minden jármű. Minden adat. Egy helyen.' release-evidence/home.html
+          grep -Fq 'autolex-theme' release-evidence/home.html
+          cat > release-build/live-qa.mjs <<'JS'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+          const base = process.env.AUTOLEX_BASE_URL.replace(/\/$/, '');
+          const widths = [320, 375, 768, 1024, 1440];
+          const routes = ['/', '/katalogus/', '/safety-gate/', '/osszehasonlitas/', '/nem-letezo-autolex-oldal/'];
+          const browser = await chromium.launch({headless: true});
+          const report = [];
+          try {
+            for (const width of widths) {
+              const page = await browser.newPage({viewport: {width, height: 1100}});
+              for (const route of routes) {
+                const response = await page.goto(base + route, {waitUntil: 'networkidle', timeout: 45000});
+                if (!response || response.status() >= 500) throw new Error(`${route} returned ${response?.status()}`);
+                const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+                if (overflow) throw new Error(`${route} overflows at ${width}px`);
+                const h1Count = await page.locator('h1').count();
+                if (h1Count !== 1) throw new Error(`${route} has ${h1Count} H1 elements at ${width}px`);
+                report.push({width, route, status: response.status(), overflow, h1Count});
+                if (route === '/' || (width === 375 && route === '/katalogus/')) {
+                  const slug = route === '/' ? 'home' : 'catalog';
+                  await page.screenshot({path: `release-evidence/screenshots/${slug}-${width}.png`, fullPage: true});
+                }
+              }
+              await page.close();
+            }
+          } finally { await browser.close(); }
+          fs.writeFileSync('release-evidence/browser-report.json', JSON.stringify(report, null, 2));
+          JS
+          AUTOLEX_BASE_URL="$base" npx --yes -p playwright@1.55.0 node release-build/live-qa.mjs
+
+      - name: Rollback on failed live QA
+        if: failure()
+        env:
+          AUTOLEX_BASE_URL: ${{ secrets.AUTOLEX_BASE_URL }}
+          AUTOLEX_THEME_RELEASE_TOKEN: ${{ secrets.AUTOLEX_THEME_RELEASE_TOKEN }}
+        run: |
+          set +e
+          curl --silent --show-error --retry 5 --retry-all-errors \
+            --request POST --header "X-Autolex-Release-Token: ${AUTOLEX_THEME_RELEASE_TOKEN}" \
+            "${AUTOLEX_BASE_URL%/}/wp-json/autolex-release/v1/rollback" \
+            | tee release-evidence/rollback.json
+          jq -e '.status == "rolled_back" and .after.stylesheet != "autolex-theme"' \
+            release-evidence/rollback.json
+
+      - name: Remove temporary release gate
+        if: always()
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_MU_PLUGIN_DIR: ${{ secrets.CPANEL_MU_PLUGIN_DIR }}
+        run: |
+          set +e
+          curl --silent --show-error --get --retry 4 --retry-all-errors \
+            --header "Authorization: cpanel ${CPANEL_API_USER}:${CPANEL_API_TOKEN}" \
+            --data-urlencode 'cpanel_jsonapi_apiversion=2' \
+            --data-urlencode 'cpanel_jsonapi_module=Fileman' \
+            --data-urlencode 'cpanel_jsonapi_func=fileop' \
+            --data-urlencode "sourcefiles=${CPANEL_MU_PLUGIN_DIR}/autolex-theme-release-gate.php" \
+            --data-urlencode 'op=unlink' \
+            "https://${CPANEL_API_HOST}:2083/json-api/cpanel" >/dev/null
+
+      - name: Write SHA-bound evidence manifest
+        if: always()
+        run: |
+          printf '{"repository":"%s","sha":"%s","run_id":"%s","target":"%s"}\n' \
+            "$GITHUB_REPOSITORY" "$GITHUB_SHA" "$GITHUB_RUN_ID" "${{ inputs.target }}" \
+            > release-evidence/manifest.json
+          find release-evidence -type f -print0 | sort -z | xargs -0 sha256sum \
+            > release-evidence/SHA256SUMS
+
+      - name: Upload release and rollback evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: autolex-theme-release-${{ inputs.target }}-${{ github.sha }}
+          path: release-evidence
+          if-no-files-found: error
+          retention-days: 30
