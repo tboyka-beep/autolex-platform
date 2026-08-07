@@ -52,6 +52,11 @@ function esc_html__($text, $domain = null)
     return esc_html($text);
 }
 
+function esc_html_e($text, $domain = null)
+{
+    echo esc_html($text);
+}
+
 function esc_url($url)
 {
     return (string) $url;
