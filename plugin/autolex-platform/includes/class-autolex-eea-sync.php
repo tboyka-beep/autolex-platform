@@ -17,6 +17,9 @@ final class Autolex_EEA_Sync
     /** Official public SQL-to-JSON endpoint. */
     const API_URL = 'https://discodata.eea.europa.eu/sql';
 
+    /** One-time marker for tasks completed against the old wrapped-response parser. */
+    const RESULTS_WRAPPER_RECOVERY_OPTION = 'autolex_eea_results_wrapper_recovery_v1';
+
     /** Maximum aggregated records handled in one remote request. */
     const PAGE_SIZE = 2000;
 
@@ -185,16 +188,122 @@ final class Autolex_EEA_Sync
             "[Ec (cm3)], [Ep (KW)]";
     }
 
-    /** Checks schema, seeds targets and schedules one bounded batch. */
+    /**
+     * Decodes both the current Discodata {"results":[...]} envelope and the
+     * older direct row-list response. Unexpected objects fail closed so an API
+     * format change cannot silently mark queue targets as completed again.
+     *
+     * @param string $body Raw response body.
+     * @return array<int,array<string,mixed>>
+     */
+    public static function decode_response_rows($body)
+    {
+        $payload = json_decode((string) $body, true);
+        if (!is_array($payload) || JSON_ERROR_NONE !== json_last_error()) {
+            throw new RuntimeException('EEA Discodata returned invalid JSON.');
+        }
+        if (isset($payload['error']) || isset($payload['errors'])) {
+            throw new RuntimeException('EEA Discodata rejected the read-only query.');
+        }
+
+        if (array_key_exists('results', $payload)) {
+            if (!is_array($payload['results'])) {
+                throw new RuntimeException('EEA Discodata returned an invalid results envelope.');
+            }
+            $payload = $payload['results'];
+        } elseif (!array_is_list($payload)) {
+            throw new RuntimeException('EEA Discodata returned an unexpected JSON envelope.');
+        }
+
+        if (!array_is_list($payload)) {
+            throw new RuntimeException('EEA Discodata results are not a row list.');
+        }
+        foreach ($payload as $row) {
+            if (!is_array($row) || array_is_list($row)) {
+                throw new RuntimeException('EEA Discodata returned a malformed result row.');
+            }
+        }
+
+        return array_values($payload);
+    }
+
+    /** Checks schema, repairs known wrapped-response damage and schedules one bounded batch. */
     public function maybe_schedule()
     {
         if (self::SCHEMA_VERSION !== get_option('autolex_eea_sync_schema_version')) {
             self::install_schema();
         }
 
+        $this->recover_wrapped_response_tasks();
+
         if (!wp_next_scheduled('autolex_eea_sync_batch')) {
             wp_schedule_single_event(time() + 20, 'autolex_eea_sync_batch');
         }
+    }
+
+    /**
+     * Requeues only the exact corruption signature produced by the old parser.
+     * The old code treated the top-level `results` array as one row, therefore
+     * affected tasks were completed after exactly one read with no imported or
+     * proposed data. The migration runs once and records its recovered count.
+     *
+     * @return int Number of tasks restored to pending.
+     */
+    public function recover_wrapped_response_tasks()
+    {
+        global $wpdb;
+
+        if (get_option(self::RESULTS_WRAPPER_RECOVERY_OPTION, false)) {
+            return 0;
+        }
+        if (self::SCHEMA_VERSION !== get_option('autolex_eea_sync_schema_version')) {
+            return 0;
+        }
+
+        $table = self::tasks_table();
+        $now   = current_time('mysql', true);
+        $sql   = $wpdb->prepare(
+            "UPDATE {$table}
+            SET page_number = 1,
+                status = 'pending',
+                attempts = 0,
+                rows_read = 0,
+                vehicles_imported = 0,
+                engines_proposed = 0,
+                links_proposed = 0,
+                next_run_at = NULL,
+                locked_at = NULL,
+                last_error = NULL,
+                completed_at = NULL,
+                updated_at = %s
+            WHERE status = 'completed'
+                AND rows_read = 1
+                AND vehicles_imported = 0
+                AND engines_proposed = 0
+                AND links_proposed = 0
+                AND target_type IN ('commercial_name', 'make_discovery', 'make_index')",
+            $now
+        );
+        $recovered = $wpdb->query($sql);
+        if (false === $recovered) {
+            update_option(
+                'autolex_eea_results_wrapper_recovery_error',
+                substr((string) $wpdb->last_error, 0, 1000),
+                false
+            );
+            return 0;
+        }
+
+        update_option(
+            self::RESULTS_WRAPPER_RECOVERY_OPTION,
+            array(
+                'recovered_tasks' => (int) $recovered,
+                'recovered_at'    => $now,
+            ),
+            false
+        );
+        delete_option('autolex_eea_results_wrapper_recovery_error');
+        return (int) $recovered;
     }
 
     /**
@@ -510,15 +619,8 @@ final class Autolex_EEA_Sync
         if (200 !== $status) {
             throw new RuntimeException('EEA Discodata returned HTTP ' . $status . '.');
         }
-        $body = wp_remote_retrieve_body($response);
-        $rows = json_decode($body, true);
-        if (!is_array($rows) || JSON_ERROR_NONE !== json_last_error()) {
-            throw new RuntimeException('EEA Discodata returned invalid JSON.');
-        }
-        if (isset($rows['error']) || isset($rows['errors'])) {
-            throw new RuntimeException('EEA Discodata rejected the read-only query.');
-        }
-        return array_values(array_filter($rows, 'is_array'));
+
+        return self::decode_response_rows(wp_remote_retrieve_body($response));
     }
 
     /**
