@@ -30,6 +30,25 @@ jobs:
           curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
             -D home.headers https://autolex.hu/ -o home.html
 
+      - name: Inspect official EEA API response
+        run: |
+          set -euo pipefail
+          query="SELECT [Mk] AS [mk], COUNT(*) AS [r] FROM [CO2Emission].[latest].[co2cars_2025Pv31] WHERE [Year] = 2025 AND [Status] = 'P' AND NULLIF(LTRIM(RTRIM([Mk])), '') IS NOT NULL GROUP BY [Mk]"
+          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+            --get \
+            --data-urlencode "query=${query}" \
+            --data-urlencode 'p=1' \
+            --data-urlencode 'nrOfHits=5' \
+            https://discodata.eea.europa.eu/sql -o eea.json
+
+          echo '--- EEA response JSON type ---'
+          jq -r 'type' eea.json
+          echo '--- EEA top-level keys ---'
+          jq -r 'if type == "object" then keys[] else "<array>" end' eea.json
+          echo '--- EEA compact sample ---'
+          jq -c 'if type == "array" then .[0:2] else . end' eea.json | head -c 5000
+          echo
+
       - name: Report public data state
         run: |
           set -euo pipefail
@@ -37,10 +56,10 @@ jobs:
           jq . status.json
           echo '--- EU coverage ---'
           jq . coverage.json
-          echo '--- engine coverage ---'
-          jq . engine.json
+          echo '--- engine coverage summary ---'
+          jq '{catalog_source,catalog_vehicles,queued_vehicles,pending_vehicles,engine_variants,verified_variants,eu_variant_links,engine_schema_version}' engine.json
           echo '--- EEA sync queue ---'
-          jq . sync.json
+          jq '{targets,discovery_targets,make_index_targets,completed_targets,pending_targets,failed_targets,retry_targets,running_targets,rows_read,vehicles_imported,last_completed_at,last_attempt_at,next_run_at,next_scheduled_at,queue_lock_age_seconds}' sync.json
           echo '--- homepage bridge markers ---'
           printf 'recent-items='; grep -o 'class="alx-recent-item"' home.html | wc -l || true
           printf 'live-metrics='; grep -o 'class="alx-live-metric' home.html | wc -l || true
