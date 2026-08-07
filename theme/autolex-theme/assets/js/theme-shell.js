@@ -24,8 +24,7 @@
     };
 
     toggle.addEventListener('click', () => {
-      const open = toggle.getAttribute('aria-expanded') === 'true';
-      if (open) {
+      if (toggle.getAttribute('aria-expanded') === 'true') {
         closeMenu(true);
       } else {
         openMenu();
@@ -66,24 +65,20 @@
       }
     });
 
-    window.matchMedia('(min-width: 961px)').addEventListener('change', (event) => {
+    window.matchMedia('(min-width: 1181px)').addEventListener('change', (event) => {
       if (event.matches) closeMenu();
     });
   }
 
-  const desktopRailQuery = window.matchMedia('(min-width: 1181px)');
-  const secondaryRailCards = Array.from(document.querySelectorAll('.alx-home-rail--left .alx-mobile-card, .alx-home-rail--left .alx-safety-card'));
-  const syncSecondaryRailCards = (event) => {
-    const desktop = typeof event.matches === 'boolean' ? event.matches : desktopRailQuery.matches;
-    secondaryRailCards.forEach((card) => {
-      card.hidden = desktop;
-      card.setAttribute('aria-hidden', String(desktop));
+  const headerSearch = document.querySelector('.alx-header-search-menu');
+  if (headerSearch) {
+    headerSearch.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && headerSearch.open) {
+        headerSearch.open = false;
+        const summary = headerSearch.querySelector('summary');
+        if (summary) summary.focus();
+      }
     });
-  };
-
-  if (secondaryRailCards.length) {
-    syncSecondaryRailCards(desktopRailQuery);
-    desktopRailQuery.addEventListener('change', syncSecondaryRailCards);
   }
 
   const searchForm = document.querySelector('[data-alx-search-form]');

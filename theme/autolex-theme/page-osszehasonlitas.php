@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 
 get_header();
 ?>
-<main id="main-content" class="alx-comparison-page" tabindex="-1">
+<div class="alx-comparison-page" tabindex="-1">
     <div class="alx-shell alx-comparison-shell">
         <header class="alx-comparison-hero" aria-labelledby="alx-comparison-title">
             <p class="alx-eyebrow"><?php esc_html_e('Autolex összehasonlító', 'autolex-theme'); ?></p>
@@ -67,6 +67,6 @@ get_header();
             </div>
         </section>
     </div>
-</main>
+</div>
 <?php
 get_footer();

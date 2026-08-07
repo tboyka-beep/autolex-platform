@@ -3,7 +3,7 @@ Theme Name: Autolex
 Theme URI: https://autolex.hu/
 Author: Autolex
 Description: Minimal, accessible light-first WordPress theme for the Autolex vehicle data platform.
-Version: 0.2.1
+Version: 0.3.0
 Requires at least: 6.6
 Requires PHP: 8.3
 Text Domain: autolex-theme
@@ -27,7 +27,7 @@ Text Domain: autolex-theme
   --alx-radius-lg: 20px;
   --alx-shadow-sm: 0 8px 24px rgba(16, 24, 40, 0.06);
   --alx-shadow: 0 18px 48px rgba(16, 24, 40, 0.09);
-  --alx-container: 1480px;
+  --alx-container: 1580px;
   --alx-focus: 0 0 0 4px rgba(23, 105, 232, 0.22);
 }
 
@@ -42,22 +42,35 @@ img, svg, video, canvas { max-width: 100%; height: auto; }
 table { max-width: 100%; }
 
 .alx-container { width: min(calc(100% - 32px), var(--alx-container)); margin-inline: auto; }
-.alx-site-header { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(223, 229, 238, 0.92); background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(16px); }
-.alx-header-row { min-height: 72px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; }
-.alx-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--alx-text); font-weight: 850; text-decoration: none; letter-spacing: -0.02em; }
-.alx-brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: #fff; background: linear-gradient(135deg, #2f80ff, #1256c8); }
-.alx-primary-nav ul { display: flex; justify-content: center; gap: 24px; margin: 0; padding: 0; list-style: none; }
-.alx-primary-nav a { color: #344054; font-size: 14px; font-weight: 700; text-decoration: none; }
+.alx-site-header { position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(223, 229, 238, 0.92); background: rgba(255, 255, 255, 0.97); backdrop-filter: blur(16px); }
+.alx-header-row { min-height: 64px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 28px; }
+.alx-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--alx-text); font-weight: 900; text-decoration: none; letter-spacing: -0.035em; white-space: nowrap; }
+.alx-brand:hover { color: var(--alx-text); }
+.alx-brand-mark { display: grid; place-items: center; width: 38px; height: 38px; flex: 0 0 38px; }
+.alx-brand-mark svg { display: block; width: 38px; height: 38px; }
+.alx-brand-word { font-size: 22px; line-height: 1; }
+.alx-primary-nav ul { display: flex; justify-content: center; gap: 30px; margin: 0; padding: 0; list-style: none; }
+.alx-primary-nav a { color: #1d2939; font-size: 13px; font-weight: 650; text-decoration: none; white-space: nowrap; }
 .alx-primary-nav a:hover, .alx-primary-nav .current-menu-item > a { color: var(--alx-primary); }
 .alx-header-actions { display: flex; align-items: center; gap: 10px; }
-.alx-header-actions form { margin: 0; }
-.alx-header-search { width: 188px; min-width: 0; border: 1px solid var(--alx-line); border-radius: 12px; background: var(--alx-surface-soft); padding: 9px 12px; }
-.alx-header-utilities { display: flex; align-items: center; gap: 6px; }
-.alx-utility-pill, .alx-utility-icon, .alx-login-link { display: inline-grid; place-items: center; min-height: 36px; border: 1px solid var(--alx-line); border-radius: 10px; color: #344054; background: #fff; font-size: 12px; font-weight: 800; text-decoration: none; }
-.alx-utility-pill { min-width: 42px; padding-inline: 10px; }
-.alx-utility-icon { width: 36px; font-size: 16px; }
-.alx-login-link { padding-inline: 13px; }
-.alx-login-link:hover { border-color: #b9cdf1; color: var(--alx-primary); background: var(--alx-primary-soft); }
+.alx-header-search-menu { position: relative; }
+.alx-header-search-menu summary { list-style: none; cursor: pointer; }
+.alx-header-search-menu summary::-webkit-details-marker { display: none; }
+.alx-header-search-link { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 7px 6px; color: #1d2939; font-size: 12px; font-weight: 750; text-decoration: none; }
+.alx-header-search-link:hover, .alx-header-search-menu[open] .alx-header-search-link { color: var(--alx-primary); }
+.alx-header-search-link svg { width: 18px; height: 18px; }
+.alx-header-search-panel { position: absolute; top: calc(100% + 12px); right: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; width: min(430px, calc(100vw - 32px)); border: 1px solid var(--alx-line); border-radius: 14px; background: #fff; padding: 10px; box-shadow: var(--alx-shadow); }
+.alx-header-search-field { width: 100%; min-height: 42px; border: 1px solid var(--alx-line); border-radius: 10px; background: #fff; padding: 0 12px; color: var(--alx-text); }
+.alx-header-search-panel button { min-height: 42px; border: 0; border-radius: 10px; color: #fff; background: var(--alx-primary); padding: 0 16px; font-weight: 800; cursor: pointer; }
+.alx-header-search-panel button:hover { background: var(--alx-primary-hover); }
+.alx-header-utilities { display: flex; align-items: center; gap: 3px; }
+.alx-utility-pill, .alx-utility-icon { display: inline-grid; place-items: center; min-height: 36px; border: 0; border-radius: 10px; color: #1d2939; background: transparent; font-size: 12px; font-weight: 800; text-decoration: none; }
+.alx-utility-pill { min-width: 34px; padding-inline: 6px; }
+.alx-utility-icon { width: 34px; font-size: 17px; }
+.alx-utility-icon svg { width: 18px; height: 18px; }
+.alx-login-link { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; margin-left: 8px; border: 1px solid var(--alx-primary); border-radius: 9px; color: #fff; background: var(--alx-primary); padding: 0 14px; font-size: 12px; font-weight: 800; text-decoration: none; box-shadow: 0 6px 14px rgba(23, 105, 232, 0.16); }
+.alx-login-link svg { width: 17px; height: 17px; }
+.alx-login-link:hover { border-color: var(--alx-primary-hover); color: #fff; background: var(--alx-primary-hover); }
 .alx-menu-toggle { display: none; min-width: 44px; min-height: 44px; border: 1px solid var(--alx-line); border-radius: 12px; background: var(--alx-surface); cursor: pointer; }
 
 .alx-main { min-height: 60vh; padding-block: 28px 72px; }
@@ -117,7 +130,6 @@ table { max-width: 100%; }
 }
 @media (max-width: 1180px) {
   .alx-primary-nav { display: none; }
-  .alx-header-search { display: none; }
   .alx-menu-toggle { display: inline-grid; place-items: center; }
   .alx-home-grid { grid-template-columns: 210px minmax(0, 1fr); }
   .alx-coverage-panel { grid-column: 1 / -1; }
@@ -135,7 +147,14 @@ table { max-width: 100%; }
 }
 @media (max-width: 640px) {
   .alx-container { width: min(calc(100% - 24px), var(--alx-container)); }
-  .alx-header-row { min-height: 64px; gap: 12px; }
+  .alx-header-row { min-height: 60px; gap: 10px; }
+  .alx-brand-mark, .alx-brand-mark svg { width: 34px; height: 34px; }
+  .alx-brand-mark { flex-basis: 34px; }
+  .alx-brand-word { font-size: 19px; }
+  .alx-header-actions { gap: 4px; }
+  .alx-header-search-link { width: 38px; justify-content: center; padding-inline: 0; }
+  .alx-header-search-link span { display: none; }
+  .alx-header-search-panel { right: -50px; width: min(360px, calc(100vw - 24px)); }
   .alx-main { padding-top: 18px; }
   .alx-content-shell { padding: 22px 18px; }
   .alx-hero { min-height: auto; }

@@ -15,7 +15,7 @@ while (have_posts()) :
     the_post();
     $source_content = trim((string) get_the_content());
     ?>
-    <main id="main-content" class="alx-main">
+    <div class="alx-sources-route">
         <section class="alx-container alx-sources-page" aria-labelledby="alx-sources-title">
             <header class="alx-sources-header">
                 <p class="alx-eyebrow"><?php esc_html_e('Adatforrás és megerősítés', 'autolex-theme'); ?></p>
@@ -66,7 +66,7 @@ while (have_posts()) :
                 </div>
             </section>
         </section>
-    </main>
+    </div>
     <?php
 endwhile;
 

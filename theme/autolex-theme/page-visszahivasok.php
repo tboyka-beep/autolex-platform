@@ -15,7 +15,7 @@ while (have_posts()) :
     the_post();
     $content = trim((string) get_the_content());
     ?>
-    <main id="main-content" class="alx-safety-page">
+    <div class="alx-safety-page">
         <div class="alx-container alx-safety-shell">
             <header class="alx-safety-hero" aria-labelledby="alx-safety-title">
                 <div>
@@ -51,7 +51,7 @@ while (have_posts()) :
                 <?php endif; ?>
             </section>
         </div>
-    </main>
+    </div>
     <?php
 endwhile;
 

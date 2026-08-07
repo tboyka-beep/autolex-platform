@@ -28,12 +28,16 @@ if [ "$(grep -Fc '$autolex_render_home_slot(' "$front")" -ne 3 ]; then
   exit 1
 fi
 
-for fallback in \
-  'A tényleges lefedettségi adatok betöltése folyamatban.' \
-  'A népszerű márkák a valós használati adatok alapján jelennek meg.' \
-  'Forrásrekordok'
-do
-  grep -Fq "$fallback" "$front"
+grep -Fq 'alx-coverage-fallback' "$front"
+grep -Fq 'alx-brand-fallback-grid' "$front"
+grep -Fq 'alx-live-metric--fallback' "$front"
+grep -Fq 'Lefedettség' "$front"
+
+for fake_count in '15 842 654' '320 000' '98 765' '3 241' '100 000+' '5 000+' '1200+' '99.1%'; do
+  if grep -Fq "$fake_count" "$front"; then
+    echo "fabricated public dashboard count found in theme fallback: $fake_count" >&2
+    exit 1
+  fi
 done
 
 echo 'Autolex dynamic homepage slot contract passed.'

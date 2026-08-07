@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 
 get_header();
 ?>
-<main id="main-content" class="alx-main">
+<div class="alx-not-found-route">
     <section class="alx-container alx-state-page" aria-labelledby="alx-not-found-title">
         <div class="alx-state-card">
             <p class="alx-state-code" aria-hidden="true">404</p>
@@ -31,6 +31,6 @@ get_header();
             </nav>
         </div>
     </section>
-</main>
+</div>
 <?php
 get_footer();

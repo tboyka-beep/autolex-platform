@@ -14,7 +14,7 @@ get_header();
     <?php while (have_posts()) : the_post(); ?>
         <?php if (is_page('tudastar')) : ?>
             <?php $knowledge_content = trim((string) get_the_content()); ?>
-            <main id="main-content" class="alx-knowledge-page" aria-labelledby="alx-knowledge-title">
+            <div class="alx-knowledge-page" aria-labelledby="alx-knowledge-title">
                 <header class="alx-document-header alx-knowledge-header">
                     <p class="alx-eyebrow"><?php esc_html_e('Autós tudástár', 'autolex-theme'); ?></p>
                     <h1 id="alx-knowledge-title"><?php the_title(); ?></h1>
@@ -65,7 +65,7 @@ get_header();
                         </article>
                     </div>
                 </section>
-            </main>
+            </div>
         <?php else : ?>
             <article id="post-<?php the_ID(); ?>" <?php post_class('alx-document'); ?>>
                 <header class="alx-document-header">
