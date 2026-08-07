@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT='scripts/autolex-live-production-qa.sh'
+RECOVERY='scripts/recover-autolex-safety-gate.sh'
 ROUTE='plugin/autolex-platform/includes/class-autolex-comparison-page.php'
 PORTAL='plugin/autolex-platform/includes/class-autolex-portal.php'
 QUERY='plugin/autolex-platform/includes/trait-autolex-portal-query.php'
@@ -9,7 +10,7 @@ MAINTENANCE='plugin/autolex-platform/includes/class-autolex-maintenance-evidence
 SAFETY='plugin/autolex-platform/includes/class-autolex-safety-gate.php'
 SEO='plugin/autolex-platform/includes/class-autolex-vehicle-seo.php'
 
-for file in "$SCRIPT" "$ROUTE" "$PORTAL" "$QUERY" "$MAINTENANCE" "$SAFETY" "$SEO"; do
+for file in "$SCRIPT" "$RECOVERY" "$ROUTE" "$PORTAL" "$QUERY" "$MAINTENANCE" "$SAFETY" "$SEO"; do
   [[ -f "$file" ]] || { echo "missing launch QA dependency: $file"; exit 1; }
 done
 
@@ -51,6 +52,24 @@ required=(
 for marker in "${required[@]}"; do
   grep -Fq -- "$marker" "$SCRIPT" || {
     echo "missing live launch QA contract marker: $marker"
+    exit 1
+  }
+done
+
+recovery_required=(
+  'SAFETY_RECOVERY_FAIL'
+  'SAFETY_RECOVERY_OK'
+  'SAFETY_RECOVERY_WAIT'
+  '/wp-json/autolex/v1/safety-gate-status'
+  '/wp-cron.php?doing_wp_cron=autolex-safety-recovery-'
+  'AUTOLEX_SAFETY_RECOVERY_ATTEMPTS'
+  'Please wait while your request is being verified'
+  '--retry-all-errors'
+  '--max-time 150'
+)
+for marker in "${recovery_required[@]}"; do
+  grep -Fq -- "$marker" "$RECOVERY" || {
+    echo "missing Safety Gate recovery marker: $marker"
     exit 1
   }
 done
@@ -104,24 +123,30 @@ grep -Fq "'/maintenance/(?P<vehicle_id>\\d+)'" "$MAINTENANCE" || {
   echo 'maintenance REST contract is missing'
   exit 1
 }
-grep -Fq "'/safety-gate-status'" "$SAFETY" || {
-  echo 'Safety Gate status REST contract is missing'
-  exit 1
-}
-grep -Fq "'/recalls'" "$SAFETY" || {
-  echo 'Safety Gate recalls REST contract is missing'
-  exit 1
-}
+for marker in \
+  "'/safety-gate-status'" \
+  "'/recalls'" \
+  'const FETCH_ATTEMPTS = 3' \
+  "const RETRY_HOOK = 'autolex_safety_gate_retry'" \
+  "'httpversion' => '1.1'" \
+  'wp_schedule_single_event(time() + 5, self::RETRY_HOOK)' \
+  "add_action(self::RETRY_HOOK, array(\$this, 'sync'))"; do
+  grep -Fq -- "$marker" "$SAFETY" || {
+    echo "missing Safety Gate resilience contract marker: $marker"
+    exit 1
+  }
+done
 grep -Fq "~/auto-adatlap/(\\d+)" "$SEO" || {
   echo 'vehicle SEO dynamic route parser contract is missing'
   exit 1
 }
 
 bash -n "$SCRIPT"
+bash -n "$RECOVERY"
 php -l "$ROUTE" >/dev/null
 php -l "$PORTAL" >/dev/null
 php -l "$MAINTENANCE" >/dev/null
 php -l "$SAFETY" >/dev/null
 php -l "$SEO" >/dev/null
 
-echo 'Autolex production launch dynamic live QA contract passed.'
+echo 'Autolex production launch dynamic live QA and Safety Gate recovery contract passed.'
