@@ -980,3 +980,82 @@ body.home [role="tab"]:focus-visible {
     transition: none;
   }
 }
+
+/* ALX-042.1: preserve required homepage cards as spacious landing sections. */
+.alx-mobile-card {
+  order: 5;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  height: auto;
+  min-height: 132px;
+  overflow: visible;
+  padding: 24px 26px;
+  background: linear-gradient(135deg, #ffffff 0%, #f3f8ff 100%);
+}
+
+.alx-safety-card {
+  order: 6;
+  display: block;
+  height: auto;
+  min-height: 180px;
+  overflow: visible;
+  padding: 24px 26px;
+  background: linear-gradient(135deg, #ffffff 0%, #fff8f5 100%);
+}
+
+.alx-brand-panel { order: 7; }
+.alx-coverage-panel { order: 8; }
+.alx-knowledge-card { order: 9; }
+.alx-recent-updates-card { order: 10; }
+
+.alx-mobile-card .alx-phone-icon {
+  width: 32px;
+  height: 54px;
+}
+
+.alx-mobile-card h2,
+.alx-safety-card h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.25;
+  text-transform: none;
+}
+
+.alx-mobile-card p,
+.alx-safety-card p {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.alx-mobile-card a,
+.alx-safety-card a {
+  font-size: 14px;
+}
+
+.alx-safety-card .alx-safety-label {
+  font-size: 13px;
+}
+
+.alx-safety-card a {
+  margin-top: 16px;
+}
+
+@media (max-width: 760px) {
+  .alx-mobile-card,
+  .alx-safety-card {
+    padding: 20px;
+  }
+
+  .alx-mobile-card {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 14px;
+    min-height: 120px;
+  }
+
+  .alx-mobile-card h2,
+  .alx-safety-card h2 {
+    font-size: 20px;
+  }
+}
