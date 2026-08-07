@@ -73,12 +73,10 @@ if service != 'autolex-platform' or status != 'ok' or version != expected:
 print(f'LIVE_QA_OK: status autolex-platform / ok / {version}')
 PY
 
-# ALX-042/043 light-theme route contracts. Prefer structural markers where
-# available so copy changes do not create false production alarms.
+# Guaranteed public production routes. Theme-template-only pages are exercised
+# by the isolated Visual QA matrix instead of being assumed to exist in live WP.
 assert_html_any '/' 'home' 'data-reference-dashboard="true"'
 assert_html_any '/autok/' 'catalog' 'Járműkatalógus'
 assert_html_any '/osszehasonlitas/' 'compare' 'alx3-compare'
-assert_html_any '/jarmu/' 'vehicle' 'alx-vehicle-page'
-assert_html_any '/markak/' 'brands' 'alx-hierarchy-page'
 
 printf 'LIVE_QA_SUCCESS: base=%s version=%s\n' "$BASE_URL" "$EXPECTED_VERSION"
