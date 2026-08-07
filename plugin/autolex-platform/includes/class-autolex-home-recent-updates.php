@@ -140,7 +140,9 @@ final class Autolex_Home_Recent_Updates
             return array();
         }
 
-        $cache_key = 'autolex_home_recent_vehicles_v1';
+        // v2 deliberately bypasses the stale empty cache created before the
+        // EEA response-envelope repair started populating the EU catalogue.
+        $cache_key = 'autolex_home_recent_vehicles_v2';
         $cached = function_exists('get_transient') ? get_transient($cache_key) : false;
         if (is_array($cached)) {
             return $cached;
@@ -158,7 +160,7 @@ final class Autolex_Home_Recent_Updates
 
         if (!is_array($rows)) {
             if (function_exists('set_transient')) {
-                set_transient($cache_key, array(), 300);
+                set_transient($cache_key, array(), 30);
             }
             return array();
         }
@@ -185,7 +187,7 @@ final class Autolex_Home_Recent_Updates
         }
 
         if (function_exists('set_transient')) {
-            set_transient($cache_key, $picked, 300);
+            set_transient($cache_key, $picked, empty($picked) ? 30 : 300);
         }
 
         return $picked;
