@@ -1,0 +1,131 @@
+/* ALX-042 final screenshot-review corrections.
+ * Loaded after real-media-polish.css so the vertical landing rules remain
+ * authoritative over the retired compact reference-dashboard presentation. */
+
+/* The separate brand-explore card duplicates the full-width popular-brands
+ * section below. Keep one clear brand destination and let the featured vehicle
+ * use the whole content width instead of leaving a blank desktop column. */
+body.home .alx-home-cards--primary > .alx-brand-explore-card {
+  display: none !important;
+}
+
+body.home .alx-home-cards--primary > .alx-featured-vehicle-card {
+  grid-column: 1 / -1 !important;
+}
+
+body.home .alx-featured-vehicle-head {
+  grid-template-columns: minmax(0, .72fr) minmax(360px, 1.28fr);
+}
+
+/* The legacy desktop reference layer gave recent updates its own placement.
+ * Force it back into the normal landing flow after knowledge/coverage. */
+body.home .alx-home-center > .alx-recent-updates-card {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+  float: none !important;
+  grid-area: auto !important;
+  grid-column: 1 / -1 !important;
+  order: 10 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 160px !important;
+  margin: 0 !important;
+  justify-self: stretch !important;
+  align-self: stretch !important;
+  transform: none !important;
+}
+
+/* Remove fragile third-party logo rendering from the visual surface. Brand
+ * names remain the accessible label; the badge is intentionally decorative. */
+body.home .alx-brand-logo {
+  border: 1px solid #dce8f8;
+  background: linear-gradient(145deg, #ffffff 0%, #edf5ff 100%);
+  box-shadow: 0 4px 12px rgba(23, 105, 232, .08);
+}
+
+body.home .alx-brand-logo img {
+  display: none !important;
+}
+
+body.home .alx-brand-logo::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 3px solid #1769e8;
+  border-right-color: #63b3ff;
+  border-bottom-color: #27a66f;
+  border-radius: 50%;
+  transform: rotate(-18deg);
+}
+
+/* Knowledge thumbnails use self-contained colored topic marks so lazy or
+ * third-party image failures never leave broken-image placeholders. */
+body.home .alx-knowledge-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: #17314f;
+  background: linear-gradient(135deg, #eaf3ff, #dff8f0);
+}
+
+body.home .alx-knowledge-thumb img {
+  display: none !important;
+}
+
+body.home .alx-knowledge-thumb::before {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+body.home .alx-knowledge-list li:nth-child(1) .alx-knowledge-thumb {
+  background: linear-gradient(135deg, #dcecff 0%, #eaf6ff 55%, #dff8f0 100%);
+}
+body.home .alx-knowledge-list li:nth-child(1) .alx-knowledge-thumb::before { content: 'VIN'; }
+
+body.home .alx-knowledge-list li:nth-child(2) .alx-knowledge-thumb {
+  background: linear-gradient(135deg, #e6f4ff 0%, #f4f8ff 48%, #d9e9ff 100%);
+}
+body.home .alx-knowledge-list li:nth-child(2) .alx-knowledge-thumb::before { content: 'GUMI'; }
+
+body.home .alx-knowledge-list li:nth-child(3) .alx-knowledge-thumb {
+  background: linear-gradient(135deg, #fff0d9 0%, #fff8e9 55%, #ffe6b8 100%);
+}
+body.home .alx-knowledge-list li:nth-child(3) .alx-knowledge-thumb::before { content: 'OLAJ'; }
+
+body.home .alx-knowledge-list li:nth-child(4) .alx-knowledge-thumb {
+  background: linear-gradient(135deg, #ffe8e7 0%, #fff3ee 50%, #ffe1d6 100%);
+}
+body.home .alx-knowledge-list li:nth-child(4) .alx-knowledge-thumb::before { content: 'FÉK'; }
+
+/* Stronger summer color in the comparison block, using free Unsplash imagery.
+ * The first scene is a Cannes palm-lined sunset; the second a coastal
+ * convertible drive. Both are illustrative only, never data sources. */
+body.home .alx-compare-vehicles--photos > .alx-compare-media:first-child {
+  background-image: url('https://images.unsplash.com/photo-1779173851359-4ad95121b1b1?auto=format&fit=crop&w=1200&h=760&q=82') !important;
+  background-position: center 58% !important;
+}
+
+body.home .alx-compare-vehicles--photos > .alx-compare-media:last-child {
+  background-image: url('https://images.unsplash.com/photo-1765863201361-40143e0b37e4?auto=format&fit=crop&w=1200&h=760&q=82') !important;
+  background-position: center 55% !important;
+}
+
+@media (max-width: 960px) {
+  body.home .alx-featured-vehicle-head {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  body.home .alx-home-center > .alx-recent-updates-card {
+    min-height: 140px !important;
+  }
+
+  body.home .alx-knowledge-thumb::before {
+    font-size: 11px;
+  }
+}
