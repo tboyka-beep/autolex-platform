@@ -20,10 +20,7 @@ required=(
   'Járműkatalógus'
   '/osszehasonlitas/'
   'alx3-compare'
-  '/jarmu/'
-  'alx-vehicle-page'
-  '/markak/'
-  'alx-hierarchy-page'
+  'Guaranteed public production routes'
   '--retry-all-errors'
   '--connect-timeout'
   '--max-time'
@@ -36,11 +33,16 @@ for marker in "${required[@]}"; do
   }
 done
 
-# Retired markers must not silently return after the ALX-043 copy/shell update.
-if grep -Fq "assert_html '/autok/' 'Autók'" "$SCRIPT"; then
-  echo 'stale Autók catalogue marker is still active'
-  exit 1
-fi
+# Retired/staging-only assumptions must not silently return.
+for stale in \
+  "assert_html '/autok/' 'Autók'" \
+  "assert_html_any '/jarmu/'" \
+  "assert_html_any '/markak/'"; do
+  if grep -Fq -- "$stale" "$SCRIPT"; then
+    echo "stale or template-only live route assertion is active: $stale"
+    exit 1
+  fi
+done
 
 route_required=(
   "add_action('template_redirect'"
@@ -61,4 +63,4 @@ done
 bash -n "$SCRIPT"
 php -l "$ROUTE" >/dev/null
 
-echo 'Live production QA and current light-theme route contract smoke test passed.'
+echo 'Live production QA public-route contract smoke test passed.'
