@@ -83,10 +83,10 @@
   white-space: nowrap;
 }
 
-/* On wide screens the recent-data module replaces the middle dashboard card
- * visually without participating in the parent grid's row sizing. This keeps
- * the approved 1672x941 hero/fold geometry unchanged. Popular brands remain
- * available in the right rail and on the dedicated brand route. */
+/* On wide screens the recent-data module replaces the exact middle dashboard
+ * column (1.08fr / 1fr / 1.56fr with 12px gaps) without participating in the
+ * parent grid's row sizing. That keeps the approved hero/fold geometry intact
+ * and prevents any overlap with the comparison card. */
 @media (min-width: 1181px) {
   .alx-home-center {
     position: relative;
@@ -95,9 +95,9 @@
   .alx-home-center > .alx-recent-updates-card {
     position: absolute;
     z-index: 3;
-    right: 35.5%;
+    left: calc(29.67033% + 4.88px);
     bottom: 0;
-    width: 29%;
+    width: calc(27.47253% - 6.59px);
     height: 212px;
     box-sizing: border-box;
   }
