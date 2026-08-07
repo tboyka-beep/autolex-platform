@@ -84,15 +84,18 @@ final class Autolex_Home_Recent_Updates
                     trim((string) ($vehicle['version'] ?? '')),
                 ))));
 
-                $facts = array();
+                $meta = array();
+                if ($edition !== '') {
+                    $meta[] = $edition;
+                }
                 if (!empty($vehicle['fuel_type'])) {
-                    $facts[] = (string) $vehicle['fuel_type'];
+                    $meta[] = (string) $vehicle['fuel_type'];
                 }
                 if (!empty($vehicle['engine_power_kw']) && is_numeric($vehicle['engine_power_kw'])) {
-                    $facts[] = number_format_i18n((float) $vehicle['engine_power_kw'], 0) . ' kW';
+                    $meta[] = number_format_i18n((float) $vehicle['engine_power_kw'], 0) . ' kW';
                 }
                 if (!empty($vehicle['last_seen_year'])) {
-                    $facts[] = (string) (int) $vehicle['last_seen_year'];
+                    $meta[] = (string) (int) $vehicle['last_seen_year'];
                 }
 
                 $url = add_query_arg(
@@ -110,19 +113,18 @@ final class Autolex_Home_Recent_Updates
                     <span class="alx-recent-icon" aria-hidden="true">↻</span>
                     <span class="alx-recent-copy">
                         <strong><?php echo esc_html($name); ?></strong>
-                        <?php if ($edition !== '') : ?><small><?php echo esc_html($edition); ?></small><?php endif; ?>
-                        <?php if ($facts) : ?><span class="alx-recent-facts"><?php echo esc_html(implode(' · ', $facts)); ?></span><?php endif; ?>
+                        <?php if ($meta) : ?><small><?php echo esc_html(implode(' · ', $meta)); ?></small><?php endif; ?>
+                        <?php if ($updated_label !== '') : ?>
+                            <time class="alx-recent-time" datetime="<?php echo esc_attr($datetime); ?>">
+                                <?php
+                                printf(
+                                    esc_html__('Frissítve: %s', 'autolex-platform'),
+                                    esc_html($updated_label)
+                                );
+                                ?>
+                            </time>
+                        <?php endif; ?>
                     </span>
-                    <?php if ($updated_label !== '') : ?>
-                        <time class="alx-recent-time" datetime="<?php echo esc_attr($datetime); ?>">
-                            <?php
-                            printf(
-                                esc_html__('Frissítve: %s', 'autolex-platform'),
-                                esc_html($updated_label)
-                            );
-                            ?>
-                        </time>
-                    <?php endif; ?>
                 </a>
             <?php endforeach; ?>
         </div>
