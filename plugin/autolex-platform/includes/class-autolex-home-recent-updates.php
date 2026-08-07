@@ -141,7 +141,7 @@ final class Autolex_Home_Recent_Updates
         }
 
         $cache_key = 'autolex_home_recent_vehicles_v1';
-        $cached = get_transient($cache_key);
+        $cached = function_exists('get_transient') ? get_transient($cache_key) : false;
         if (is_array($cached)) {
             return $cached;
         }
@@ -157,7 +157,9 @@ final class Autolex_Home_Recent_Updates
         );
 
         if (!is_array($rows)) {
-            set_transient($cache_key, array(), 300);
+            if (function_exists('set_transient')) {
+                set_transient($cache_key, array(), 300);
+            }
             return array();
         }
 
@@ -182,7 +184,10 @@ final class Autolex_Home_Recent_Updates
             }
         }
 
-        set_transient($cache_key, $picked, 300);
+        if (function_exists('set_transient')) {
+            set_transient($cache_key, $picked, 300);
+        }
+
         return $picked;
     }
 
