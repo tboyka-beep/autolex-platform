@@ -4,17 +4,23 @@ on:
   pull_request:
     paths:
       - 'scripts/autolex-live-production-qa.sh'
+      - 'scripts/recover-autolex-safety-gate.sh'
       - 'tests/live-production-qa-smoke.sh'
+      - 'tests/safety-gate-smoke.php'
       - '.github/workflows/autolex-live-production-qa.yml'
       - 'plugin/autolex-platform/includes/class-autolex-comparison-page.php'
+      - 'plugin/autolex-platform/includes/class-autolex-safety-gate.php'
   push:
     branches:
       - main
     paths:
       - 'scripts/autolex-live-production-qa.sh'
+      - 'scripts/recover-autolex-safety-gate.sh'
       - 'tests/live-production-qa-smoke.sh'
+      - 'tests/safety-gate-smoke.php'
       - '.github/workflows/autolex-live-production-qa.yml'
       - 'plugin/autolex-platform/includes/class-autolex-comparison-page.php'
+      - 'plugin/autolex-platform/includes/class-autolex-safety-gate.php'
   workflow_dispatch:
     inputs:
       expected_version:
@@ -42,8 +48,11 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: contract
     runs-on: ubuntu-24.04
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v7
+      - name: Recover transient Safety Gate sync state
+        run: bash scripts/recover-autolex-safety-gate.sh
       - name: Run fail-closed live production QA
         run: bash scripts/autolex-live-production-qa.sh
 
@@ -55,5 +64,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+      - name: Recover transient Safety Gate sync state
+        run: bash scripts/recover-autolex-safety-gate.sh
       - name: Run fail-closed live production QA
         run: bash scripts/autolex-live-production-qa.sh
