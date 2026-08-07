@@ -6,11 +6,11 @@
  * section below. Keep one clear brand destination and let the featured vehicle
  * use the whole content width instead of leaving a blank desktop column. */
 body.home .alx-home-cards--primary > .alx-brand-explore-card {
-  display: none !important;
+  display: none;
 }
 
 body.home .alx-home-cards--primary > .alx-featured-vehicle-card {
-  grid-column: 1 / -1 !important;
+  grid-column: 1 / -1;
 }
 
 body.home .alx-featured-vehicle-head {
@@ -20,20 +20,20 @@ body.home .alx-featured-vehicle-head {
 /* The legacy desktop reference layer gave recent updates its own placement.
  * Force it back into the normal landing flow after knowledge/coverage. */
 body.home .alx-home-center > .alx-recent-updates-card {
-  position: static !important;
-  inset: auto !important;
-  z-index: auto !important;
-  float: none !important;
-  grid-area: auto !important;
-  grid-column: 1 / -1 !important;
-  order: 10 !important;
-  width: 100% !important;
-  max-width: none !important;
-  min-height: 160px !important;
-  margin: 0 !important;
-  justify-self: stretch !important;
-  align-self: stretch !important;
-  transform: none !important;
+  position: static;
+  inset: auto;
+  z-index: auto;
+  float: none;
+  grid-area: auto;
+  grid-column: 1 / -1;
+  order: 10;
+  width: 100%;
+  max-width: none;
+  min-height: 160px;
+  margin: 0;
+  justify-self: stretch;
+  align-self: stretch;
+  transform: none;
 }
 
 /* Remove fragile third-party logo rendering from the visual surface. Brand
@@ -45,7 +45,7 @@ body.home .alx-brand-logo {
 }
 
 body.home .alx-brand-logo img {
-  display: none !important;
+  display: none;
 }
 
 body.home .alx-brand-logo::before {
@@ -70,7 +70,7 @@ body.home .alx-knowledge-thumb {
 }
 
 body.home .alx-knowledge-thumb img {
-  display: none !important;
+  display: none;
 }
 
 body.home .alx-knowledge-thumb::before {
@@ -105,13 +105,13 @@ body.home .alx-knowledge-list li:nth-child(4) .alx-knowledge-thumb::before { con
  * The first scene is a Cannes palm-lined sunset; the second a coastal
  * convertible drive. Both are illustrative only, never data sources. */
 body.home .alx-compare-vehicles--photos > .alx-compare-media:first-child {
-  background-image: url('https://images.unsplash.com/photo-1779173851359-4ad95121b1b1?auto=format&fit=crop&w=1200&h=760&q=82') !important;
-  background-position: center 58% !important;
+  background-image: url('https://images.unsplash.com/photo-1779173851359-4ad95121b1b1?auto=format&fit=crop&w=1200&h=760&q=82');
+  background-position: center 58%;
 }
 
 body.home .alx-compare-vehicles--photos > .alx-compare-media:last-child {
-  background-image: url('https://images.unsplash.com/photo-1765863201361-40143e0b37e4?auto=format&fit=crop&w=1200&h=760&q=82') !important;
-  background-position: center 55% !important;
+  background-image: url('https://images.unsplash.com/photo-1765863201361-40143e0b37e4?auto=format&fit=crop&w=1200&h=760&q=82');
+  background-position: center 55%;
 }
 
 @media (max-width: 960px) {
@@ -122,7 +122,7 @@ body.home .alx-compare-vehicles--photos > .alx-compare-media:last-child {
 
 @media (max-width: 760px) {
   body.home .alx-home-center > .alx-recent-updates-card {
-    min-height: 140px !important;
+    min-height: 140px;
   }
 
   body.home .alx-knowledge-thumb::before {
