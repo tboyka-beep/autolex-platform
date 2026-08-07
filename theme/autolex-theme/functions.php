@@ -53,6 +53,7 @@ function autolex_theme_assets()
         wp_enqueue_style('autolex-theme-home', get_template_directory_uri() . '/assets/css/home.css', array('autolex-theme', 'autolex-theme-states'), autolex_theme_asset_version('assets/css/home.css'));
         wp_enqueue_style('autolex-theme-reference-dashboard', get_template_directory_uri() . '/assets/css/reference-dashboard.css', array('autolex-theme-home'), autolex_theme_asset_version('assets/css/reference-dashboard.css'));
         wp_enqueue_style('autolex-theme-reference-dashboard-responsive', get_template_directory_uri() . '/assets/css/reference-dashboard-responsive.css', array('autolex-theme-reference-dashboard'), autolex_theme_asset_version('assets/css/reference-dashboard-responsive.css'));
+        wp_enqueue_style('autolex-theme-real-media-polish', get_template_directory_uri() . '/assets/css/real-media-polish.css', array('autolex-theme-reference-dashboard-responsive'), autolex_theme_asset_version('assets/css/real-media-polish.css'));
     }
 
     if (is_page('autok')) {

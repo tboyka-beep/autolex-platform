@@ -52,14 +52,19 @@ function esc_html__($text, $domain = null)
     return esc_html($text);
 }
 
+function esc_html_e($text, $domain = null)
+{
+    echo esc_html($text);
+}
+
 function esc_url($url)
 {
     return (string) $url;
 }
 
-function number_format_i18n($number)
+function number_format_i18n($number, $decimals = 0)
 {
-    return number_format((int) $number, 0, '.', ' ');
+    return number_format((float) $number, (int) $decimals, '.', ' ');
 }
 
 function home_url($path = '/')
@@ -67,14 +72,31 @@ function home_url($path = '/')
     return 'https://example.test' . '/' . ltrim((string) $path, '/');
 }
 
-function add_query_arg($key, $value, $url)
+function add_query_arg($key, $value = null, $url = null)
 {
-    return $url . (strpos($url, '?') === false ? '?' : '&') . rawurlencode($key) . '=' . rawurlencode($value);
+    if (is_array($key)) {
+        $args = $key;
+        $url = (string) $value;
+    } else {
+        $args = array($key => $value);
+        $url = (string) $url;
+    }
+
+    foreach ($args as $arg_key => $arg_value) {
+        $url .= (strpos($url, '?') === false ? '?' : '&') . rawurlencode((string) $arg_key) . '=' . rawurlencode((string) $arg_value);
+    }
+
+    return $url;
 }
 
 function get_option($name)
 {
     return $GLOBALS['autolex_test_options'][$name] ?? null;
+}
+
+function remove_accents($value)
+{
+    return strtr((string) $value, array('Š' => 'S', 'š' => 's', 'Á' => 'A', 'á' => 'a', 'É' => 'E', 'é' => 'e'));
 }
 
 final class Autolex_EU_Catalog
@@ -123,13 +145,46 @@ final class Autolex_Test_Wpdb
 {
     public function get_results($sql, $format)
     {
-        if ($format !== ARRAY_A || strpos($sql, 'ORDER BY registrations DESC, variants DESC, make ASC') === false) {
-            throw new RuntimeException('Popular brand query contract changed unexpectedly.');
+        if ($format !== ARRAY_A) {
+            throw new RuntimeException('Theme bridge queries must request ARRAY_A.');
+        }
+
+        if (strpos($sql, 'GROUP BY make') !== false && strpos($sql, 'ORDER BY registrations DESC, variants DESC, make ASC') !== false) {
+            return array(
+                array('make' => 'Toyota', 'variants' => 42, 'registrations' => 1000),
+                array('make' => 'Ford', 'variants' => 31, 'registrations' => 900),
+            );
+        }
+
+        if (strpos($sql, 'LIMIT 30') !== false && strpos($sql, 'engine_power_kw') !== false) {
+            return array(
+                array('id' => 1, 'make' => 'BMW', 'model' => '3 Series', 'engine_capacity_cc' => 1998, 'engine_power_kw' => 135, 'co2_wltp' => 142, 'registration_count' => 1000, 'last_seen_year' => 2025),
+                array('id' => 2, 'make' => 'Audi', 'model' => 'A4', 'engine_capacity_cc' => 1984, 'engine_power_kw' => 150, 'co2_wltp' => 151, 'registration_count' => 900, 'last_seen_year' => 2025),
+                array('id' => 3, 'make' => 'BMW', 'model' => '5 Series', 'engine_capacity_cc' => 1998, 'engine_power_kw' => 140, 'co2_wltp' => 145, 'registration_count' => 800, 'last_seen_year' => 2024),
+            );
+        }
+
+        throw new RuntimeException('Unexpected theme bridge get_results query: ' . $sql);
+    }
+
+    public function get_row($sql, $format)
+    {
+        if ($format !== ARRAY_A || strpos($sql, 'LIMIT 1') === false || strpos($sql, 'registration_count DESC') === false) {
+            throw new RuntimeException('Featured vehicle query contract changed unexpectedly.');
         }
 
         return array(
-            array('make' => 'Toyota', 'variants' => 42, 'registrations' => 1000),
-            array('make' => 'Ford', 'variants' => 31, 'registrations' => 900),
+            'id' => 1,
+            'make' => 'BMW',
+            'model' => '3 Series',
+            'variant' => 'G20',
+            'version' => '320i',
+            'fuel_type' => 'Petrol',
+            'engine_capacity_cc' => 1998,
+            'engine_power_kw' => 135,
+            'co2_wltp' => 142,
+            'last_seen_year' => 2025,
+            'registration_count' => 1000,
         );
     }
 }
@@ -142,7 +197,14 @@ $bridge = Autolex_Theme_Data_Bridge::instance();
 $bridge->register();
 $bridge->register();
 
-foreach (array('autolex_theme_coverage_panel', 'autolex_theme_popular_brands', 'autolex_theme_metric_strip', 'wp_enqueue_scripts') as $hook) {
+foreach (array(
+    'autolex_theme_coverage_panel',
+    'autolex_theme_popular_brands',
+    'autolex_theme_metric_strip',
+    'autolex_theme_featured_vehicle',
+    'autolex_theme_comparison_preview',
+    'wp_enqueue_scripts',
+) as $hook) {
     if (count($GLOBALS['autolex_test_actions'][$hook] ?? array()) !== 1) {
         throw new RuntimeException('Hook must be registered exactly once: ' . $hook);
     }
@@ -167,6 +229,20 @@ $bridge->render_metric_strip();
 $metrics = ob_get_clean();
 if (substr_count($metrics, 'class="alx-live-metric"') !== 5 || strpos($metrics, '77') === false || strpos($metrics, '9 876') === false) {
     throw new RuntimeException('Metric strip must contain five verified values.');
+}
+
+ob_start();
+$bridge->render_featured_vehicle();
+$featured = ob_get_clean();
+if (strpos($featured, 'BMW 3 Series') === false || strpos($featured, '1 998 cm³') === false || strpos($featured, '135 kW') === false || strpos($featured, 'brand=BMW') === false) {
+    throw new RuntimeException('Featured vehicle must use real catalogue fields.');
+}
+
+ob_start();
+$bridge->render_comparison_preview();
+$comparison = ob_get_clean();
+if (strpos($comparison, 'BMW 3 Series') === false || strpos($comparison, 'Audi A4') === false || strpos($comparison, '135 kW / 150 kW') === false || strpos($comparison, '142 g/km / 151 g/km') === false) {
+    throw new RuntimeException('Comparison preview must use two distinct real catalogue makes and verified fields.');
 }
 
 $bridge->enqueue_assets();

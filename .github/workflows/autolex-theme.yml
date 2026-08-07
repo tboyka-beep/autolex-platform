@@ -5,7 +5,9 @@ on:
     branches: [main]
     paths:
       - 'theme/autolex-theme/**'
+      - 'plugin/autolex-platform/includes/class-autolex-theme-data-bridge.php'
       - 'docs/AUTOLEX-THEME-MIGRATION-AUDIT.md'
+      - 'docs/ALX-035-REAL-MEDIA-POLISH.md'
       - 'tests/autolex-theme-contract.sh'
       - 'tests/autolex-theme-hierarchy-contract.sh'
       - 'tests/autolex-theme-vehicle-detail-contract.sh'
@@ -18,19 +20,21 @@ on:
       - 'tests/autolex-theme-reference-shell-contract.sh'
       - 'tests/autolex-theme-reference-dashboard-contract.sh'
       - 'tests/autolex-theme-dynamic-slots-contract.sh'
+      - 'tests/autolex-theme-real-media-contract.sh'
       - 'tests/autolex-theme-migration-contract.sh'
       - 'tests/theme-release-contract.sh'
       - 'scripts/release-autolex-theme.sh'
       - 'scripts/prove-autolex-theme-release.sh'
       - 'release/autolex-theme-release-gate.php'
       - '.github/workflows/release-autolex-theme.yml'
-      - '.github/workflows/alx-034-production-once.yml'
       - '.github/workflows/autolex-theme.yml'
   push:
     branches: [main]
     paths:
       - 'theme/autolex-theme/**'
+      - 'plugin/autolex-platform/includes/class-autolex-theme-data-bridge.php'
       - 'docs/AUTOLEX-THEME-MIGRATION-AUDIT.md'
+      - 'docs/ALX-035-REAL-MEDIA-POLISH.md'
       - 'tests/autolex-theme-contract.sh'
       - 'tests/autolex-theme-hierarchy-contract.sh'
       - 'tests/autolex-theme-vehicle-detail-contract.sh'
@@ -43,13 +47,13 @@ on:
       - 'tests/autolex-theme-reference-shell-contract.sh'
       - 'tests/autolex-theme-reference-dashboard-contract.sh'
       - 'tests/autolex-theme-dynamic-slots-contract.sh'
+      - 'tests/autolex-theme-real-media-contract.sh'
       - 'tests/autolex-theme-migration-contract.sh'
       - 'tests/theme-release-contract.sh'
       - 'scripts/release-autolex-theme.sh'
       - 'scripts/prove-autolex-theme-release.sh'
       - 'release/autolex-theme-release-gate.php'
       - '.github/workflows/release-autolex-theme.yml'
-      - '.github/workflows/alx-034-production-once.yml'
       - '.github/workflows/autolex-theme.yml'
   workflow_dispatch:
 
@@ -82,5 +86,6 @@ jobs:
       - run: bash tests/autolex-theme-reference-shell-contract.sh
       - run: bash tests/autolex-theme-reference-dashboard-contract.sh
       - run: bash tests/autolex-theme-dynamic-slots-contract.sh
+      - run: bash tests/autolex-theme-real-media-contract.sh
       - run: bash tests/autolex-theme-migration-contract.sh
       - run: bash tests/theme-release-contract.sh
