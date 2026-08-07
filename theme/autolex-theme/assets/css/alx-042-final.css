@@ -1,0 +1,424 @@
+/* ALX-042 final screenshot-review corrections.
+ * Loaded after real-media-polish.css so the vertical landing rules remain
+ * authoritative over the retired compact reference-dashboard presentation. */
+
+/* The separate brand-explore card duplicates the full-width popular-brands
+ * section below. Keep one clear brand destination and let the featured vehicle
+ * use the whole content width instead of leaving a blank desktop column. */
+body.home .alx-home-cards--primary > .alx-brand-explore-card {
+  display: none;
+}
+
+body.home .alx-home-cards--primary > .alx-featured-vehicle-card {
+  grid-column: 1 / -1;
+}
+
+body.home .alx-featured-vehicle-head {
+  grid-template-columns: minmax(0, .72fr) minmax(360px, 1.28fr);
+}
+
+/* The legacy desktop reference layer gave recent updates its own placement.
+ * Force it back into the normal landing flow after knowledge/coverage. */
+body.home .alx-home-center > .alx-recent-updates-card {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  float: none;
+  grid-area: auto;
+  grid-column: 1 / -1;
+  order: 10;
+  width: 100%;
+  max-width: none;
+  min-height: 160px;
+  margin: 0;
+  justify-self: stretch;
+  align-self: stretch;
+  transform: none;
+}
+
+/* Remove fragile third-party logo rendering from the visual surface. Brand
+ * names remain the accessible label; the badge is intentionally decorative. */
+body.home .alx-brand-logo {
+  border: 1px solid #dce8f8;
+  background: linear-gradient(145deg, #ffffff 0%, #edf5ff 100%);
+  box-shadow: 0 4px 12px rgba(23, 105, 232, .08);
+}
+
+body.home .alx-brand-logo img {
+  display: none;
+}
+
+body.home .alx-brand-logo::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 3px solid #1769e8;
+  border-right-color: #63b3ff;
+  border-bottom-color: #27a66f;
+  border-radius: 50%;
+  transform: rotate(-18deg);
+}
+
+/* Knowledge thumbnails use self-contained colored topic marks so lazy or
+ * third-party image failures never leave broken-image placeholders. */
+body.home .alx-knowledge-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: #17314f;
+  background: linear-gradient(135deg, #eaf3ff, #dff8f0);
+}
+
+body.home .alx-knowledge-thumb img {
+  display: none;
+}
+
+body.home .alx-knowledge-thumb::before {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+body.home .alx-knowledge-list li:nth-child(1) .alx-knowledge-thumb {
+  background: linear-gradient(135deg, #dcecff 0%, #eaf6ff 55%, #dff8f0 100%);
+}
+body.home .alx-knowledge-list li:nth-child(1) .alx-knowledge-thumb::before { content: 'VIN'; }
+
+body.home .alx-knowledge-list li:nth-child(2) .alx-knowledge-thumb {
+  background: linear-gradient(135deg, #e6f4ff 0%, #f4f8ff 48%, #d9e9ff 100%);
+}
+body.home .alx-knowledge-list li:nth-child(2) .alx-knowledge-thumb::before { content: 'GUMI'; }
+
+body.home .alx-knowledge-list li:nth-child(3) .alx-knowledge-thumb {
+  background: linear-gradient(135deg, #fff0d9 0%, #fff8e9 55%, #ffe6b8 100%);
+}
+body.home .alx-knowledge-list li:nth-child(3) .alx-knowledge-thumb::before { content: 'OLAJ'; }
+
+body.home .alx-knowledge-list li:nth-child(4) .alx-knowledge-thumb {
+  background: linear-gradient(135deg, #ffe8e7 0%, #fff3ee 50%, #ffe1d6 100%);
+}
+body.home .alx-knowledge-list li:nth-child(4) .alx-knowledge-thumb::before { content: 'FÉK'; }
+
+/* Stronger summer color in the comparison block, using free Unsplash imagery.
+ * The first scene is a Cannes palm-lined sunset; the second a coastal
+ * convertible drive. Both are illustrative only, never data sources. */
+body.home .alx-compare-vehicles--photos > .alx-compare-media:first-child {
+  background-image: url('https://images.unsplash.com/photo-1779173851359-4ad95121b1b1?auto=format&fit=crop&w=1200&h=760&q=82');
+  background-position: center 58%;
+}
+
+body.home .alx-compare-vehicles--photos > .alx-compare-media:last-child {
+  background-image: url('https://images.unsplash.com/photo-1765863201361-40143e0b37e4?auto=format&fit=crop&w=1200&h=760&q=82');
+  background-position: center 55%;
+}
+
+@media (max-width: 960px) {
+  body.home .alx-featured-vehicle-head {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  body.home .alx-home-center > .alx-recent-updates-card {
+    min-height: 140px;
+  }
+
+  body.home .alx-knowledge-thumb::before {
+    font-size: 11px;
+  }
+}
+
+/* ALX-042.3: premium readability and color pass after user review. */
+body.home {
+  background:
+    radial-gradient(circle at 8% 5%, rgba(68, 144, 255, .055), transparent 24%),
+    radial-gradient(circle at 92% 34%, rgba(38, 192, 142, .045), transparent 24%),
+    #f6f8fc;
+}
+
+body.home .alx-home {
+  --alx-dashboard-gap: 28px;
+}
+
+body.home .alx-hero {
+  border-color: #d9e6f7;
+  box-shadow: 0 22px 60px rgba(31, 82, 140, .10);
+}
+
+body.home .alx-hero-visual {
+  filter: saturate(1.12) contrast(1.025) brightness(1.025);
+}
+
+body.home .alx-hero h1 {
+  text-wrap: balance;
+}
+
+body.home .alx-hero-copy > p {
+  max-width: 610px;
+}
+
+body.home .alx-vehicle-search {
+  border-color: #d5e4f8;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 16px 38px rgba(23, 105, 232, .13);
+}
+
+body.home .alx-search-fields button,
+body.home .alx-card-action {
+  box-shadow: 0 8px 18px rgba(23, 105, 232, .14);
+}
+
+/* Give each landing section its own quiet color identity without changing the
+ * established light-theme design language. */
+body.home .alx-quick-panel {
+  border-color: #dce9fb;
+  background: linear-gradient(135deg, #ffffff 0%, #f3f8ff 54%, #eaf5ff 100%);
+}
+
+body.home .alx-featured-vehicle-card {
+  border-color: #dbe8f6;
+  background: linear-gradient(135deg, #ffffff 0%, #fbfdff 62%, #eef8ff 100%);
+}
+
+body.home .alx-compare-card {
+  border-color: #dce7f7;
+  background: linear-gradient(135deg, #ffffff 0%, #f6fbff 52%, #eef8ff 100%);
+}
+
+body.home .alx-mobile-card {
+  border-color: #d8e8fb;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f7ff 58%, #e9f5ff 100%);
+}
+
+body.home .alx-safety-card {
+  border-color: #f5ded7;
+  background: linear-gradient(135deg, #ffffff 0%, #fff8f4 56%, #fff0e9 100%);
+}
+
+body.home .alx-brand-panel {
+  border-color: #dcefe8;
+  background: linear-gradient(135deg, #ffffff 0%, #f4fbf8 52%, #eaf8f3 100%);
+}
+
+body.home .alx-coverage-panel {
+  border-color: #e1e5f6;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 52%, #f1f2ff 100%);
+}
+
+body.home .alx-knowledge-card {
+  border-color: #f1e5d8;
+  background: linear-gradient(135deg, #ffffff 0%, #fffaf4 54%, #fff4e8 100%);
+}
+
+body.home .alx-recent-updates-card {
+  border-color: #e0e8f3;
+  background: linear-gradient(135deg, #ffffff 0%, #fafcff 60%, #f3f7fc 100%);
+}
+
+/* More obvious and friendlier quick-access color coding. */
+body.home .alx-quick-links li:nth-child(1) .alx-quick-icon {
+  color: #1769e8;
+  background: #e8f1ff;
+}
+body.home .alx-quick-links li:nth-child(2) .alx-quick-icon {
+  color: #087d93;
+  background: #e4f8fb;
+}
+body.home .alx-quick-links li:nth-child(3) .alx-quick-icon {
+  color: #c33a48;
+  background: #fff0f2;
+}
+body.home .alx-quick-links li:nth-child(4) .alx-quick-icon {
+  color: #9b6505;
+  background: #fff6da;
+}
+body.home .alx-quick-links li:nth-child(5) .alx-quick-icon {
+  color: #6651c9;
+  background: #f0edff;
+}
+
+body.home .alx-quick-panel .alx-quick-links a {
+  border-color: rgba(210, 224, 242, .9);
+  box-shadow: 0 5px 16px rgba(31, 69, 112, .045);
+}
+
+body.home .alx-quick-panel .alx-quick-links a:hover,
+body.home .alx-quick-panel .alx-quick-links a:focus-visible {
+  box-shadow: 0 12px 24px rgba(31, 82, 140, .09);
+}
+
+/* Better balance between copy and photography in the large feature card. */
+body.home .alx-featured-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 245px;
+  border-left: 4px solid #78b6ff;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(235, 245, 255, .72), rgba(255,255,255,0));
+  padding: 24px 22px;
+}
+
+body.home .alx-featured-copy h2 {
+  font-size: clamp(25px, 2.2vw, 34px);
+  line-height: 1.12;
+}
+
+body.home .alx-featured-copy p {
+  max-width: 540px;
+  margin-top: 10px;
+  color: #526379;
+}
+
+body.home .alx-featured-copy .alx-card-action {
+  margin-top: 20px;
+}
+
+body.home .alx-featured-media,
+body.home .alx-compare-media {
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), 0 12px 28px rgba(28, 66, 108, .08);
+}
+
+body.home .alx-panel-heading,
+body.home .alx-card-heading {
+  align-items: center;
+}
+
+body.home .alx-panel-heading h2,
+body.home .alx-coverage-panel h2 {
+  font-size: clamp(22px, 2vw, 28px);
+}
+
+body.home .alx-panel-heading a,
+body.home .alx-card-heading a {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9px;
+  padding: 0 10px;
+}
+
+body.home .alx-panel-heading a:hover,
+body.home .alx-panel-heading a:focus-visible,
+body.home .alx-card-heading a:hover,
+body.home .alx-card-heading a:focus-visible {
+  background: rgba(23, 105, 232, .07);
+}
+
+body.home .alx-brand-fallback-grid a {
+  border-color: #dcebe6;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 6px 16px rgba(24, 106, 76, .045);
+}
+
+body.home .alx-knowledge-list a {
+  box-shadow: 0 6px 18px rgba(94, 67, 35, .045);
+}
+
+body.home .alx-safety-strip {
+  border-color: rgba(217,45,63,.17);
+  background: linear-gradient(90deg, #fff1f3 0%, #ffffff 52%, #f5f9ff 100%);
+}
+
+@media (max-width: 1180px) {
+  body.home .alx-home {
+    --alx-dashboard-gap: 22px;
+  }
+
+  body.home .alx-featured-copy {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  body.home .alx-home {
+    --alx-dashboard-gap: 14px;
+  }
+
+  body.home .alx-hero {
+    min-height: 660px;
+  }
+
+  body.home .alx-hero-copy {
+    padding: 28px 18px 282px;
+  }
+
+  body.home .alx-hero h1 {
+    max-width: 335px;
+    font-size: clamp(34px, 9.8vw, 42px);
+    line-height: .98;
+    letter-spacing: -.04em;
+  }
+
+  body.home .alx-hero-copy > p {
+    margin-top: 14px;
+    font-size: 15.5px;
+    line-height: 1.48;
+  }
+
+  body.home .alx-search-tabs {
+    gap: 3px;
+    font-size: 12px;
+  }
+
+  body.home .alx-search-tabs span[role="tab"] {
+    min-height: 40px;
+    padding-inline: 9px;
+  }
+
+  body.home .alx-quick-panel,
+  body.home .alx-coverage-panel,
+  body.home .alx-brand-panel,
+  body.home .alx-knowledge-card,
+  body.home .alx-home-cards--primary .alx-dashboard-card,
+  body.home .alx-mobile-card,
+  body.home .alx-safety-card,
+  body.home .alx-recent-updates-card {
+    border-radius: 16px;
+  }
+
+  body.home .alx-featured-copy {
+    min-height: 0;
+    border-left: 0;
+    border-top: 4px solid #78b6ff;
+    padding: 18px 0 10px;
+    background: transparent;
+  }
+
+  body.home .alx-featured-copy h2 {
+    font-size: 24px;
+  }
+
+  body.home .alx-featured-copy p {
+    margin-top: 8px;
+  }
+
+  body.home .alx-featured-media {
+    min-height: 210px;
+  }
+
+  body.home .alx-quick-panel .alx-quick-links a {
+    min-height: 72px;
+  }
+
+  body.home .alx-knowledge-list a {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 390px) {
+  body.home .alx-hero h1 {
+    font-size: 34px;
+  }
+
+  body.home .alx-hero-copy > p {
+    font-size: 15px;
+  }
+
+  body.home .alx-vehicle-search {
+    margin-top: 18px;
+  }
+}

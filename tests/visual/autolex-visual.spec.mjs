@@ -70,6 +70,8 @@ for (const viewport of viewports) {
           await expect(page.locator('.alx-safety-card')).toBeVisible();
           await expect(page.locator('.alx-metrics')).toBeVisible();
           await expect(page.locator('.alx-safety-strip')).toBeVisible();
+          await expect(page.locator('.alx-recent-updates-card')).toBeVisible();
+          await expect(page.locator('.alx-brand-explore-card')).toBeHidden();
 
           if (viewport.name === 'reference') {
             const geometry = await page.evaluate(() => {
@@ -87,10 +89,14 @@ for (const viewport of viewports) {
               return {
                 header: rect('.alx-site-header'),
                 grid: rect('.alx-home-grid'),
-                left: rect('.alx-home-rail--left'),
                 hero: rect('.alx-hero'),
-                right: rect('.alx-home-rail--right'),
                 quick: rect('.alx-quick-panel'),
+                featured: rect('.alx-featured-vehicle-card'),
+                mobile: rect('.alx-mobile-card'),
+                safetyCard: rect('.alx-safety-card'),
+                brand: rect('.alx-brand-panel'),
+                knowledge: rect('.alx-knowledge-card'),
+                recent: rect('.alx-recent-updates-card'),
                 lastQuick: lastQuick ? { top: lastQuick.top, bottom: lastQuick.bottom, height: lastQuick.height } : null,
                 footer: rect('.alx-site-footer'),
                 navCount: visibleNav.length,
@@ -101,23 +107,26 @@ for (const viewport of viewports) {
 
             expect(geometry.header.height).toBeGreaterThanOrEqual(54);
             expect(geometry.header.height).toBeLessThanOrEqual(62);
-            expect(geometry.grid.width).toBeGreaterThanOrEqual(1600);
-            expect(geometry.left.width).toBeGreaterThanOrEqual(246);
-            expect(geometry.left.width).toBeLessThanOrEqual(254);
-            expect(geometry.right.width).toBeGreaterThanOrEqual(315);
-            expect(geometry.right.width).toBeLessThanOrEqual(340);
-            expect(geometry.hero.height).toBeGreaterThanOrEqual(292);
-            expect(geometry.hero.height).toBeLessThanOrEqual(320);
-            expect(geometry.quick.height).toBeGreaterThanOrEqual(285);
-            expect(geometry.quick.height).toBeLessThanOrEqual(294);
+            expect(geometry.grid.width).toBeGreaterThanOrEqual(1400);
+            expect(geometry.grid.width).toBeLessThanOrEqual(1442);
+            expect(geometry.hero.height).toBeGreaterThanOrEqual(500);
+            expect(geometry.hero.height).toBeLessThanOrEqual(650);
+            expect(geometry.quick.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
+            expect(geometry.featured.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
+            expect(geometry.mobile.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
+            expect(geometry.safetyCard.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
+            expect(geometry.brand.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
+            expect(geometry.knowledge.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
+            expect(geometry.recent.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
+            expect(geometry.quick.height).toBeGreaterThanOrEqual(130);
             expect(geometry.lastQuick.bottom).toBeLessThanOrEqual(geometry.quick.bottom - 4);
+            expect(geometry.recent.top).toBeGreaterThanOrEqual(geometry.knowledge.bottom + 10);
             expect(geometry.footer.height).toBeLessThanOrEqual(180);
             expect(geometry.navCount).toBe(6);
-            expect(geometry.firstNav.left).toBeGreaterThanOrEqual(510);
-            expect(geometry.firstNav.left).toBeLessThanOrEqual(535);
-            expect(geometry.lastNav.right).toBeGreaterThanOrEqual(1060);
-            expect(geometry.lastNav.right).toBeLessThanOrEqual(1090);
-            expect(diagnostics.scrollHeight).toBeLessThanOrEqual(950);
+            expect(geometry.firstNav.left).toBeGreaterThanOrEqual(0);
+            expect(geometry.lastNav.right).toBeLessThanOrEqual(viewport.width);
+            expect(diagnostics.scrollHeight).toBeGreaterThan(viewport.height);
+            expect(diagnostics.scrollHeight).toBeLessThanOrEqual(6000);
           }
         }
 
