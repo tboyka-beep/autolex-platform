@@ -82,6 +82,7 @@ jobs:
           php tests/vehicle-detail-design-42-smoke.php
           php tests/compare-design-42-smoke.php
           php tests/safety-gate-smoke.php
+          php tests/safety-gate-inbox-smoke.php
           node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
           node --check plugin/autolex-platform/assets/js/autolex-maintenance-evidence.js
 

@@ -30,6 +30,7 @@ require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eea-failure-telemetr
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eea-api-rejection-recovery.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-maintenance-evidence.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-safety-gate.php';
+require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-safety-gate-inbox.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eurostat.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eafo.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-comparison.php';
@@ -49,6 +50,7 @@ function autolex_platform()
     Autolex_EEA_Failure_Telemetry::instance();
     Autolex_EEA_API_Rejection_Recovery::instance();
     Autolex_Safety_Gate::instance();
+    Autolex_Safety_Gate_Inbox::instance();
     Autolex_Vehicle_Comparison::instance();
     Autolex_Vehicle_Relations::instance();
     Autolex_Vehicle_SEO::instance();

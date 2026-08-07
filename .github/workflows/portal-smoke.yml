@@ -31,6 +31,7 @@ jobs:
           php -l plugin/autolex-platform/includes/class-autolex-portal.php
           php -l plugin/autolex-platform/includes/class-autolex-maintenance-evidence.php
           php -l plugin/autolex-platform/includes/class-autolex-safety-gate.php
+          php -l plugin/autolex-platform/includes/class-autolex-safety-gate-inbox.php
           php -l plugin/autolex-platform/includes/class-autolex-vehicle-comparison.php
           php -l plugin/autolex-platform/includes/class-autolex-comparison-page.php
           php -l plugin/autolex-platform/includes/class-autolex-vehicle-relations.php
@@ -45,6 +46,7 @@ jobs:
           php -l tests/vehicle-seo-smoke.php
           php -l tests/visual-layer-smoke.php
           php -l tests/safety-gate-live-smoke.php
+          php -l tests/safety-gate-inbox-smoke.php
           php -l tests/theme-data-bridge-smoke.php
 
       - name: Validate portal JavaScript syntax
@@ -85,6 +87,9 @@ jobs:
 
       - name: Test Safety Gate alert normalization
         run: php tests/safety-gate-smoke.php
+
+      - name: Test verified Safety Gate inbox security contract
+        run: php tests/safety-gate-inbox-smoke.php
 
       - name: Validate live official Safety Gate XML
         run: php tests/safety-gate-live-smoke.php
