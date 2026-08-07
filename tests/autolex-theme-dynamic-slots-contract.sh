@@ -14,7 +14,9 @@ grep -Fq '$fallback_renderer();' "$front"
 for hook in \
   autolex_theme_coverage_panel \
   autolex_theme_popular_brands \
-  autolex_theme_metric_strip
+  autolex_theme_metric_strip \
+  autolex_theme_featured_vehicle \
+  autolex_theme_comparison_preview
 do
   grep -Fq "'$hook'," "$front"
   if grep -Fq "do_action('$hook')" "$front"; then
@@ -23,15 +25,15 @@ do
   fi
 done
 
-if [ "$(grep -Fc '$autolex_render_home_slot(' "$front")" -ne 3 ]; then
-  echo 'Expected exactly three homepage slot renderer calls.' >&2
+if [ "$(grep -Fc '$autolex_render_home_slot(' "$front")" -ne 5 ]; then
+  echo 'Expected exactly five homepage slot renderer calls.' >&2
   exit 1
 fi
 
-grep -Fq 'alx-coverage-fallback' "$front"
+grep -Fq 'alx-data-pending' "$front"
 grep -Fq 'alx-brand-fallback-grid' "$front"
-grep -Fq 'alx-live-metric--fallback' "$front"
-grep -Fq 'Lefedettség' "$front"
+grep -Fq 'Katalógus megnyitása' "$front"
+grep -Fq 'Válassz két járművet' "$front"
 
 for fake_count in '15 842 654' '320 000' '98 765' '3 241' '100 000+' '5 000+' '1200+' '99.1%'; do
   if grep -Fq "$fake_count" "$front"; then
