@@ -1,16 +1,6 @@
-name: Autolex Live Production QA
+name: Autolex Live Production QA Home Server
 
 on:
-  pull_request:
-    paths:
-      - 'scripts/autolex-live-production-qa.sh'
-      - 'scripts/recover-autolex-safety-gate.sh'
-      - 'tests/live-production-qa-smoke.sh'
-      - 'tests/safety-gate-smoke.php'
-      - '.github/workflows/autolex-live-production-qa.yml'
-      - '.github/workflows/autolex-live-home-server-qa.yml'
-      - 'plugin/autolex-platform/includes/class-autolex-comparison-page.php'
-      - 'plugin/autolex-platform/includes/class-autolex-safety-gate.php'
   push:
     branches:
       - main
@@ -34,29 +24,21 @@ permissions:
   contents: read
 
 concurrency:
-  group: autolex-live-hosted-${{ github.ref }}
+  group: autolex-live-home-server-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   AUTOLEX_EXPECTED_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_version || '4.2.0' }}
 
 jobs:
-  contract:
-    name: Validate live QA contract
-    runs-on: ubuntu-24.04
+  live-home-server:
+    name: Verify production from home-server
+    runs-on: [self-hosted, linux, home-server-autolex]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - name: Validate shell syntax and contract markers
+      - name: Validate live QA contract locally
         run: bash tests/live-production-qa-smoke.sh
-
-  live-hosted:
-    name: Verify production from GitHub-hosted runner
-    if: github.event_name != 'pull_request'
-    needs: contract
-    runs-on: ubuntu-24.04
-    timeout-minutes: 12
-    steps:
-      - uses: actions/checkout@v7
       - name: Recover transient Safety Gate sync state
         run: bash scripts/recover-autolex-safety-gate.sh
       - name: Run fail-closed live production QA
