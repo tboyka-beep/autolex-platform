@@ -37,7 +37,7 @@ $alx_hierarchy_label = isset($alx_hierarchy_labels[$alx_hierarchy_context])
     : $alx_hierarchy_labels['brand'];
 $content = trim((string) get_the_content());
 ?>
-<main id="main-content" class="alx-main alx-hierarchy-page alx-hierarchy-<?php echo esc_attr($alx_hierarchy_context); ?>">
+<div class="alx-hierarchy-page alx-hierarchy-<?php echo esc_attr($alx_hierarchy_context); ?>">
     <article <?php post_class('alx-container alx-hierarchy-shell'); ?> aria-labelledby="alx-hierarchy-title">
         <nav class="alx-breadcrumbs" aria-label="<?php esc_attr_e('Morzsamenü', 'autolex-theme'); ?>">
             <a href="<?php echo esc_url(home_url('/')); ?>"><?php esc_html_e('Főoldal', 'autolex-theme'); ?></a>
@@ -70,4 +70,4 @@ $content = trim((string) get_the_content());
             <?php endif; ?>
         </div>
     </article>
-</main>
+</div>

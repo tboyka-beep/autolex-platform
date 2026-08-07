@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 
 get_header();
 ?>
-<main id="main-content" class="alx-catalog-page" tabindex="-1">
+<div class="alx-catalog-page" tabindex="-1">
     <div class="alx-shell alx-catalog-shell">
         <header class="alx-catalog-hero" aria-labelledby="alx-catalog-title">
             <div>
@@ -72,6 +72,6 @@ get_header();
             </div>
         </section>
     </div>
-</main>
+</div>
 <?php
 get_footer();

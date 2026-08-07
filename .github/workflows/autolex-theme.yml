@@ -15,6 +15,8 @@ on:
       - 'tests/autolex-theme-search-contract.sh'
       - 'tests/autolex-theme-mobile-drawer-contract.sh'
       - 'tests/autolex-theme-home-reference-contract.sh'
+      - 'tests/autolex-theme-reference-shell-contract.sh'
+      - 'tests/autolex-theme-reference-dashboard-contract.sh'
       - 'tests/autolex-theme-dynamic-slots-contract.sh'
       - 'tests/autolex-theme-migration-contract.sh'
       - '.github/workflows/autolex-theme.yml'
@@ -32,6 +34,8 @@ on:
       - 'tests/autolex-theme-search-contract.sh'
       - 'tests/autolex-theme-mobile-drawer-contract.sh'
       - 'tests/autolex-theme-home-reference-contract.sh'
+      - 'tests/autolex-theme-reference-shell-contract.sh'
+      - 'tests/autolex-theme-reference-dashboard-contract.sh'
       - 'tests/autolex-theme-dynamic-slots-contract.sh'
       - 'tests/autolex-theme-migration-contract.sh'
       - '.github/workflows/autolex-theme.yml'
@@ -63,5 +67,7 @@ jobs:
       - run: bash tests/autolex-theme-search-contract.sh
       - run: bash tests/autolex-theme-mobile-drawer-contract.sh
       - run: bash tests/autolex-theme-home-reference-contract.sh
+      - run: bash tests/autolex-theme-reference-shell-contract.sh
+      - run: bash tests/autolex-theme-reference-dashboard-contract.sh
       - run: bash tests/autolex-theme-dynamic-slots-contract.sh
       - run: bash tests/autolex-theme-migration-contract.sh

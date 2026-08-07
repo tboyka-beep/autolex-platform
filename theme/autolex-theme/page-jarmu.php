@@ -35,7 +35,7 @@ while (have_posts()) :
      * id="muszaki-adatok" id="biztonsag" id="forrasok"
      */
     ?>
-    <main id="main-content" class="alx-main alx-vehicle-page">
+    <div class="alx-vehicle-page">
         <article <?php post_class('alx-container alx-vehicle-shell'); ?> aria-labelledby="alx-vehicle-title">
             <header class="alx-vehicle-hero">
                 <div>
@@ -102,7 +102,7 @@ while (have_posts()) :
                 <a href="<?php echo esc_url(home_url('/forrasok/')); ?>"><?php esc_html_e('Forrásállapotok megnyitása', 'autolex-theme'); ?></a>
             </section>
         </article>
-    </main>
+    </div>
     <?php
 endwhile;
 

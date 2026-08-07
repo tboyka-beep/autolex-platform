@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 get_header();
 $query = get_search_query();
 ?>
-<main id="main-content" class="alx-main">
+<div class="alx-search-route">
     <section class="alx-container alx-search-page" aria-labelledby="alx-search-title">
         <header class="alx-page-heading">
             <p class="alx-eyebrow"><?php esc_html_e('Autolex keresés', 'autolex-theme'); ?></p>
@@ -56,6 +56,6 @@ $query = get_search_query();
             </div>
         <?php endif; ?>
     </section>
-</main>
+</div>
 <?php
 get_footer();
