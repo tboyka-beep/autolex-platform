@@ -17,6 +17,10 @@ final class Autolex_Safety_Gate
         'https://data.europa.eu/api/hub/repo/datasets/rapex-rapid-alert-system-non-food/distributions?valueType=metadata',
     );
     const MAX_XML_BYTES = 20971520;
+    const FETCH_ATTEMPTS = 3;
+    const FETCH_TIMEOUT = 35;
+    const FETCH_RETRY_BASE_US = 250000;
+    const RETRY_HOOK = 'autolex_safety_gate_retry';
 
     /** @var Autolex_Safety_Gate|null */
     private static $instance = null;
@@ -213,8 +217,6 @@ final class Autolex_Safety_Gate
         $type     = strtolower((string) ($alert['type_number'] ?? ''));
         $haystack = implode(' ', array($category, $product, $type));
 
-        // Safety Gate also contains toy cars and scale models. Reject these
-        // explicitly before matching vehicle terminology.
         if (preg_match('/\btoy(?:s)?\b|miniature|scale model|model toy/i', $haystack)) {
             return false;
         }
@@ -234,7 +236,7 @@ final class Autolex_Safety_Gate
         return function_exists('mb_substr') ? mb_substr($value, 0, $length) : substr($value, 0, $length);
     }
 
-    /** Ensures the schema and weekly schedule. */
+    /** Ensures the schema, weekly schedule and fast recovery after a transient failure. */
     public function maybe_schedule()
     {
         if (self::SCHEMA_VERSION !== get_option('autolex_safety_gate_schema_version')) {
@@ -242,6 +244,9 @@ final class Autolex_Safety_Gate
         }
         if (!wp_next_scheduled('autolex_safety_gate_sync')) {
             wp_schedule_event(time() + HOUR_IN_SECONDS, 'weekly', 'autolex_safety_gate_sync');
+        }
+        if (get_option('autolex_safety_gate_last_error') && !wp_next_scheduled(self::RETRY_HOOK)) {
+            wp_schedule_single_event(time() + 5, self::RETRY_HOOK);
         }
     }
 
@@ -279,8 +284,12 @@ final class Autolex_Safety_Gate
             update_option('autolex_safety_gate_last_source_url', esc_url_raw($xml_url), false);
             update_option('autolex_safety_gate_last_imported', $imported, false);
             delete_option('autolex_safety_gate_last_error');
+            wp_clear_scheduled_hook(self::RETRY_HOOK);
         } catch (Throwable $exception) {
             update_option('autolex_safety_gate_last_error', self::limit_text($exception->getMessage(), 1000), false);
+            if (!wp_next_scheduled(self::RETRY_HOOK)) {
+                wp_schedule_single_event(time() + (15 * MINUTE_IN_SECONDS), self::RETRY_HOOK);
+            }
         } finally {
             delete_option('autolex_safety_gate_lock');
         }
@@ -297,29 +306,61 @@ final class Autolex_Safety_Gate
         return $data;
     }
 
+    /** @param int $status HTTP status. @return bool */
+    public static function is_transient_http_status($status)
+    {
+        $status = (int) $status;
+        return in_array($status, array(408, 425, 429), true) || $status >= 500;
+    }
+
+    /** @param int $attempt Completed attempt number. @return void */
+    private function retry_delay($attempt)
+    {
+        usleep(self::FETCH_RETRY_BASE_US * max(1, (int) $attempt));
+    }
+
     /** @param string $url URL. @param int $limit Byte limit. @param array<string,string> $headers Headers. @return string */
     private function fetch_text($url, $limit, $headers = array())
     {
-        $response = wp_safe_remote_get($url, array(
-            'timeout' => 45,
-            'redirection' => 3,
-            'reject_unsafe_urls' => true,
-            'limit_response_size' => $limit,
-            'user-agent' => 'Autolex-Platform/' . AUTOLEX_PLATFORM_VERSION . ' (+https://autolex.hu/)',
-            'headers' => $headers,
-        ));
-        if (is_wp_error($response)) {
-            throw new RuntimeException($response->get_error_message());
+        $last_error = 'Official Safety Gate source request failed.';
+
+        for ($attempt = 1; $attempt <= self::FETCH_ATTEMPTS; ++$attempt) {
+            $response = wp_safe_remote_get($url, array(
+                'timeout' => self::FETCH_TIMEOUT,
+                'redirection' => 3,
+                'httpversion' => '1.1',
+                'reject_unsafe_urls' => true,
+                'limit_response_size' => $limit,
+                'user-agent' => 'Autolex-Platform/' . AUTOLEX_PLATFORM_VERSION . ' (+https://autolex.hu/)',
+                'headers' => $headers,
+            ));
+
+            if (is_wp_error($response)) {
+                $last_error = $response->get_error_message();
+                if ($attempt < self::FETCH_ATTEMPTS) {
+                    $this->retry_delay($attempt);
+                    continue;
+                }
+                throw new RuntimeException($last_error);
+            }
+
+            $status = (int) wp_remote_retrieve_response_code($response);
+            if (200 === $status) {
+                $body = (string) wp_remote_retrieve_body($response);
+                if ('' === trim($body)) {
+                    throw new RuntimeException('Official Safety Gate source returned an empty response.');
+                }
+                return $body;
+            }
+
+            $last_error = 'Official Safety Gate source returned HTTP ' . $status . '.';
+            if ($attempt >= self::FETCH_ATTEMPTS || !self::is_transient_http_status($status)) {
+                throw new RuntimeException($last_error);
+            }
+            $this->retry_delay($attempt);
         }
-        $status = (int) wp_remote_retrieve_response_code($response);
-        if (200 !== $status) {
-            throw new RuntimeException('Official Safety Gate source returned HTTP ' . $status . '.');
-        }
-        $body = (string) wp_remote_retrieve_body($response);
-        if ('' === trim($body)) {
-            throw new RuntimeException('Official Safety Gate source returned an empty response.');
-        }
-        return $body;
+
+        throw new RuntimeException($last_error);
     }
 
     /** @param string $url URL. @return bool */
@@ -469,6 +510,7 @@ final class Autolex_Safety_Gate
     {
         add_action('init', array($this, 'maybe_schedule'), 9);
         add_action('autolex_safety_gate_sync', array($this, 'sync'));
+        add_action(self::RETRY_HOOK, array($this, 'sync'));
         add_action('rest_api_init', array($this, 'register_routes'));
     }
 
