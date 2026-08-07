@@ -27,6 +27,7 @@ require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-theme-data-bridge.ph
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-home-recent-updates.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eea-sync.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eea-failure-telemetry.php';
+require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eea-api-rejection-recovery.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-maintenance-evidence.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-safety-gate.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eurostat.php';
@@ -46,6 +47,7 @@ function autolex_platform()
     Autolex_Theme_Data_Bridge::instance()->register();
     Autolex_Home_Recent_Updates::instance()->register();
     Autolex_EEA_Failure_Telemetry::instance();
+    Autolex_EEA_API_Rejection_Recovery::instance();
     Autolex_Safety_Gate::instance();
     Autolex_Vehicle_Comparison::instance();
     Autolex_Vehicle_Relations::instance();
