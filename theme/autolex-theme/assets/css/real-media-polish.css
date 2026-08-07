@@ -176,7 +176,6 @@
   background: #fff;
   box-shadow: inset 0 0 0 1px #e3e9f1;
 }
-
 .alx-brand-logo img {
   display: block;
   width: 17px;
@@ -260,5 +259,724 @@
 
   .alx-compare-media {
     height: 88px;
+  }
+}
+
+/* ALX-042: spacious vertical landing refresh.
+ * Keeps the approved ALX-035 light visual system while removing the dense
+ * three-column fold, increasing legibility and introducing colorful summer
+ * automotive imagery. Functional search/data hooks remain untouched. */
+body.home {
+  --alx-container: 1440px;
+}
+
+body.home .alx-main {
+  padding-top: 24px;
+  padding-bottom: 42px;
+}
+
+.alx-home {
+  --alx-dashboard-gap: 24px;
+}
+
+.alx-home-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--alx-dashboard-gap);
+  align-items: stretch;
+}
+
+.alx-home-center,
+.alx-home-rail {
+  display: contents;
+}
+
+.alx-hero { order: 1; }
+.alx-metrics { order: 2; }
+.alx-quick-panel { order: 3; }
+.alx-home-cards--primary { order: 4; }
+.alx-brand-panel { order: 5; }
+.alx-coverage-panel { order: 6; }
+.alx-knowledge-card { order: 7; }
+.alx-recent-updates-card { order: 8; }
+
+.alx-mobile-card,
+.alx-safety-card {
+  display: none;
+}
+
+/* Hero: larger type, larger image, clearer primary action. */
+.alx-hero {
+  min-height: 520px;
+  border-radius: 24px;
+  background: linear-gradient(120deg, #ffffff 0%, #f5f9ff 48%, #edf7ff 100%);
+  box-shadow: 0 18px 50px rgba(20, 54, 92, .08);
+}
+
+.alx-hero::after {
+  background: linear-gradient(90deg, rgba(255,255,255,.99) 0%, rgba(255,255,255,.96) 42%, rgba(255,255,255,.45) 60%, rgba(255,255,255,.08) 100%);
+}
+
+.alx-hero-copy {
+  width: 58%;
+  max-width: 820px;
+  padding: 66px 24px 58px 64px;
+}
+
+.alx-hero h1 {
+  max-width: 650px;
+  font-size: clamp(48px, 5vw, 72px);
+  line-height: .98;
+  letter-spacing: -.045em;
+}
+
+.alx-hero-copy > p {
+  max-width: 650px;
+  margin-top: 20px;
+  color: #42526a;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.alx-hero-visual {
+  inset: 0 0 0 49%;
+  opacity: 1;
+  border-radius: 0 24px 24px 0;
+  background-image: url('https://images.unsplash.com/photo-1578341644304-eac700453a42?auto=format&fit=crop&w=1800&h=1200&q=82');
+  background-position: center center;
+  background-size: cover;
+}
+
+.alx-hero-stock-photo,
+.alx-featured-media img,
+.alx-compare-media img {
+  visibility: hidden;
+}
+
+body.home .alx-stock-credit {
+  display: none;
+}
+
+.alx-vehicle-search {
+  width: min(720px, 100%);
+  min-width: 0;
+  margin-top: 28px;
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: 0 14px 34px rgba(23, 105, 232, .10);
+}
+
+.alx-search-tabs {
+  gap: 6px;
+  padding: 2px 2px 9px;
+  font-size: 14px;
+}
+
+.alx-search-tabs span[role="tab"] {
+  min-height: 42px;
+  padding: 9px 14px;
+  border-radius: 10px;
+}
+
+.alx-search-fields {
+  gap: 10px;
+}
+
+.alx-search-fields input,
+.alx-search-fields button {
+  min-height: 50px;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.alx-search-fields input {
+  padding-inline: 14px;
+}
+
+.alx-search-fields button {
+  padding-inline: 24px;
+}
+
+/* Metrics stay compact but no longer tiny. */
+.alx-metrics {
+  min-height: 100px;
+  border-radius: 18px;
+  box-shadow: 0 10px 34px rgba(20, 54, 92, .055);
+}
+
+.alx-metrics .alx-live-metric {
+  min-height: 98px;
+}
+
+.alx-live-metric--fallback {
+  padding: 16px 18px;
+}
+
+.alx-live-metric--fallback strong {
+  font-size: 24px;
+}
+
+.alx-live-metric--fallback small,
+.alx-data-pending {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Quick access becomes a horizontal landing section instead of a rail. */
+.alx-quick-panel,
+.alx-coverage-panel,
+.alx-rail-card,
+.alx-dashboard-card {
+  border-radius: 18px;
+}
+
+.alx-quick-panel,
+.alx-coverage-panel,
+.alx-brand-panel,
+.alx-knowledge-card {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  padding: 26px;
+}
+
+.alx-quick-panel {
+  background: linear-gradient(135deg, #ffffff 0%, #f6faff 54%, #eff8ff 100%);
+}
+
+.alx-quick-panel h2,
+.alx-coverage-panel h2,
+.alx-rail-card h2 {
+  font-size: 22px;
+  line-height: 1.25;
+  text-transform: none;
+  letter-spacing: -.02em;
+}
+
+.alx-panel-intro,
+.alx-rail-card p {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.alx-quick-links {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.alx-quick-panel .alx-quick-links a {
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 12px;
+  min-height: 82px;
+  border: 1px solid #e4ebf4;
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(255,255,255,.9);
+}
+
+.alx-quick-panel .alx-quick-links a:hover,
+.alx-quick-panel .alx-quick-links a:focus-visible {
+  border-color: #bfd7fb;
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.alx-quick-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.alx-quick-links strong {
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.alx-quick-links small {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Primary feature cards: max two per row, with larger photography. */
+.alx-home-cards--primary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.alx-home-cards--primary .alx-dashboard-card,
+.alx-recent-updates-card {
+  min-height: 360px;
+  padding: 24px;
+}
+
+.alx-dashboard-card h2 {
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.alx-dashboard-card p:not(.alx-card-kicker),
+.alx-home-cards--primary .alx-dashboard-card > p:not(.alx-card-kicker) {
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.alx-card-kicker {
+  font-size: 12px;
+  letter-spacing: .065em;
+}
+
+.alx-card-heading a,
+.alx-panel-heading a,
+.alx-mobile-card a,
+.alx-safety-card a {
+  font-size: 13px;
+}
+
+.alx-featured-vehicle-head {
+  grid-template-columns: minmax(0, .9fr) minmax(260px, 1.2fr);
+  gap: 22px;
+  min-height: 245px;
+  margin-top: 14px;
+}
+
+.alx-featured-media {
+  min-height: 245px;
+  border-radius: 16px;
+  background-image: url('https://images.unsplash.com/photo-1661840244226-2636d82a4035?auto=format&fit=crop&w=1200&h=760&q=82');
+  background-position: center;
+  background-size: cover;
+}
+
+.alx-featured-stats {
+  margin: 18px -24px 0;
+}
+
+.alx-featured-stats span {
+  min-height: 64px;
+}
+
+.alx-featured-stats strong {
+  font-size: 16px;
+}
+
+.alx-featured-stats small {
+  font-size: 11px;
+}
+
+.alx-card-action {
+  min-height: 48px;
+  margin-top: 18px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.alx-brand-explore-list {
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.alx-brand-explore-list a {
+  grid-template-columns: 36px 1fr auto;
+  gap: 10px;
+  min-height: 48px;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 15px;
+}
+
+.alx-brand-logo {
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+}
+
+.alx-brand-logo img {
+  width: 22px;
+  height: 22px;
+}
+
+.alx-compare-card {
+  grid-column: 1 / -1;
+  min-height: 390px;
+  background: linear-gradient(135deg, #ffffff 0%, #f7fbff 58%, #f0f8ff 100%);
+}
+
+.alx-compare-vehicles {
+  grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr);
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.alx-compare-media {
+  height: 190px;
+  border-radius: 14px;
+  background-position: center;
+  background-size: cover;
+}
+
+.alx-compare-vehicles--photos > .alx-compare-media:first-child {
+  background-image: url('https://images.unsplash.com/photo-1769616710773-95d4f730b358?auto=format&fit=crop&w=1100&h=700&q=82');
+}
+
+.alx-compare-vehicles--photos > .alx-compare-media:last-child {
+  background-image: url('https://images.unsplash.com/photo-1661840244226-2636d82a4035?auto=format&fit=crop&w=1100&h=700&q=82');
+}
+
+.alx-versus {
+  width: 54px;
+  height: 54px;
+  font-size: 11px;
+}
+
+.alx-compare-lines div {
+  padding: 9px 0;
+  font-size: 14px;
+}
+
+/* Full-width brand, coverage and knowledge sections. */
+.alx-brand-panel {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fbff 58%, #f3fbf8 100%);
+}
+
+.alx-panel-heading {
+  padding-bottom: 16px;
+}
+
+.alx-brand-slot,
+.alx-dynamic-slot {
+  margin-top: 16px;
+}
+
+.alx-brand-fallback-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.alx-brand-fallback-grid a {
+  min-height: 98px;
+  border-radius: 14px;
+}
+
+.alx-brand-fallback-grid small {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.alx-coverage-panel {
+  background: linear-gradient(135deg, #ffffff 0%, #fbfcff 50%, #f4f8ff 100%);
+}
+
+.alx-coverage-fallback {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.alx-coverage-fallback div {
+  min-height: 72px;
+  border: 1px solid #e6ebf2;
+  border-radius: 12px;
+  padding: 14px;
+  background: #fff;
+}
+
+.alx-coverage-fallback dt {
+  font-size: 14px;
+}
+
+.alx-coverage-fallback dd {
+  font-size: 16px;
+}
+
+.alx-knowledge-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fffaf4 52%, #f6fbff 100%);
+}
+
+.alx-knowledge-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.alx-knowledge-list li {
+  min-width: 0;
+}
+
+.alx-knowledge-list a {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  min-height: 116px;
+  border: 1px solid #ece6dd;
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(255,255,255,.92);
+  text-decoration: none;
+}
+
+.alx-knowledge-thumb {
+  width: 170px;
+  height: 96px;
+  min-height: 96px;
+  border-radius: 10px;
+}
+
+.alx-knowledge-thumb img {
+  filter: saturate(1.12) contrast(1.03);
+}
+
+.alx-knowledge-list strong {
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.alx-knowledge-list small {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.alx-recent-updates-card {
+  min-height: 240px;
+}
+
+.alx-safety-strip {
+  margin-top: 24px;
+  min-height: 118px;
+  border-radius: 18px;
+  padding: 22px 28px;
+  box-shadow: 0 10px 30px rgba(20, 54, 92, .05);
+}
+
+/* Keyboard and touch clarity. */
+body.home a:focus-visible,
+body.home button:focus-visible,
+body.home input:focus-visible,
+body.home [role="tab"]:focus-visible {
+  outline: 3px solid rgba(23, 105, 232, .28);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1180px) {
+  .alx-home {
+    --alx-dashboard-gap: 20px;
+  }
+
+  .alx-hero {
+    min-height: 500px;
+  }
+
+  .alx-hero-copy {
+    width: 68%;
+    padding: 54px 28px 50px 42px;
+  }
+
+  .alx-hero h1 {
+    font-size: clamp(44px, 6vw, 62px);
+  }
+
+  .alx-hero-visual {
+    inset: 0 0 0 43%;
+    opacity: 1;
+    border-radius: 0 24px 24px 0;
+    background-position: 58% center;
+  }
+
+  .alx-hero::after {
+    background: linear-gradient(90deg, rgba(255,255,255,.99) 0%, rgba(255,255,255,.94) 52%, rgba(255,255,255,.42) 74%, rgba(255,255,255,.12) 100%);
+  }
+
+  .alx-quick-links {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .alx-brand-fallback-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .alx-knowledge-list a {
+    grid-template-columns: 140px minmax(0, 1fr);
+  }
+
+  .alx-knowledge-thumb {
+    width: 140px;
+  }
+}
+
+@media (max-width: 760px) {
+  body.home .alx-main {
+    padding-top: 14px;
+    padding-bottom: 28px;
+  }
+
+  .alx-home {
+    --alx-dashboard-gap: 16px;
+  }
+
+  .alx-hero {
+    min-height: 690px;
+    border-radius: 18px;
+  }
+
+  .alx-hero-copy {
+    width: 100%;
+    max-width: none;
+    padding: 30px 20px 292px;
+  }
+
+  .alx-hero h1 {
+    max-width: 520px;
+    font-size: clamp(38px, 12vw, 52px);
+    line-height: 1;
+  }
+
+  .alx-hero-copy > p {
+    margin-top: 16px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .alx-hero-visual {
+    inset: auto 0 0;
+    height: 270px;
+    opacity: 1;
+    border-radius: 0 0 18px 18px;
+    background-position: center 55%;
+  }
+
+  .alx-hero::after {
+    background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,.98) 56%, rgba(255,255,255,.18) 78%, rgba(255,255,255,.03) 100%);
+  }
+
+  .alx-vehicle-search {
+    margin-top: 22px;
+    padding: 8px;
+  }
+
+  .alx-search-tabs {
+    font-size: 13px;
+  }
+
+  .alx-search-fields,
+  .alx-search-fields--single {
+    grid-template-columns: 1fr;
+  }
+
+  .alx-search-fields button {
+    width: 100%;
+  }
+
+  .alx-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 0;
+  }
+
+  .alx-metrics > * + * {
+    border-left: 0;
+  }
+
+  .alx-metrics .alx-live-metric {
+    min-height: 86px;
+    border-bottom: 1px solid var(--alx-line);
+  }
+
+  .alx-quick-panel,
+  .alx-coverage-panel,
+  .alx-brand-panel,
+  .alx-knowledge-card,
+  .alx-home-cards--primary .alx-dashboard-card,
+  .alx-recent-updates-card {
+    padding: 20px;
+  }
+
+  .alx-quick-panel h2,
+  .alx-coverage-panel h2,
+  .alx-rail-card h2,
+  .alx-dashboard-card h2 {
+    font-size: 21px;
+  }
+
+  .alx-quick-links,
+  .alx-home-cards--primary,
+  .alx-knowledge-list,
+  .alx-coverage-fallback {
+    grid-template-columns: 1fr;
+  }
+
+  .alx-quick-panel .alx-quick-links a {
+    min-height: 76px;
+  }
+
+  .alx-home-cards--primary .alx-dashboard-card {
+    min-height: 0;
+  }
+
+  .alx-compare-card {
+    grid-column: auto;
+  }
+
+  .alx-featured-vehicle-head {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    min-height: 0;
+  }
+
+  .alx-featured-media {
+    min-height: 220px;
+  }
+
+  .alx-featured-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-inline: -20px;
+  }
+
+  .alx-featured-stats span:nth-child(3) {
+    border-left: 0;
+  }
+
+  .alx-compare-vehicles {
+    grid-template-columns: 1fr;
+  }
+
+  .alx-versus {
+    margin-inline: auto;
+  }
+
+  .alx-compare-media {
+    height: 190px;
+  }
+
+  .alx-brand-fallback-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .alx-brand-fallback-grid a {
+    min-height: 86px;
+  }
+
+  .alx-knowledge-list a {
+    grid-template-columns: 112px minmax(0, 1fr);
+    min-height: 104px;
+  }
+
+  .alx-knowledge-thumb {
+    width: 112px;
+    height: 84px;
+    min-height: 84px;
+  }
+
+  .alx-safety-strip {
+    margin-top: 16px;
+    padding: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alx-quick-panel .alx-quick-links a {
+    transition: none;
   }
 }
