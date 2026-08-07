@@ -23,17 +23,27 @@ node --check "$VISUAL"
 # Strict 10-point sequence markers.
 grep -Fq 'alx-site-header' "$THEME/header.php"                         # 1 header/navigation
 grep -Fq 'alx-hero' "$FRONT"                                          # 2 hero/search
-grep -Fq 'alx-home-rail--left' "$FRONT"                               # 3 left rail
-grep -Fq 'alx-home-rail--right' "$FRONT"                              # 4 right rail
+grep -Fq 'alx-home-rail--left' "$FRONT"                               # 3 left rail source structure
+grep -Fq 'alx-home-rail--right' "$FRONT"                              # 4 right rail source structure
 grep -Fq 'alx-metrics' "$FRONT"                                       # 5 statistics strip
-grep -Fq 'alx-home-cards--primary' "$FRONT"                           # 6 dashboard cards
+grep -Fq 'alx-home-cards--primary' "$FRONT"                           # 6 feature cards
 grep -Fq 'alx-safety-strip' "$FRONT"                                  # 7 recall strip
 grep -Fq 'alx-footer-newsletter' "$FOOTER"                            # 8 footer
 grep -Fq '@media (max-width: 640px)' "$RESP"                          # 9 mobile/tablet
 grep -Fq "name: 'reference', width: 1672, height: 941" "$VISUAL"      # 10 exact reference viewport
 grep -Fq 'mainCount: document.querySelectorAll' "$VISUAL"
 grep -Fq 'expect(diagnostics.mainCount).toBe(1)' "$VISUAL"
-grep -Fq 'expect(diagnostics.scrollHeight).toBeLessThanOrEqual(950)' "$VISUAL"
+# ALX-042 intentionally replaces the single-fold dashboard with a vertical
+# landing page. Preserve a bounded page while requiring real downward flow.
+grep -Fq 'expect(diagnostics.scrollHeight).toBeGreaterThan(viewport.height)' "$VISUAL"
+grep -Fq 'expect(diagnostics.scrollHeight).toBeLessThanOrEqual(6000)' "$VISUAL"
+grep -Fq 'expect(geometry.grid.width).toBeGreaterThanOrEqual(1400)' "$VISUAL"
+grep -Fq 'expect(geometry.hero.height).toBeGreaterThanOrEqual(500)' "$VISUAL"
+grep -Fq 'expect(geometry.quick.width).toBeGreaterThanOrEqual(geometry.grid.width - 2)' "$VISUAL"
+grep -Fq 'expect(geometry.mobile.width).toBeGreaterThanOrEqual(geometry.grid.width - 2)' "$VISUAL"
+grep -Fq 'expect(geometry.safetyCard.width).toBeGreaterThanOrEqual(geometry.grid.width - 2)' "$VISUAL"
+grep -Fq 'expect(geometry.brand.width).toBeGreaterThanOrEqual(geometry.grid.width - 2)' "$VISUAL"
+grep -Fq 'expect(geometry.knowledge.width).toBeGreaterThanOrEqual(geometry.grid.width - 2)' "$VISUAL"
 grep -Fq 'expect(geometry.navCount).toBe(6)' "$VISUAL"
 grep -Fq "viewport.name === 'reference'" "$VISUAL"
 grep -Fq 'geometry.lastQuick.bottom' "$VISUAL"
@@ -77,4 +87,4 @@ for fake_count in '15 842 654' '320 000' '98 765' '3 241' '100 000+' '5 000+' '1
   fi
 done
 
-echo 'Autolex strict 10-point reference dashboard contract passed.'
+echo 'Autolex ALX-042 vertical landing reference contract passed.'
