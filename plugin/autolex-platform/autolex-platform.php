@@ -24,6 +24,7 @@ require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eea-importer.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-catalog-browser.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-engine-catalog.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-theme-data-bridge.php';
+require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-home-recent-updates.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-eea-sync.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-maintenance-evidence.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-safety-gate.php';
@@ -42,6 +43,7 @@ function autolex_platform()
 {
     $platform = Autolex_Platform::instance();
     Autolex_Theme_Data_Bridge::instance()->register();
+    Autolex_Home_Recent_Updates::instance()->register();
     Autolex_Safety_Gate::instance();
     Autolex_Vehicle_Comparison::instance();
     Autolex_Vehicle_Relations::instance();
