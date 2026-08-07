@@ -57,6 +57,11 @@ function esc_html_e($text, $domain = null)
     echo esc_html($text);
 }
 
+function esc_attr($value)
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
 function esc_url($url)
 {
     return (string) $url;
@@ -156,6 +161,15 @@ final class Autolex_Test_Wpdb
             );
         }
 
+        if (strpos($sql, 'LIMIT 24') !== false && strpos($sql, 'ORDER BY updated_at DESC') !== false) {
+            return array(
+                array('id' => 14, 'make' => 'BMW', 'model' => '3 Series', 'variant' => 'G20', 'version' => '320i', 'fuel_type' => 'Petrol', 'engine_capacity_cc' => 1998, 'engine_power_kw' => 135, 'last_seen_year' => 2025, 'updated_at' => '2026-08-07 10:00:00'),
+                array('id' => 13, 'make' => 'BMW', 'model' => '3 Series', 'variant' => 'G20', 'version' => '318i', 'fuel_type' => 'Petrol', 'engine_capacity_cc' => 1998, 'engine_power_kw' => 115, 'last_seen_year' => 2025, 'updated_at' => '2026-08-07 09:45:00'),
+                array('id' => 12, 'make' => 'Mercedes-Benz', 'model' => 'C-Class', 'variant' => 'W206', 'version' => 'C 200', 'fuel_type' => 'Petrol', 'engine_capacity_cc' => 1496, 'engine_power_kw' => 150, 'last_seen_year' => 2025, 'updated_at' => '2026-08-07 09:30:00'),
+                array('id' => 11, 'make' => 'Audi', 'model' => 'A4', 'variant' => 'B9', 'version' => '40 TFSI', 'fuel_type' => 'Petrol', 'engine_capacity_cc' => 1984, 'engine_power_kw' => 150, 'last_seen_year' => 2025, 'updated_at' => '2026-08-07 09:15:00'),
+            );
+        }
+
         if (strpos($sql, 'LIMIT 30') !== false && strpos($sql, 'engine_power_kw') !== false) {
             return array(
                 array('id' => 1, 'make' => 'BMW', 'model' => '3 Series', 'engine_capacity_cc' => 1998, 'engine_power_kw' => 135, 'co2_wltp' => 142, 'registration_count' => 1000, 'last_seen_year' => 2025),
@@ -192,6 +206,7 @@ final class Autolex_Test_Wpdb
 $GLOBALS['wpdb'] = new Autolex_Test_Wpdb();
 
 require AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-theme-data-bridge.php';
+require AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-home-recent-updates.php';
 
 $bridge = Autolex_Theme_Data_Bridge::instance();
 $bridge->register();
@@ -208,6 +223,16 @@ foreach (array(
     if (count($GLOBALS['autolex_test_actions'][$hook] ?? array()) !== 1) {
         throw new RuntimeException('Hook must be registered exactly once: ' . $hook);
     }
+}
+
+$recent = Autolex_Home_Recent_Updates::instance();
+$recent->register();
+$recent->register();
+if (count($GLOBALS['autolex_test_actions']['autolex_theme_recently_updated'] ?? array()) !== 1) {
+    throw new RuntimeException('Recent homepage hook must be registered exactly once.');
+}
+if (count($GLOBALS['autolex_test_actions']['wp_enqueue_scripts'] ?? array()) !== 2) {
+    throw new RuntimeException('Bridge and recent-update styles must each register one enqueue callback.');
 }
 
 ob_start();
@@ -245,10 +270,28 @@ if (strpos($comparison, 'BMW 3 Series') === false || strpos($comparison, 'Audi A
     throw new RuntimeException('Comparison preview must use two distinct real catalogue makes and verified fields.');
 }
 
+ob_start();
+$recent->render_recently_updated();
+$recent_markup = ob_get_clean();
+if (substr_count($recent_markup, 'class="alx-recent-item"') !== 3
+    || substr_count($recent_markup, 'BMW 3 Series') !== 1
+    || strpos($recent_markup, 'Mercedes-Benz C-Class') === false
+    || strpos($recent_markup, 'Audi A4') === false
+    || strpos($recent_markup, 'Frissítve: 2026.08.07. 10:00') === false
+    || strpos($recent_markup, 'brand=BMW') === false) {
+    throw new RuntimeException('Recent homepage vehicles must be distinct, database-backed and timestamped.');
+}
+
 $bridge->enqueue_assets();
 $style = $GLOBALS['autolex_test_styles']['autolex-theme-data-bridge'] ?? null;
 if (!is_array($style) || $style['deps'] !== array('autolex-theme-home') || empty($style['version'])) {
     throw new RuntimeException('Scoped bridge stylesheet was not enqueued correctly.');
+}
+
+$recent->enqueue_assets();
+$recent_style = $GLOBALS['autolex_test_styles']['autolex-home-recent-updates'] ?? null;
+if (!is_array($recent_style) || $recent_style['deps'] !== array('autolex-theme-data-bridge') || empty($recent_style['version'])) {
+    throw new RuntimeException('Recent-update stylesheet was not enqueued correctly.');
 }
 
 Autolex_EU_Catalog::$coverage = array(
