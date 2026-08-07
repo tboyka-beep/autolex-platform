@@ -2,10 +2,13 @@
 set -euo pipefail
 
 HOME_CSS='theme/autolex-theme/assets/css/reference-dashboard.css'
+POLISH_CSS='theme/autolex-theme/assets/css/real-media-polish.css'
 FRONT_PAGE='theme/autolex-theme/front-page.php'
+MEDIA_DOC='docs/ALX-035-REAL-MEDIA-POLISH.md'
 
-test -f "$HOME_CSS"
-test -f "$FRONT_PAGE"
+for file in "$HOME_CSS" "$POLISH_CSS" "$FRONT_PAGE" "$MEDIA_DOC"; do
+  test -f "$file" || { echo "missing ALX-035 reference file: $file"; exit 1; }
+done
 php -l "$FRONT_PAGE" >/dev/null
 
 # One semantic main is opened by header.php; the front page must not nest one.
@@ -15,6 +18,7 @@ if grep -Fq '<main' "$FRONT_PAGE"; then
 fi
 
 grep -Fq 'data-reference-dashboard="true"' "$FRONT_PAGE"
+grep -Fq 'data-real-media="true"' "$FRONT_PAGE"
 grep -Fq 'alx-home-rail--left' "$FRONT_PAGE"
 grep -Fq 'alx-mobile-card' "$FRONT_PAGE"
 grep -Fq 'alx-safety-card' "$FRONT_PAGE"
@@ -34,21 +38,31 @@ grep -Fq '.alx-brand-fallback-grid' "$HOME_CSS"
 grep -Fq '.alx-knowledge-list' "$HOME_CSS"
 grep -Fq '@media (max-width: 640px)' "$HOME_CSS"
 
-# Repository-owned hero artwork and card illustrations only.
-grep -Fq '<svg class="alx-car-silhouette"' "$FRONT_PAGE"
-grep -Fq 'id="alx-car-body"' "$FRONT_PAGE"
-grep -Fq 'id="alx-car-glass"' "$FRONT_PAGE"
-grep -Fq 'id="alx-car-shadow"' "$FRONT_PAGE"
-grep -Fq 'viewBox="0 0 820 420"' "$FRONT_PAGE"
+# ALX-035 intentionally replaces the old vector/demo artwork with documented,
+# free stock photography while preserving the reference-dashboard geometry.
+grep -Fq 'alx-hero-stock-photo' "$FRONT_PAGE"
+grep -Fq 'alx-featured-media' "$FRONT_PAGE"
+grep -Fq 'alx-compare-media' "$FRONT_PAGE"
+grep -Fq 'alx-knowledge-thumb' "$FRONT_PAGE"
+grep -Fq 'images.unsplash.com' "$FRONT_PAGE"
+grep -Fq 'Unsplash License' "$MEDIA_DOC"
 
-if grep -n -E '<img[^>]+src="https?://' "$FRONT_PAGE" || grep -n -E 'url\([^)]*https?://' "$HOME_CSS"; then
-  echo 'remote homepage visual found; dashboard artwork must stay repository-owned'
+if grep -Fq '<svg class="alx-car-silhouette"' "$FRONT_PAGE"; then
+  echo 'legacy vector car artwork is still present'
   exit 1
 fi
 
-if grep -n -E '\.ct-|!important|#[0]{3,6}([;[:space:]]|$)' "$HOME_CSS"; then
+# Remote public media is allow-listed. Do not silently introduce another CDN.
+while IFS= read -r remote; do
+  case "$remote" in
+    https://images.unsplash.com/*|https://cdn.simpleicons.org/*) ;;
+    *) echo "unapproved remote homepage media: $remote"; exit 1 ;;
+  esac
+done < <(grep -Eo 'https://[^"'"'"' )]+' "$FRONT_PAGE" | sort -u)
+
+if grep -n -E '\.ct-|!important|#[0]{3,6}([;[:space:]]|$)' "$HOME_CSS" "$POLISH_CSS"; then
   echo 'forbidden Blocksy, important or black styling found in reference dashboard layer'
   exit 1
 fi
 
-echo 'Autolex reference-dashboard homepage contract passed.'
+echo 'Autolex real-media reference-dashboard homepage contract passed.'
