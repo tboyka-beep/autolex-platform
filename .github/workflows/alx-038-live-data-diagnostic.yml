@@ -12,58 +12,67 @@ permissions:
 
 jobs:
   live-data:
-    name: Inspect live Autolex data bridge
+    name: Drive and inspect repaired Autolex EEA queue
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Fetch public live endpoints
+      - name: Capture baseline
         run: |
           set -euo pipefail
+          stamp="$(date +%s)"
           curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            https://autolex.hu/wp-json/autolex/v1/status -o status.json
+            -H 'Cache-Control: no-cache' \
+            "https://autolex.hu/wp-json/autolex/v1/eea-sync-status?diag=${stamp}" -o before-sync.json
           curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            https://autolex.hu/wp-json/autolex/v1/eu-coverage -o coverage.json
-          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            https://autolex.hu/wp-json/autolex/v1/engine-coverage -o engine.json
-          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            https://autolex.hu/wp-json/autolex/v1/eea-sync-status -o sync.json
-          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            -D home.headers https://autolex.hu/ -o home.html
+            -H 'Cache-Control: no-cache' \
+            "https://autolex.hu/wp-json/autolex/v1/eu-coverage?diag=${stamp}" -o before-coverage.json
+          echo '--- baseline queue ---'
+          jq '{targets,completed_targets,pending_targets,failed_targets,retry_targets,running_targets,rows_read,vehicles_imported,engine_proposals,link_proposals,last_completed_at,last_attempt_at,next_scheduled_at}' before-sync.json
+          echo '--- baseline EU coverage ---'
+          jq '{vehicles,makes,models,countries,registrations,latest_data_year,source_observations}' before-coverage.json
 
-      - name: Inspect official EEA API response
+      - name: Run due WordPress cron batches
         run: |
           set -euo pipefail
-          query="SELECT [Mk] AS [mk], COUNT(*) AS [r] FROM [CO2Emission].[latest].[co2cars_2025Pv31] WHERE [Year] = 2025 AND [Status] = 'P' AND NULLIF(LTRIM(RTRIM([Mk])), '') IS NOT NULL GROUP BY [Mk]"
-          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            --get \
-            --data-urlencode "query=${query}" \
-            --data-urlencode 'p=1' \
-            --data-urlencode 'nrOfHits=5' \
-            https://discodata.eea.europa.eu/sql -o eea.json
+          for pass in 1 2 3; do
+            echo "Triggering wp-cron pass ${pass}"
+            curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+              "https://autolex.hu/wp-cron.php?doing_wp_cron=1&alx038=${pass}&t=$(date +%s)" >/dev/null
+            if [ "$pass" -lt 3 ]; then
+              sleep 35
+            fi
+          done
 
-          echo '--- EEA response JSON type ---'
-          jq -r 'type' eea.json
-          echo '--- EEA top-level keys ---'
-          jq -r 'if type == "object" then keys[] else "<array>" end' eea.json
-          echo '--- EEA compact sample ---'
-          jq -c 'if type == "array" then .[0:2] else . end' eea.json | head -c 5000
-          echo
-
-      - name: Report public data state
+      - name: Verify repaired live data flow
         run: |
           set -euo pipefail
-          echo '--- platform status ---'
-          jq . status.json
-          echo '--- EU coverage ---'
-          jq . coverage.json
-          echo '--- engine coverage summary ---'
-          jq '{catalog_source,catalog_vehicles,queued_vehicles,pending_vehicles,engine_variants,verified_variants,eu_variant_links,engine_schema_version}' engine.json
-          echo '--- EEA sync queue ---'
-          jq '{targets,discovery_targets,make_index_targets,completed_targets,pending_targets,failed_targets,retry_targets,running_targets,rows_read,vehicles_imported,last_completed_at,last_attempt_at,next_run_at,next_scheduled_at,queue_lock_age_seconds}' sync.json
+          stamp="$(date +%s)"
+          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+            -H 'Cache-Control: no-cache' \
+            "https://autolex.hu/wp-json/autolex/v1/eea-sync-status?diag=${stamp}" -o after-sync.json
+          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+            -H 'Cache-Control: no-cache' \
+            "https://autolex.hu/wp-json/autolex/v1/eu-coverage?diag=${stamp}" -o after-coverage.json
+          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+            -H 'Cache-Control: no-cache' \
+            "https://autolex.hu/?alx038=${stamp}" -o home.html
+
+          echo '--- repaired queue ---'
+          jq '{targets,discovery_targets,make_index_targets,completed_targets,pending_targets,failed_targets,retry_targets,running_targets,rows_read,vehicles_imported,engine_proposals,link_proposals,last_completed_at,last_attempt_at,next_run_at,next_scheduled_at,queue_lock_age_seconds}' after-sync.json
+          echo '--- repaired EU coverage ---'
+          jq '{vehicles,makes,models,countries,registrations,latest_data_year,source_observations}' after-coverage.json
           echo '--- homepage bridge markers ---'
           printf 'recent-items='; grep -o 'class="alx-recent-item"' home.html | wc -l || true
           printf 'live-metrics='; grep -o 'class="alx-live-metric' home.html | wc -l || true
           printf 'pending-markers='; grep -o 'alx-data-pending' home.html | wc -l || true
           printf 'recent-grid='; grep -o 'data-alx-recent-updates="true"' home.html | wc -l || true
-          echo '--- response headers ---'
-          grep -Ei '^(cache-control|age|x-cache|cf-cache-status|last-modified|etag|date):' home.headers || true
+
+          before_completed="$(jq -r '.completed_targets // 0' before-sync.json)"
+          after_completed="$(jq -r '.completed_targets // 0' after-sync.json)"
+          after_imported="$(jq -r '.vehicles_imported // 0' after-sync.json)"
+          after_vehicles="$(jq -r '.vehicles // 0' after-coverage.json)"
+
+          if [ "$after_completed" -ge "$before_completed" ] && [ "$after_imported" -eq 0 ] && [ "$after_vehicles" -eq 0 ]; then
+            echo 'Repaired queue is moving but has not produced an EU vehicle yet.' >&2
+            exit 2
+          fi
