@@ -43,6 +43,14 @@ grep -Fq 'decoding="async"' "$FRONT"
 grep -Fq 'loading="eager"' "$FRONT"
 grep -Fq 'loading="lazy"' "$FRONT"
 
+# Homepage media geometry must remain stable across desktop and mobile crops.
+grep -Fq 'inset: 0 0 0 48%;' "$CSS"
+grep -Fq 'min-width: 0;' "$CSS"
+grep -Fq '.alx-compare-vehicles--photos > .alx-compare-media' "$CSS"
+grep -Fq 'inset: auto 0 0;' "$CSS"
+grep -Fq 'height: 205px;' "$CSS"
+grep -Fq 'object-fit: cover;' "$CSS"
+
 # Old demo artwork, synthetic compare labels and fabricated public counts are forbidden.
 for forbidden in \
   'alx-car-silhouette' \
