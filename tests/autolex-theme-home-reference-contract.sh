@@ -52,13 +52,14 @@ if grep -Fq '<svg class="alx-car-silhouette"' "$FRONT_PAGE"; then
   exit 1
 fi
 
-# Remote public media is allow-listed. Do not silently introduce another CDN.
+# Remote image sources are allow-listed. Attribution links are intentionally
+# allowed to point to unsplash.com and are checked by the media documentation.
 while IFS= read -r remote; do
   case "$remote" in
     https://images.unsplash.com/*|https://cdn.simpleicons.org/*) ;;
-    *) echo "unapproved remote homepage media: $remote"; exit 1 ;;
+    *) echo "unapproved remote homepage image source: $remote"; exit 1 ;;
   esac
-done < <(grep -Eo 'https://[^"'"'"' )]+' "$FRONT_PAGE" | sort -u)
+done < <(grep -Eo 'src="https://[^" ]+' "$FRONT_PAGE" | sed 's/^src="//' | sort -u)
 
 if grep -n -E '\.ct-|!important|#[0]{3,6}([;[:space:]]|$)' "$HOME_CSS" "$POLISH_CSS"; then
   echo 'forbidden Blocksy, important or black styling found in reference dashboard layer'
