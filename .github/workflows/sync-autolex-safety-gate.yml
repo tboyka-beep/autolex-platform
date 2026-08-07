@@ -1,0 +1,249 @@
+name: Sync Autolex Safety Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-autolex-safety-gate.yml'
+      - 'scripts/build-safety-gate-inbox-payload.php'
+      - 'tests/safety-gate-ci-transport-contract.sh'
+      - 'plugin/autolex-platform/includes/class-autolex-safety-gate-inbox.php'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-autolex-safety-gate.yml'
+      - 'scripts/build-safety-gate-inbox-payload.php'
+      - 'tests/safety-gate-ci-transport-contract.sh'
+  schedule:
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autolex-safety-gate-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Validate official EU source and sync verified inbox
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          extensions: curl, simplexml
+
+      - name: Validate Safety Gate CI transport contract
+        run: |
+          php -l scripts/build-safety-gate-inbox-payload.php
+          php tests/safety-gate-inbox-smoke.php
+          bash tests/safety-gate-ci-transport-contract.sh
+
+      - name: Acquire and validate official EU payload
+        run: |
+          set -euo pipefail
+          rm -rf safety-gate-build
+          php scripts/build-safety-gate-inbox-payload.php safety-gate-build
+          test -s safety-gate-build/manifest.json
+          test -s safety-gate-build/evidence.json
+          payload_file="$(find safety-gate-build -maxdepth 1 -type f -name 'safety-gate-*.xml' -print -quit)"
+          test -n "$payload_file" && test -s "$payload_file"
+          jq -e '.contract == "verified_inbox_v1" and (.sha256 | test("^[a-f0-9]{64}$")) and (.recognized_vehicle_alerts > 0)' safety-gate-build/evidence.json >/dev/null
+          cat > safety-gate-build/.htaccess <<'EOF'
+          <IfModule mod_authz_core.c>
+              Require all denied
+          </IfModule>
+          <IfModule !mod_authz_core.c>
+              Deny from all
+          </IfModule>
+          EOF
+          printf '<!doctype html><title>Not available</title>\n' > safety-gate-build/index.html
+
+      - name: Upload source acquisition evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: autolex-safety-gate-source-${{ github.run_id }}
+          path: |
+            safety-gate-build/evidence.json
+            safety-gate-build/manifest.json
+            safety-gate-build/safety-gate-*.xml
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Validate production cPanel configuration
+        if: github.event_name != 'pull_request'
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_PLUGIN_DIR: ${{ secrets.CPANEL_PLUGIN_DIR }}
+        run: |
+          set -euo pipefail
+          for name in CPANEL_API_HOST CPANEL_API_USER CPANEL_API_TOKEN CPANEL_PLUGIN_DIR; do
+            test -n "${!name:-}" || { echo "Missing ${name}" >&2; exit 1; }
+          done
+          case "$CPANEL_API_HOST" in
+            *://*|*/*|*:*) echo 'CPANEL_API_HOST must be a hostname only.' >&2; exit 1 ;;
+          esac
+          case "$CPANEL_API_USER" in
+            *[!A-Za-z0-9._-]*) echo 'CPANEL_API_USER contains unsupported characters.' >&2; exit 1 ;;
+          esac
+          case "$CPANEL_PLUGIN_DIR" in
+            /*|*..*|*[^A-Za-z0-9._/-]*) echo 'CPANEL_PLUGIN_DIR must be a safe relative path.' >&2; exit 1 ;;
+          esac
+          case "$CPANEL_PLUGIN_DIR" in
+            */wp-content/plugins/autolex-platform) ;;
+            *) echo 'CPANEL_PLUGIN_DIR has an unexpected suffix.' >&2; exit 1 ;;
+          esac
+
+      - name: Confirm verified inbox capability is live
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 18); do
+            body="$(curl --silent --show-error --fail --retry 3 --retry-delay 2 --retry-all-errors \
+              --connect-timeout 15 --max-time 45 \
+              "https://autolex.hu/wp-json/autolex/v1/safety-gate-ingest-status?capability=${GITHUB_RUN_ID}-${attempt}" || true)"
+            if jq -e '.service == "autolex-safety-gate-ingest" and .contract == "verified_inbox_v1"' <<<"$body" >/dev/null 2>&1; then
+              echo 'Verified Safety Gate inbox capability is live.'
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'Verified Safety Gate inbox capability did not become available.' >&2
+          exit 1
+
+      - name: Upload XML then manifest through authenticated cPanel channel
+        if: github.event_name != 'pull_request'
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_PLUGIN_DIR: ${{ secrets.CPANEL_PLUGIN_DIR }}
+        run: |
+          set -euo pipefail
+          api_base="https://${CPANEL_API_HOST}:2083"
+          auth_header="Authorization: cpanel ${CPANEL_API_USER}:${CPANEL_API_TOKEN}"
+          wp_root="${CPANEL_PLUGIN_DIR%/wp-content/plugins/autolex-platform}"
+          inbox_parent="${wp_root}/wp-content"
+          inbox_dir="${inbox_parent}/autolex-safety-gate-inbox"
+
+          curl --silent --show-error --fail-with-body --get \
+            --retry 4 --retry-delay 3 --retry-all-errors \
+            --connect-timeout 15 --max-time 60 \
+            --header "$auth_header" \
+            --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
+            --data-urlencode 'cpanel_jsonapi_apiversion=2' \
+            --data-urlencode 'cpanel_jsonapi_module=Fileman' \
+            --data-urlencode 'cpanel_jsonapi_func=mkdir' \
+            --data-urlencode "path=${inbox_parent}" \
+            --data-urlencode 'name=autolex-safety-gate-inbox' \
+            --data-urlencode 'permissions=0755' \
+            "${api_base}/json-api/cpanel" >/dev/null || true
+
+          upload_file() {
+            local local_file="$1" body_file headers_file http_status tmpdir
+            tmpdir="$(mktemp -d)"
+            body_file="${tmpdir}/body"
+            headers_file="${tmpdir}/headers"
+            if ! http_status="$(curl --silent --show-error \
+              --retry 4 --retry-delay 3 --retry-all-errors \
+              --connect-timeout 15 --max-time 120 \
+              --header "$auth_header" \
+              --dump-header "$headers_file" \
+              --output "$body_file" \
+              --write-out '%{http_code}' \
+              --form "dir=${inbox_dir}" \
+              --form 'overwrite=1' \
+              --form "file-1=@${local_file};filename=$(basename "$local_file")" \
+              "${api_base}/execute/Fileman/upload_files")"; then
+              rm -rf "$tmpdir"
+              echo "cPanel transport failure for $(basename "$local_file")" >&2
+              return 1
+            fi
+            bash scripts/validate-cpanel-response.sh "$body_file" "$headers_file" "$http_status" "Safety Gate inbox/$(basename "$local_file")"
+            rm -rf "$tmpdir"
+          }
+
+          payload_file="$(find safety-gate-build -maxdepth 1 -type f -name 'safety-gate-*.xml' -print -quit)"
+          test -n "$payload_file"
+          upload_file safety-gate-build/.htaccess
+          upload_file safety-gate-build/index.html
+          upload_file "$payload_file"
+          # Trigger file is deliberately last: production must never observe a
+          # complete manifest before its exact SHA-bound XML has arrived.
+          upload_file safety-gate-build/manifest.json
+          echo 'Verified Safety Gate inbox payload uploaded.'
+
+      - name: Trigger local import and verify exact production SHA
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          expected_hash="$(jq -r '.sha256' safety-gate-build/manifest.json)"
+          expected_source="$(jq -r '.source_url' safety-gate-build/manifest.json)"
+
+          curl --silent --show-error --fail --retry 3 --retry-all-errors \
+            "https://autolex.hu/wp-json/autolex/v1/safety-gate-ingest-status?uploaded=${GITHUB_RUN_ID}" >/dev/null
+          sleep 7
+
+          for attempt in $(seq 1 24); do
+            curl --silent --show-error --fail --retry 3 --retry-all-errors \
+              --connect-timeout 15 --max-time 240 \
+              "https://autolex.hu/wp-cron.php?doing_wp_cron=autolex-safety-gate-${GITHUB_RUN_ID}-${attempt}" >/dev/null || true
+
+            ingest="$(curl --silent --show-error --fail --retry 3 --retry-all-errors \
+              "https://autolex.hu/wp-json/autolex/v1/safety-gate-ingest-status?proof=${GITHUB_RUN_ID}-${attempt}" || true)"
+            safety="$(curl --silent --show-error --fail --retry 3 --retry-all-errors \
+              "https://autolex.hu/wp-json/autolex/v1/safety-gate-status?proof=${GITHUB_RUN_ID}-${attempt}" || true)"
+
+            if jq -e \
+              --arg hash "$expected_hash" \
+              --arg sha "$GITHUB_SHA" \
+              --argjson run "$GITHUB_RUN_ID" \
+              '.service == "autolex-safety-gate-ingest" and
+               .contract == "verified_inbox_v1" and
+               .active == true and
+               .last_payload_sha256 == $hash and
+               .last_commit_sha == $sha and
+               .last_workflow_run_id == $run and
+               (.last_error == "" or .last_error == null)' <<<"$ingest" >/dev/null 2>&1 \
+              && jq -e \
+                --arg source "$expected_source" \
+                '.service == "autolex-safety-gate" and
+                 .status == "ok" and
+                 .policy == "official_eu_xml_fail_closed" and
+                 (.alerts | type == "number" and . > 0) and
+                 .source_url == $source and
+                 (.last_error == "" or .last_error == null)' <<<"$safety" >/dev/null 2>&1; then
+              printf '%s\n' "$ingest" > safety-gate-build/production-ingest.json
+              printf '%s\n' "$safety" > safety-gate-build/production-status.json
+              echo "Verified Safety Gate payload is live: ${expected_hash}"
+              exit 0
+            fi
+            sleep 8
+          done
+
+          echo 'Production did not confirm the exact verified Safety Gate payload.' >&2
+          exit 1
+
+      - name: Run full fail-closed production journey
+        if: github.event_name != 'pull_request'
+        run: bash scripts/autolex-live-production-qa.sh
+
+      - name: Upload production ingestion evidence
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: autolex-safety-gate-production-${{ github.run_id }}
+          path: |
+            safety-gate-build/evidence.json
+            safety-gate-build/production-ingest.json
+            safety-gate-build/production-status.json
+          if-no-files-found: warn
+          retention-days: 30
