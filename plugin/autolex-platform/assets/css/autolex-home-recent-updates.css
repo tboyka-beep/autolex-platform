@@ -1,28 +1,28 @@
 .alx-recent-updates-card {
-  min-height: 0;
+  min-height: 220px;
 }
 
 .alx-recent-updates-card .alx-dynamic-slot {
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .alx-recent-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: 1fr;
+  gap: 5px;
 }
 
 .alx-recent-item {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
-  gap: 9px;
+  grid-template-columns: 25px minmax(0, 1fr);
+  gap: 7px;
   min-width: 0;
-  min-height: 96px;
-  align-items: start;
+  min-height: 48px;
+  align-items: center;
   border: 1px solid var(--alx-line, #e4e7ec);
-  border-radius: 10px;
+  border-radius: 8px;
   background: linear-gradient(145deg, #fff 0%, #f8fbff 100%);
-  padding: 10px;
+  padding: 6px 7px;
   color: var(--alx-text, #101828);
   text-decoration: none;
   transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
@@ -31,74 +31,54 @@
 .alx-recent-item:hover,
 .alx-recent-item:focus-visible {
   border-color: #b9d2fb;
-  box-shadow: 0 8px 20px rgba(23, 105, 232, .08);
+  box-shadow: 0 6px 16px rgba(23, 105, 232, .07);
   transform: translateY(-1px);
 }
 
 .alx-recent-icon {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   place-items: center;
-  border-radius: 9px;
+  border-radius: 7px;
   color: var(--alx-primary, #1769e8);
   background: var(--alx-primary-soft, #eaf2ff);
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 900;
 }
 
-.alx-recent-copy {
+.alx-recent-copy,
+.alx-recent-copy strong,
+.alx-recent-copy small,
+.alx-recent-time {
   display: block;
   min-width: 0;
 }
 
-.alx-recent-copy strong,
-.alx-recent-copy small,
-.alx-recent-facts,
-.alx-recent-time {
-  display: block;
-}
-
 .alx-recent-copy strong {
   overflow: hidden;
-  font-size: 11px;
-  line-height: 1.25;
+  font-size: 9.5px;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .alx-recent-copy small {
   overflow: hidden;
-  margin-top: 2px;
-  color: var(--alx-text-muted, #667085);
-  font-size: 8.5px;
-  line-height: 1.25;
+  margin-top: 1px;
+  color: #344054;
+  font-size: 7.2px;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.alx-recent-facts {
-  margin-top: 7px;
-  color: #344054;
-  font-size: 8px;
-  font-weight: 750;
-  line-height: 1.35;
-}
-
 .alx-recent-time {
-  grid-column: 1 / -1;
-  margin-top: 1px;
+  overflow: hidden;
+  margin-top: 2px;
   color: var(--alx-text-muted, #667085);
-  font-size: 7.5px;
-  line-height: 1.2;
-}
-
-@media (max-width: 900px) {
-  .alx-recent-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .alx-recent-item {
-    min-height: 80px;
-  }
+  font-size: 6.8px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
