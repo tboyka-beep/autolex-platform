@@ -7,6 +7,7 @@ define('ABSPATH', __DIR__ . '/');
 
 require_once dirname(__DIR__) . '/plugin/autolex-platform/includes/class-autolex-eea-sync.php';
 require_once dirname(__DIR__) . '/plugin/autolex-platform/includes/class-autolex-eea-failure-telemetry.php';
+require_once dirname(__DIR__) . '/plugin/autolex-platform/includes/class-autolex-eea-api-rejection-recovery.php';
 
 $query = Autolex_EEA_Sync::build_query('BMW', '116d', 2021);
 $required = array(
@@ -156,4 +157,31 @@ foreach (array(
     }
 }
 
-echo "EEA live-sync query, response and failure telemetry smoke test passed.\n";
+if (Autolex_EEA_API_Rejection_Recovery::PROBATION_ATTEMPTS !== 7 ||
+    Autolex_EEA_API_Rejection_Recovery::REJECTED_ERROR !== 'EEA Discodata rejected the read-only query.') {
+    fwrite(STDERR, "EEA API rejection recovery no longer guarantees one fresh attempt.\n");
+    exit(1);
+}
+
+$api_recovery_source = file_get_contents(dirname(__DIR__) . '/plugin/autolex-platform/includes/class-autolex-eea-api-rejection-recovery.php');
+foreach (array(
+    "status = 'failed'",
+    "target_type = 'make_discovery'",
+    'attempts >= 8',
+    'page_number = 1',
+    'rows_read = 0',
+    'vehicles_imported = 0',
+    'engines_proposed = 0',
+    'links_proposed = 0',
+    "last_error = %s",
+    "status = 'retry'",
+    'attempts = %d',
+    "'attempt_policy' => 'one_fresh_attempt_only'",
+) as $api_recovery_fragment) {
+    if (false === strpos($api_recovery_source, $api_recovery_fragment)) {
+        fwrite(STDERR, "Missing bounded API-rejection recovery guard: {$api_recovery_fragment}\n");
+        exit(1);
+    }
+}
+
+echo "EEA live-sync query, response, telemetry and bounded recovery smoke test passed.\n";
