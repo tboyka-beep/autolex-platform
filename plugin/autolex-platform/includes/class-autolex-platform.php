@@ -56,9 +56,28 @@ final class Autolex_Platform
         add_action('wp_enqueue_scripts', array($this, 'enqueue_public_assets'), 30);
     }
 
-    /** @return void */
+    /**
+     * Keep the legacy experience layer available for older themes without
+     * letting its global dark body rules override the dedicated Autolex theme.
+     *
+     * The no-source registration is intentional: portal styles can keep their
+     * historical dependency handle while the custom theme remains the visual
+     * owner of the page shell.
+     *
+     * @return void
+     */
     public function enqueue_public_assets()
     {
+        if (function_exists('get_stylesheet') && get_stylesheet() === 'autolex-theme') {
+            wp_register_style(
+                'autolex-platform-experience',
+                false,
+                array(),
+                AUTOLEX_PLATFORM_VERSION
+            );
+            return;
+        }
+
         wp_enqueue_style(
             'autolex-platform-experience',
             plugins_url('assets/css/autolex-experience.css', AUTOLEX_PLATFORM_FILE),
