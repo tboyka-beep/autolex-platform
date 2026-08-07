@@ -1,5 +1,5 @@
 .alx-recent-updates-card {
-  min-height: 220px;
+  min-height: 0;
 }
 
 .alx-recent-updates-card .alx-dynamic-slot {
@@ -81,4 +81,35 @@
   line-height: 1.15;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* At the approved desktop reference width the recent-data module occupies the
+ * existing middle dashboard cell, so it adds information without pushing the
+ * footer below the reference fold. Popular brands remain available in the
+ * right rail and on the dedicated brand route. */
+@media (min-width: 1181px) {
+  .alx-home-center > .alx-home-cards--primary {
+    grid-row: 3;
+  }
+
+  .alx-home-center > .alx-recent-updates-card {
+    grid-row: 3;
+    grid-column: 1;
+    z-index: 3;
+    width: 27%;
+    height: 100%;
+    margin-left: 30%;
+    align-self: stretch;
+    box-sizing: border-box;
+  }
+
+  .alx-home-cards--primary .alx-brand-explore-card {
+    visibility: hidden;
+  }
+}
+
+@media (max-width: 1180px) {
+  .alx-home-cards--primary .alx-brand-explore-card {
+    display: none;
+  }
 }
