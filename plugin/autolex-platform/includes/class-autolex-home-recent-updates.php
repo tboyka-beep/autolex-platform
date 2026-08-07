@@ -140,6 +140,12 @@ final class Autolex_Home_Recent_Updates
             return array();
         }
 
+        $cache_key = 'autolex_home_recent_vehicles_v1';
+        $cached = get_transient($cache_key);
+        if (is_array($cached)) {
+            return $cached;
+        }
+
         $table = Autolex_EU_Catalog::vehicles_table();
         $rows = $wpdb->get_results(
             "SELECT id, make, model, variant, version, fuel_type, engine_capacity_cc, engine_power_kw, last_seen_year, updated_at
@@ -151,6 +157,7 @@ final class Autolex_Home_Recent_Updates
         );
 
         if (!is_array($rows)) {
+            set_transient($cache_key, array(), 300);
             return array();
         }
 
@@ -175,6 +182,7 @@ final class Autolex_Home_Recent_Updates
             }
         }
 
+        set_transient($cache_key, $picked, 300);
         return $picked;
     }
 
