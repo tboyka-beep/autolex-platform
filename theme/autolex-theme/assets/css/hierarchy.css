@@ -1,10 +1,10 @@
 .alx-hierarchy-page {
-    padding: clamp(2rem, 5vw, 4.5rem) 0;
+    padding: clamp(1.75rem, 4vw, 4rem) 0 clamp(4.5rem, 7vw, 7rem);
 }
 
 .alx-hierarchy-shell {
     display: grid;
-    gap: 1.5rem;
+    gap: clamp(1.15rem, 2.2vw, 1.8rem);
 }
 
 .alx-breadcrumbs {
@@ -12,43 +12,88 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
+    padding-inline: 0.25rem;
     color: var(--alx-text-muted);
-    font-size: 0.875rem;
+    font-size: 0.9rem;
 }
 
 .alx-breadcrumbs a {
     color: var(--alx-primary);
+    font-weight: 700;
 }
 
 .alx-hierarchy-hero {
+    position: relative;
     display: flex;
+    min-height: 250px;
     justify-content: space-between;
-    gap: 1.5rem;
-    align-items: flex-end;
-    padding: clamp(1.5rem, 4vw, 2.5rem);
+    gap: clamp(2rem, 5vw, 5rem);
+    align-items: center;
+    overflow: hidden;
+    padding: clamp(2rem, 5vw, 4rem);
     border: 1px solid var(--alx-border);
-    border-radius: 20px;
-    background: var(--alx-surface);
-    box-shadow: var(--alx-shadow-sm);
+    border-radius: 26px;
+    background:
+        radial-gradient(circle at 90% 18%, rgba(39, 166, 111, 0.11), transparent 18rem),
+        radial-gradient(circle at 75% 120%, rgba(23, 105, 232, 0.09), transparent 22rem),
+        linear-gradient(125deg, #ffffff 0%, #fbfdff 56%, #f2f8f6 100%);
+    box-shadow: 0 18px 50px rgba(20, 54, 92, 0.075);
+}
+
+.alx-hierarchy-hero::after {
+    content: "";
+    position: absolute;
+    right: -45px;
+    top: -70px;
+    width: 220px;
+    height: 220px;
+    border: 1px solid rgba(39, 166, 111, 0.13);
+    border-radius: 50%;
+    box-shadow: 0 0 0 42px rgba(23, 105, 232, 0.022);
+    pointer-events: none;
+}
+
+.alx-hierarchy-hero > * {
+    position: relative;
+    z-index: 1;
+}
+
+.alx-hierarchy-hero > div {
+    max-width: 54rem;
 }
 
 .alx-hierarchy-hero h1 {
-    max-width: 18ch;
-    margin: 0.35rem 0 0;
+    max-width: 15ch;
+    margin: 0.45rem 0 0;
+    font-size: clamp(2.7rem, 5vw, 4.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.055em;
 }
 
 .alx-hierarchy-lead {
     max-width: 68ch;
-    margin: 0.85rem 0 0;
+    margin: 1rem 0 0;
     color: var(--alx-text-muted);
+    font-size: clamp(1rem, 1.4vw, 1.14rem);
+    line-height: 1.65;
+}
+
+.alx-hierarchy-hero .alx-button {
+    min-height: 52px;
+    flex: 0 0 auto;
+    padding-inline: 1.35rem;
+    border-color: #d4dfec;
+    background: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 10px 28px rgba(20, 54, 92, 0.07);
 }
 
 .alx-hierarchy-workspace {
     min-width: 0;
-    padding: clamp(1rem, 3vw, 2rem);
+    padding: clamp(1.4rem, 3.2vw, 2.7rem);
     border: 1px solid var(--alx-border);
-    border-radius: 18px;
-    background: var(--alx-surface);
+    border-radius: 24px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    box-shadow: 0 14px 42px rgba(20, 54, 92, 0.055);
 }
 
 .alx-hierarchy-plugin-output {
@@ -63,15 +108,30 @@
     margin-bottom: 0;
 }
 
-.alx-hierarchy-empty {
-    display: grid;
+.alx-hierarchy-plugin-output :where(ul, .grid, .cards, .brand-grid, .model-grid, .generation-grid) {
     gap: 0.9rem;
-    justify-items: start;
-    max-width: 54rem;
-    padding: clamp(1.25rem, 4vw, 2rem);
-    border: 1px dashed var(--alx-border-strong);
+}
+
+.alx-hierarchy-plugin-output :where(a, article, .card) {
     border-radius: 16px;
-    background: var(--alx-surface-subtle);
+}
+
+.alx-hierarchy-empty {
+    position: relative;
+    display: grid;
+    min-height: 260px;
+    align-content: center;
+    gap: 1rem;
+    justify-items: start;
+    max-width: 58rem;
+    overflow: hidden;
+    padding: clamp(2rem, 5vw, 3.6rem);
+    border: 1px solid #dfe7f0;
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 92% 10%, rgba(23, 105, 232, 0.10), transparent 14rem),
+        linear-gradient(135deg, #f9fbff 0%, #ffffff 58%, #f4fbf8 100%);
+    box-shadow: inset 4px 0 0 rgba(23, 105, 232, 0.78);
 }
 
 .alx-hierarchy-empty h2,
@@ -79,18 +139,93 @@
     margin: 0;
 }
 
+.alx-hierarchy-empty h2 {
+    max-width: 24ch;
+    font-size: clamp(1.7rem, 3vw, 2.35rem);
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+}
+
 .alx-hierarchy-empty p {
+    max-width: 58ch;
     color: var(--alx-text-muted);
+    font-size: 1.02rem;
+    line-height: 1.65;
+}
+
+.alx-hierarchy-empty .alx-button {
+    min-height: 50px;
+    margin-top: 0.35rem;
+}
+
+.alx-hierarchy-brand .alx-hierarchy-hero {
+    background:
+        radial-gradient(circle at 90% 18%, rgba(23, 105, 232, 0.13), transparent 18rem),
+        linear-gradient(125deg, #ffffff 0%, #f8fbff 58%, #eef6ff 100%);
+}
+
+.alx-hierarchy-model .alx-hierarchy-hero {
+    background:
+        radial-gradient(circle at 90% 18%, rgba(39, 166, 111, 0.13), transparent 18rem),
+        linear-gradient(125deg, #ffffff 0%, #f9fdfb 58%, #edf9f4 100%);
+}
+
+.alx-hierarchy-generation .alx-hierarchy-hero {
+    background:
+        radial-gradient(circle at 90% 18%, rgba(245, 158, 11, 0.13), transparent 18rem),
+        linear-gradient(125deg, #ffffff 0%, #fffdf9 58%, #fff7e9 100%);
+}
+
+.alx-hierarchy-engine .alx-hierarchy-hero {
+    background:
+        radial-gradient(circle at 90% 18%, rgba(124, 92, 255, 0.12), transparent 18rem),
+        linear-gradient(125deg, #ffffff 0%, #fcfbff 58%, #f5f1ff 100%);
 }
 
 @media (max-width: 768px) {
+    .alx-hierarchy-page {
+        padding-top: 1rem;
+    }
+
+    .alx-hierarchy-shell {
+        gap: 1rem;
+    }
+
+    .alx-breadcrumbs {
+        padding-inline: 0;
+        font-size: 0.86rem;
+    }
+
     .alx-hierarchy-hero {
+        min-height: 0;
         align-items: flex-start;
         flex-direction: column;
+        padding: 1.55rem;
+        border-radius: 20px;
+    }
+
+    .alx-hierarchy-hero h1 {
+        font-size: clamp(2.35rem, 11vw, 3.15rem);
     }
 
     .alx-hierarchy-hero .alx-button {
         width: 100%;
         justify-content: center;
+        background: #f3f6fb;
+    }
+
+    .alx-hierarchy-workspace {
+        padding: 1rem;
+        border-radius: 20px;
+    }
+
+    .alx-hierarchy-empty {
+        min-height: 0;
+        padding: 2rem 1.25rem;
+        border-radius: 17px;
+    }
+
+    .alx-hierarchy-empty h2 {
+        font-size: clamp(1.7rem, 8vw, 2.05rem);
     }
 }
