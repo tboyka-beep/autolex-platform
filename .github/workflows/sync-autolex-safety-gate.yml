@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/sync-autolex-safety-gate.yml'
       - 'scripts/build-safety-gate-inbox-payload.php'
+      - 'scripts/diagnose-safety-gate-xml-schema.php'
       - 'tests/safety-gate-ci-transport-contract.sh'
       - 'plugin/autolex-platform/includes/class-autolex-safety-gate-inbox.php'
   push:
@@ -13,6 +14,7 @@ on:
     paths:
       - '.github/workflows/sync-autolex-safety-gate.yml'
       - 'scripts/build-safety-gate-inbox-payload.php'
+      - 'scripts/diagnose-safety-gate-xml-schema.php'
       - 'tests/safety-gate-ci-transport-contract.sh'
   schedule:
     - cron: '23 4 * * *'
@@ -42,8 +44,12 @@ jobs:
       - name: Validate Safety Gate CI transport contract
         run: |
           php -l scripts/build-safety-gate-inbox-payload.php
+          php -l scripts/diagnose-safety-gate-xml-schema.php
           php tests/safety-gate-inbox-smoke.php
           bash tests/safety-gate-ci-transport-contract.sh
+
+      - name: Diagnose current official XML schema names
+        run: php scripts/diagnose-safety-gate-xml-schema.php
 
       - name: Acquire and validate official EU payload
         run: |
