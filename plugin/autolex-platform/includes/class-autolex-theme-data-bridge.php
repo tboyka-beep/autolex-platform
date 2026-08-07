@@ -37,6 +37,8 @@ final class Autolex_Theme_Data_Bridge
         add_action('autolex_theme_coverage_panel', array($this, 'render_coverage_panel'));
         add_action('autolex_theme_popular_brands', array($this, 'render_popular_brands'));
         add_action('autolex_theme_metric_strip', array($this, 'render_metric_strip'));
+        add_action('autolex_theme_featured_vehicle', array($this, 'render_featured_vehicle'));
+        add_action('autolex_theme_comparison_preview', array($this, 'render_comparison_preview'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_assets'), 35);
 
         $this->registered = true;
@@ -114,15 +116,18 @@ final class Autolex_Theme_Data_Bridge
                 ?>
                 <li>
                     <a href="<?php echo esc_url($url); ?>">
-                        <span><?php echo esc_html($name); ?></span>
-                        <small>
-                            <?php
-                            printf(
-                                esc_html__('%s változat', 'autolex-platform'),
-                                esc_html(number_format_i18n((int) ($brand['variants'] ?? 0)))
-                            );
-                            ?>
-                        </small>
+                        <?php echo $this->render_brand_mark($name); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- controlled mapping + escaped fallback. ?>
+                        <span class="alx-live-brand-copy">
+                            <strong><?php echo esc_html($name); ?></strong>
+                            <small>
+                                <?php
+                                printf(
+                                    esc_html__('%s változat', 'autolex-platform'),
+                                    esc_html(number_format_i18n((int) ($brand['variants'] ?? 0)))
+                                );
+                                ?>
+                            </small>
+                        </span>
                     </a>
                 </li>
             <?php endforeach; ?>
@@ -155,6 +160,105 @@ final class Autolex_Theme_Data_Bridge
             </span>
             <?php
         }
+    }
+
+    /** Render one real, highly represented catalogue record for the featured card. */
+    public function render_featured_vehicle()
+    {
+        $vehicle = $this->get_featured_vehicle();
+        if (empty($vehicle)) {
+            return;
+        }
+
+        $name = trim((string) ($vehicle['make'] ?? '') . ' ' . (string) ($vehicle['model'] ?? ''));
+        if ($name === '') {
+            return;
+        }
+
+        $url = add_query_arg(
+            array(
+                'brand' => (string) ($vehicle['make'] ?? ''),
+                'model' => (string) ($vehicle['model'] ?? ''),
+            ),
+            home_url('/autok/')
+        );
+
+        $specs = array();
+        if (!empty($vehicle['engine_capacity_cc'])) {
+            $specs[__('Motor', 'autolex-platform')] = number_format_i18n((int) $vehicle['engine_capacity_cc']) . ' cm³';
+        }
+        if (!empty($vehicle['engine_power_kw'])) {
+            $specs[__('Teljesítmény', 'autolex-platform')] = number_format_i18n((float) $vehicle['engine_power_kw'], 0) . ' kW';
+        }
+        if (!empty($vehicle['fuel_type'])) {
+            $specs[__('Üzemanyag', 'autolex-platform')] = (string) $vehicle['fuel_type'];
+        }
+        if (!empty($vehicle['last_seen_year'])) {
+            $specs[__('Adatév', 'autolex-platform')] = (string) (int) $vehicle['last_seen_year'];
+        }
+        ?>
+        <div class="alx-featured-data">
+            <h2><?php echo esc_html($name); ?></h2>
+            <p><?php esc_html_e('Valós EU/EGT katalógusrekord, forrásolt műszaki adatokkal.', 'autolex-platform'); ?></p>
+            <?php if ($specs) : ?>
+                <div class="alx-featured-stats">
+                    <?php foreach ($specs as $label => $value) : ?>
+                        <span><strong><?php echo esc_html($value); ?></strong><small><?php echo esc_html($label); ?></small></span>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+            <a class="alx-card-action" href="<?php echo esc_url($url); ?>"><?php esc_html_e('Részletek megtekintése', 'autolex-platform'); ?> →</a>
+        </div>
+        <?php
+    }
+
+    /** Render a truthful two-vehicle comparison preview from catalogue rows. */
+    public function render_comparison_preview()
+    {
+        $vehicles = $this->get_comparison_vehicles();
+        if (count($vehicles) < 2) {
+            return;
+        }
+
+        $left = $vehicles[0];
+        $right = $vehicles[1];
+        $left_name = trim((string) ($left['make'] ?? '') . ' ' . (string) ($left['model'] ?? ''));
+        $right_name = trim((string) ($right['make'] ?? '') . ' ' . (string) ($right['model'] ?? ''));
+        if ($left_name === '' || $right_name === '') {
+            return;
+        }
+
+        $rows = array(
+            __('Teljesítmény', 'autolex-platform') => array(
+                $this->format_kw($left['engine_power_kw'] ?? null),
+                $this->format_kw($right['engine_power_kw'] ?? null),
+            ),
+            __('Motor', 'autolex-platform') => array(
+                $this->format_cc($left['engine_capacity_cc'] ?? null),
+                $this->format_cc($right['engine_capacity_cc'] ?? null),
+            ),
+            __('CO₂ (WLTP)', 'autolex-platform') => array(
+                $this->format_co2($left['co2_wltp'] ?? null),
+                $this->format_co2($right['co2_wltp'] ?? null),
+            ),
+        );
+        ?>
+        <div class="alx-compare-data" data-alx-real-comparison="true">
+            <div class="alx-compare-names">
+                <strong><?php echo esc_html($left_name); ?></strong>
+                <span aria-hidden="true">VS.</span>
+                <strong><?php echo esc_html($right_name); ?></strong>
+            </div>
+            <dl class="alx-compare-lines">
+                <?php foreach ($rows as $label => $values) : ?>
+                    <div>
+                        <dt><?php echo esc_html($label); ?></dt>
+                        <dd><?php echo esc_html($values[0]); ?> / <?php echo esc_html($values[1]); ?></dd>
+                    </div>
+                <?php endforeach; ?>
+            </dl>
+        </div>
+        <?php
     }
 
     /** @return array<string,mixed> */
@@ -212,6 +316,115 @@ final class Autolex_Theme_Data_Bridge
         );
 
         return is_array($rows) ? $rows : array();
+    }
+
+    /** @return array<string,mixed> */
+    private function get_featured_vehicle()
+    {
+        global $wpdb;
+
+        if (!class_exists('Autolex_EU_Catalog') || Autolex_EU_Catalog::SCHEMA_VERSION !== get_option('autolex_eu_schema_version')) {
+            return array();
+        }
+
+        $table = Autolex_EU_Catalog::vehicles_table();
+        $row = $wpdb->get_row(
+            "SELECT id, make, model, variant, version, fuel_type, engine_capacity_cc, engine_power_kw, co2_wltp, last_seen_year, registration_count
+             FROM {$table}
+             WHERE make <> '' AND model <> ''
+             ORDER BY registration_count DESC, last_seen_year DESC, id ASC
+             LIMIT 1",
+            ARRAY_A
+        );
+
+        return is_array($row) ? $row : array();
+    }
+
+    /** @return array<int,array<string,mixed>> */
+    private function get_comparison_vehicles()
+    {
+        global $wpdb;
+
+        if (!class_exists('Autolex_EU_Catalog') || Autolex_EU_Catalog::SCHEMA_VERSION !== get_option('autolex_eu_schema_version')) {
+            return array();
+        }
+
+        $table = Autolex_EU_Catalog::vehicles_table();
+        $rows = $wpdb->get_results(
+            "SELECT id, make, model, engine_capacity_cc, engine_power_kw, co2_wltp, registration_count, last_seen_year
+             FROM {$table}
+             WHERE make <> '' AND model <> ''
+             ORDER BY registration_count DESC, last_seen_year DESC, id ASC
+             LIMIT 30",
+            ARRAY_A
+        );
+
+        if (!is_array($rows)) {
+            return array();
+        }
+
+        $picked = array();
+        $seen_makes = array();
+        foreach ($rows as $row) {
+            $make = trim((string) ($row['make'] ?? ''));
+            if ($make === '' || isset($seen_makes[$make])) {
+                continue;
+            }
+            $seen_makes[$make] = true;
+            $picked[] = $row;
+            if (count($picked) === 2) {
+                break;
+            }
+        }
+
+        return $picked;
+    }
+
+    /** @return string */
+    private function render_brand_mark($name)
+    {
+        $key = strtolower(remove_accents((string) $name));
+        $key = str_replace(array(' ', '-', '_'), '', $key);
+        $logos = array(
+            'bmw'          => 'https://cdn.simpleicons.org/bmw/0066B1',
+            'mercedesbenz' => 'https://cdn.simpleicons.org/mercedes/111827',
+            'audi'         => 'https://cdn.simpleicons.org/audi/BB0A30',
+            'volkswagen'   => 'https://cdn.simpleicons.org/volkswagen/001E50',
+            'toyota'       => 'https://cdn.simpleicons.org/toyota/EB0A1E',
+            'honda'        => 'https://cdn.simpleicons.org/honda/E40521',
+            'ford'         => 'https://cdn.simpleicons.org/ford/003478',
+            'skoda'        => 'https://cdn.simpleicons.org/skoda/0E3A2F',
+        );
+
+        if (isset($logos[$key])) {
+            return sprintf(
+                '<span class="alx-brand-logo"><img src="%1$s" alt="" width="17" height="17" loading="lazy" decoding="async"></span>',
+                esc_url($logos[$key])
+            );
+        }
+
+        return sprintf(
+            '<span class="alx-brand-logo alx-brand-logo--fallback">%s</span>',
+            esc_html(mb_substr((string) $name, 0, 1))
+        );
+    }
+
+    /** @param mixed $value */
+    private function format_kw($value)
+    {
+        return is_numeric($value) && (float) $value > 0 ? number_format_i18n((float) $value, 0) . ' kW' : __('n.a.', 'autolex-platform');
+    }
+
+    /** @param mixed $value */
+    private function format_cc($value)
+    {
+        return is_numeric($value) && (float) $value > 0 ? number_format_i18n((int) $value) . ' cm³' : __('n.a.', 'autolex-platform');
+    }
+
+    /** @param mixed $value */
+    private function format_co2($value)
+    {
+        return is_numeric($value) && (float) $value > 0 ? number_format_i18n((float) $value, 0) . ' g/km' : __('n.a.', 'autolex-platform');
     }
 
     private function __construct()
