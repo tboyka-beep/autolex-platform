@@ -1,6 +1,6 @@
 <?php
 /**
- * Smoke checks for the allowlisted EEA Discodata query builder.
+ * Smoke checks for the allowlisted EEA Discodata query builder and response contract.
  */
 
 define('ABSPATH', __DIR__ . '/');
@@ -70,4 +70,56 @@ try {
     // Expected: no allowlisted EEA passenger-car table exists for 2026 yet.
 }
 
-echo "EEA live-sync query smoke test passed.\n";
+$current_response = json_encode(array(
+    'results' => array(
+        array('mk' => 'ABARTH', 'r' => 1553),
+        array('mk' => 'BMW', 'r' => 49123),
+    ),
+));
+$current_rows = Autolex_EEA_Sync::decode_response_rows($current_response);
+if (count($current_rows) !== 2 || ($current_rows[0]['mk'] ?? '') !== 'ABARTH' || ($current_rows[1]['mk'] ?? '') !== 'BMW') {
+    fwrite(STDERR, "Current EEA results envelope was not flattened into rows.\n");
+    exit(1);
+}
+
+$legacy_response = json_encode(array(
+    array('mk' => 'Audi', 'cn' => 'A4', 'r' => 25),
+));
+$legacy_rows = Autolex_EEA_Sync::decode_response_rows($legacy_response);
+if (count($legacy_rows) !== 1 || ($legacy_rows[0]['cn'] ?? '') !== 'A4') {
+    fwrite(STDERR, "Legacy direct EEA row lists are no longer supported.\n");
+    exit(1);
+}
+
+foreach (array(
+    '{"unexpected":[{"mk":"BMW"}]}',
+    '{"results":"not-a-row-list"}',
+    '{"results":["not-a-row"]}',
+    '{"error":"query rejected"}',
+) as $invalid_response) {
+    try {
+        Autolex_EEA_Sync::decode_response_rows($invalid_response);
+        fwrite(STDERR, "An invalid EEA response envelope was accepted.\n");
+        exit(1);
+    } catch (RuntimeException $exception) {
+        // Expected: format changes and API errors must fail closed.
+    }
+}
+
+$sync_source = file_get_contents(dirname(__DIR__) . '/plugin/autolex-platform/includes/class-autolex-eea-sync.php');
+foreach (array(
+    'RESULTS_WRAPPER_RECOVERY_OPTION',
+    "AND rows_read = 1",
+    "AND vehicles_imported = 0",
+    "AND engines_proposed = 0",
+    "AND links_proposed = 0",
+    "status = 'pending'",
+    'page_number = 1',
+) as $recovery_fragment) {
+    if (false === strpos($sync_source, $recovery_fragment)) {
+        fwrite(STDERR, "Missing wrapped-response recovery guard: {$recovery_fragment}\n");
+        exit(1);
+    }
+}
+
+echo "EEA live-sync query and response smoke test passed.\n";
