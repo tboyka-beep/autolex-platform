@@ -23,18 +23,39 @@ fetch() {
   printf '%s\n' "$code"
 }
 
-assert_html() {
-  local path="$1" marker="$2" slug="$3"
-  local body="$TMP_DIR/${slug}.html" headers="$TMP_DIR/${slug}.headers"
+assert_no_security_challenge() {
+  local body="$1" path="$2"
+  if grep -Fqi 'Please wait while your request is being verified' "$body" || \
+     grep -Fqi '<title>One moment, please...</title>' "$body"; then
+    fail "hosting security challenge intercepted route: $path"
+  fi
+}
+
+assert_html_any() {
+  local path="$1" slug="$2"
+  shift 2
+  local body="$TMP_DIR/${slug}.html" headers="$TMP_DIR/${slug}.headers" marker
   fetch "${BASE_URL%/}${path}" "$body" "$headers" >/dev/null
   grep -Eqi '<!doctype html|<html' "$body" || fail "non-HTML response: $path"
-  grep -Fqi "$marker" "$body" || fail "missing marker '$marker': $path"
-  printf 'LIVE_QA_OK: %s\n' "$path"
+  assert_no_security_challenge "$body" "$path"
+
+  for marker in "$@"; do
+    if grep -Fqi "$marker" "$body"; then
+      printf 'LIVE_QA_OK: %s marker=%s\n' "$path" "$marker"
+      return 0
+    fi
+  done
+
+  fail "none of the approved markers found on $path: $*"
 }
 
 status_body="$TMP_DIR/status.json"
 status_headers="$TMP_DIR/status.headers"
 fetch "${BASE_URL%/}/wp-json/autolex/v1/status" "$status_body" "$status_headers" >/dev/null
+if grep -Fqi 'Please wait while your request is being verified' "$status_body" || \
+   grep -Fqi '<title>One moment, please...</title>' "$status_body"; then
+  fail 'hosting security challenge intercepted status endpoint'
+fi
 python3 - "$status_body" "$EXPECTED_VERSION" <<'PY'
 import json, sys
 path, expected = sys.argv[1:]
@@ -52,8 +73,12 @@ if service != 'autolex-platform' or status != 'ok' or version != expected:
 print(f'LIVE_QA_OK: status autolex-platform / ok / {version}')
 PY
 
-assert_html '/' 'autolex-portal-3' 'home'
-assert_html '/autok/' 'Autók' 'catalog'
-assert_html '/osszehasonlitas/' 'Összehasonlítás' 'compare'
+# ALX-042/043 light-theme route contracts. Prefer structural markers where
+# available so copy changes do not create false production alarms.
+assert_html_any '/' 'home' 'data-reference-dashboard="true"'
+assert_html_any '/autok/' 'catalog' 'Járműkatalógus'
+assert_html_any '/osszehasonlitas/' 'compare' 'alx3-compare'
+assert_html_any '/jarmu/' 'vehicle' 'alx-vehicle-page'
+assert_html_any '/markak/' 'brands' 'alx-hierarchy-page'
 
 printf 'LIVE_QA_SUCCESS: base=%s version=%s\n' "$BASE_URL" "$EXPECTED_VERSION"

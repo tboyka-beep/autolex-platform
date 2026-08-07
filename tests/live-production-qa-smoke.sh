@@ -12,9 +12,18 @@ required=(
   '/wp-json/autolex/v1/status'
   'autolex-platform'
   'AUTOLEX_EXPECTED_VERSION'
-  'autolex-portal-3'
+  'assert_no_security_challenge'
+  'assert_html_any'
+  'Please wait while your request is being verified'
+  'data-reference-dashboard="true"'
   '/autok/'
+  'Járműkatalógus'
   '/osszehasonlitas/'
+  'alx3-compare'
+  '/jarmu/'
+  'alx-vehicle-page'
+  '/markak/'
+  'alx-hierarchy-page'
   '--retry-all-errors'
   '--connect-timeout'
   '--max-time'
@@ -26,6 +35,12 @@ for marker in "${required[@]}"; do
     exit 1
   }
 done
+
+# Retired markers must not silently return after the ALX-043 copy/shell update.
+if grep -Fq "assert_html '/autok/' 'Autók'" "$SCRIPT"; then
+  echo 'stale Autók catalogue marker is still active'
+  exit 1
+fi
 
 route_required=(
   "add_action('template_redirect'"
@@ -46,4 +61,4 @@ done
 bash -n "$SCRIPT"
 php -l "$ROUTE" >/dev/null
 
-echo 'Live production QA and comparison route contract smoke test passed.'
+echo 'Live production QA and current light-theme route contract smoke test passed.'
