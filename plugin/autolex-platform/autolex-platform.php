@@ -58,10 +58,56 @@ function autolex_platform()
     return $platform;
 }
 
+/** @return bool */
+function autolex_uses_dedicated_theme()
+{
+    return function_exists('get_stylesheet') && get_stylesheet() === 'autolex-theme';
+}
+
+/**
+ * The plugin-owned 4.2 visual stack is only needed where the portal renderer
+ * owns content. Plain theme pages (brands, models, generations, /jarmu/) keep
+ * the dedicated theme as their single visual owner.
+ *
+ * @return bool
+ */
+function autolex_is_portal_visual_request()
+{
+    if (is_front_page() || is_page('autok') || is_singular('alx_vehicle')) {
+        return true;
+    }
+
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '';
+    $path = (string) wp_parse_url($request_uri, PHP_URL_PATH);
+    return false !== strpos('/' . trim($path, '/') . '/', '/auto-adatlap/');
+}
+
+/**
+ * Homepage data-bridge assets are registered by their data providers before
+ * this hook. Remove them from inner pages before WordPress resolves stylesheet
+ * dependencies, so a homepage-only dependency cannot leak debug notices into
+ * catalogue or hierarchy screenshots.
+ *
+ * @return void
+ */
+function autolex_prune_home_only_theme_assets()
+{
+    if (is_admin() || !autolex_uses_dedicated_theme() || is_front_page()) {
+        return;
+    }
+
+    wp_dequeue_style('autolex-home-recent-updates');
+    wp_dequeue_style('autolex-theme-data-bridge');
+}
+
 /** Loads the single Autolex 4.2 light visual stack after the portal base CSS. */
 function autolex_enqueue_visual_layer()
 {
     if (is_admin()) {
+        return;
+    }
+
+    if (autolex_uses_dedicated_theme() && !autolex_is_portal_visual_request()) {
         return;
     }
 
@@ -96,4 +142,5 @@ function autolex_enqueue_visual_layer()
 }
 
 add_action('plugins_loaded', 'autolex_platform');
+add_action('wp_enqueue_scripts', 'autolex_prune_home_only_theme_assets', 139);
 add_action('wp_enqueue_scripts', 'autolex_enqueue_visual_layer', 140);
