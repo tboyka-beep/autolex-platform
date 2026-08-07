@@ -2,8 +2,10 @@
 /**
  * Acquire and validate the official EU Safety Gate XML on a trusted CI runner.
  *
- * Writes a SHA-bound XML payload, production manifest and evidence JSON. It
- * never writes WordPress state and never contacts the Autolex production site.
+ * The metadata XML published by Safety Gate is a weekly-report index, not the
+ * alert payload itself. This builder therefore follows the official chain:
+ * data.europa metadata -> weekly-report index -> newest weekly-report detail.
+ * The detail XML is the only payload written to the production inbox.
  */
 
 define('ABSPATH', __DIR__ . '/');
@@ -102,6 +104,30 @@ function autolex_safety_ci_fetch($url, $max, $headers = array())
     throw new RuntimeException($last);
 }
 
+/** @return SimpleXMLElement */
+function autolex_safety_ci_parse_xml($xml, $label)
+{
+    if (false !== stripos($xml, '<!DOCTYPE')) {
+        throw new RuntimeException($label . ' unexpectedly contains a DOCTYPE declaration.');
+    }
+    if (!function_exists('simplexml_load_string')) {
+        throw new RuntimeException('PHP SimpleXML is required.');
+    }
+    $previous = libxml_use_internal_errors(true);
+    $root = simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NONET | LIBXML_NOCDATA);
+    $errors = libxml_get_errors();
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+    if (false === $root) {
+        $detail = $errors ? trim((string) $errors[0]->message) : 'unknown XML parser error';
+        throw new RuntimeException($label . ' is invalid XML: ' . $detail);
+    }
+    if ('Safety-Gate' !== $root->getName()) {
+        throw new RuntimeException($label . ' has an unexpected root element: ' . $root->getName());
+    }
+    return $root;
+}
+
 function autolex_safety_ci_flatten($node, $depth = 0)
 {
     $fields = array();
@@ -121,6 +147,67 @@ function autolex_safety_ci_flatten($node, $depth = 0)
     return $fields;
 }
 
+/** @return string ISO date or empty string. */
+function autolex_safety_ci_normalize_date($value)
+{
+    $value = trim((string) $value);
+    if ('' === $value) {
+        return '';
+    }
+    foreach (array('d/m/Y', 'Y-m-d', 'd-m-Y') as $format) {
+        $date = DateTimeImmutable::createFromFormat('!' . $format, $value, new DateTimeZone('UTC'));
+        $errors = DateTimeImmutable::getLastErrors();
+        if ($date && (false === $errors || (0 === $errors['warning_count'] && 0 === $errors['error_count']))) {
+            return $date->format('Y-m-d');
+        }
+    }
+    return '';
+}
+
+/**
+ * Selects the newest official weekly-report detail URL from the report index.
+ *
+ * @return array{url:string,reference:string,publication_date:string,year:int,week:int}
+ */
+function autolex_safety_ci_latest_report(SimpleXMLElement $index_root)
+{
+    $reports = array();
+    foreach ($index_root->weeklyReport as $report) {
+        $url = trim((string) $report->URL);
+        if (!autolex_safety_ci_allowed_url($url)) {
+            continue;
+        }
+        $publication = autolex_safety_ci_normalize_date((string) $report->publicationDate);
+        $year = (int) $report->year;
+        $week = (int) $report->week;
+        $sort = $publication ? strtotime($publication . ' 00:00:00 UTC') : 0;
+        if ($sort <= 0 && $year > 0 && $week > 0) {
+            $fallback = new DateTimeImmutable('now', new DateTimeZone('UTC'));
+            $fallback = $fallback->setISODate($year, $week, 5)->setTime(0, 0);
+            $sort = $fallback->getTimestamp();
+        }
+        $reports[] = array(
+            'url' => $url,
+            'reference' => trim((string) $report->reference),
+            'publication_date' => $publication,
+            'year' => $year,
+            'week' => $week,
+            'sort' => $sort,
+        );
+    }
+    if (!$reports) {
+        throw new RuntimeException('Weekly-report index contains no allowlisted detail URL.');
+    }
+    usort($reports, static function ($a, $b) {
+        if ($a['sort'] === $b['sort']) {
+            return $b['week'] <=> $a['week'];
+        }
+        return $b['sort'] <=> $a['sort'];
+    });
+    unset($reports[0]['sort']);
+    return $reports[0];
+}
+
 $output_dir = isset($argv[1]) ? rtrim((string) $argv[1], '/\\') : '';
 $commit_sha = strtolower(trim((string) getenv('GITHUB_SHA')));
 $run_id = (int) getenv('GITHUB_RUN_ID');
@@ -132,8 +219,8 @@ if (!is_dir($output_dir) && !mkdir($output_dir, 0700, true) && !is_dir($output_d
 }
 
 try {
-    $metadata_source = '';
-    $xml_url = '';
+    $discovery_metadata_source = '';
+    $report_index_url = '';
     $metadata_errors = array();
     foreach (Autolex_Safety_Gate::DATASET_APIS as $metadata_url) {
         try {
@@ -146,55 +233,58 @@ try {
             if (!autolex_safety_ci_allowed_url($candidate)) {
                 throw new RuntimeException('No allowlisted HTTPS XML distribution was discovered.');
             }
-            $metadata_source = $metadata_response['effective_url'];
-            $xml_url = $candidate;
+            $discovery_metadata_source = $metadata_response['effective_url'];
+            $report_index_url = $candidate;
             break;
         } catch (Throwable $exception) {
             $metadata_errors[] = $metadata_url . ': ' . $exception->getMessage();
         }
     }
-    if ('' === $xml_url) {
+    if ('' === $report_index_url) {
         throw new RuntimeException('Metadata discovery failed: ' . implode(' | ', $metadata_errors));
     }
 
-    $xml_response = autolex_safety_ci_fetch(
-        $xml_url,
+    $index_response = autolex_safety_ci_fetch(
+        $report_index_url,
         Autolex_Safety_Gate::MAX_XML_BYTES,
         array('Accept: application/xml, text/xml;q=0.9, */*;q=0.1')
     );
-    $xml = $xml_response['body'];
-    if (false !== stripos($xml, '<!DOCTYPE')) {
-        throw new RuntimeException('Official XML unexpectedly contains a DOCTYPE declaration.');
+    $index_root = autolex_safety_ci_parse_xml($index_response['body'], 'Official Safety Gate weekly-report index');
+    if (0 === count($index_root->weeklyReport)) {
+        throw new RuntimeException('Official Safety Gate weekly-report index contains no reports.');
     }
-    if (!function_exists('simplexml_load_string')) {
-        throw new RuntimeException('PHP SimpleXML is required.');
-    }
-    $previous = libxml_use_internal_errors(true);
-    $root = simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NONET | LIBXML_NOCDATA);
-    $errors = libxml_get_errors();
-    libxml_clear_errors();
-    libxml_use_internal_errors($previous);
-    if (false === $root) {
-        $detail = $errors ? trim((string) $errors[0]->message) : 'unknown XML parser error';
-        throw new RuntimeException('Official XML is invalid: ' . $detail);
+    $latest_report = autolex_safety_ci_latest_report($index_root);
+
+    $detail_response = autolex_safety_ci_fetch(
+        $latest_report['url'],
+        Autolex_Safety_Gate::MAX_XML_BYTES,
+        array('Accept: application/xml, text/xml;q=0.9, */*;q=0.1')
+    );
+    $xml = $detail_response['body'];
+    $detail_root = autolex_safety_ci_parse_xml($xml, 'Official Safety Gate weekly-report detail');
+    $notifications = $detail_root->xpath('//notifications') ?: array();
+    if (!$notifications) {
+        throw new RuntimeException('Official Safety Gate weekly-report detail contains no notifications.');
     }
 
-    $nodes = $root->xpath('//*') ?: array();
+    $report_date = autolex_safety_ci_normalize_date((string) $detail_root->report_date);
+    if ('' === $report_date) {
+        $report_date = $latest_report['publication_date'];
+    }
+
     $vehicle_alerts = array();
-    foreach ($nodes as $node) {
-        if (count($node->children()) < 4) {
-            continue;
+    foreach ($notifications as $notification) {
+        $fields = autolex_safety_ci_flatten($notification);
+        if ($report_date && empty($fields['notificationdate'])) {
+            $fields['notificationdate'] = $report_date;
         }
-        $alert = Autolex_Safety_Gate::normalize_alert(
-            autolex_safety_ci_flatten($node),
-            $xml_response['effective_url']
-        );
+        $alert = Autolex_Safety_Gate::normalize_alert($fields, $detail_response['effective_url']);
         if ($alert) {
             $vehicle_alerts[$alert['fingerprint']] = true;
         }
     }
     if (!$vehicle_alerts) {
-        throw new RuntimeException('Official XML contains no vehicle alerts recognized by the production normalization contract.');
+        throw new RuntimeException('Latest official weekly report contains no vehicle alerts recognized by the production normalization contract.');
     }
 
     $sha = hash('sha256', $xml);
@@ -204,8 +294,8 @@ try {
     $manifest = array(
         'contract' => AUTOLEX_SAFETY_CI_CONTRACT,
         'payload_file' => $payload_name,
-        'source_url' => $xml_response['effective_url'],
-        'metadata_source' => $metadata_source,
+        'source_url' => $detail_response['effective_url'],
+        'metadata_source' => $index_response['effective_url'],
         'sha256' => $sha,
         'bytes' => $bytes,
         'retrieved_at' => $retrieved_at,
@@ -213,9 +303,16 @@ try {
         'workflow_run_id' => $run_id,
     );
     $evidence = array_merge($manifest, array(
-        'content_type' => $xml_response['content_type'],
-        'root_element' => $root->getName(),
-        'element_count' => count($nodes),
+        'discovery_metadata_source' => $discovery_metadata_source,
+        'report_index_url' => $index_response['effective_url'],
+        'report_index_sha256' => hash('sha256', $index_response['body']),
+        'latest_report_reference' => $latest_report['reference'],
+        'latest_report_publication_date' => $latest_report['publication_date'],
+        'latest_report_year' => $latest_report['year'],
+        'latest_report_week' => $latest_report['week'],
+        'content_type' => $detail_response['content_type'],
+        'root_element' => $detail_root->getName(),
+        'notification_count' => count($notifications),
         'recognized_vehicle_alerts' => count($vehicle_alerts),
     ));
 
