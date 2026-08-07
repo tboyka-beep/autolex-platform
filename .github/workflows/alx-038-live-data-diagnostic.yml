@@ -1,4 +1,4 @@
-name: ALX-040 EEA Make Discovery Reproduction
+name: ALX-040 EEA Heavy-Make Probe
 
 on:
   push:
@@ -12,33 +12,53 @@ permissions:
 
 jobs:
   live-data:
-    name: Reproduce rejected EEA make discovery
+    name: Probe largest EEA makes with production discovery query
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
-      - name: Reproduce BMW make-discovery queries at production page size
+      - name: Fetch 2025 make index
         run: |
           set -euo pipefail
+          query="SELECT [Mk] AS [mk], COUNT(*) AS [r] FROM [CO2Emission].[latest].[co2cars_2025Pv31] WHERE [Year] = 2025 AND [Status] = 'P' AND NULLIF(LTRIM(RTRIM([Mk])), '') IS NOT NULL GROUP BY [Mk]"
+          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+            --get \
+            --data-urlencode "query=${query}" \
+            --data-urlencode 'p=1' \
+            --data-urlencode 'nrOfHits=2000' \
+            https://discodata.eea.europa.eu/sql -o make-index.json
+          jq -e '.results | type == "array" and length > 0' make-index.json >/dev/null
+          jq -r '.results | sort_by(-(.r|tonumber)) | .[0:10][] | [.mk,.r] | @tsv' make-index.json | tee top-makes.tsv
 
-          run_query() {
-            year="$1"
-            table="$2"
-            status="$3"
-            out="eea-${year}.json"
-            query="SELECT [Mk] AS [mk], [Cn] AS [cn], [T] AS [t], [Va] AS [va], [Ve] AS [ve], [Ct] AS [ct], [Ft] AS [ft], [Fm] AS [fm], [Ec (cm3)] AS [ec], [Ep (KW)] AS [ep], COUNT(*) AS [r] FROM [CO2Emission].[latest].[${table}] WHERE [Year] = ${year} AND [Status] = '${status}' AND [Mk] = 'BMW' GROUP BY [Mk], [Cn], [T], [Va], [Ve], [Ct], [Ft], [Fm], [Ec (cm3)], [Ep (KW)]"
-
-            curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+      - name: Run production discovery query for top makes
+        run: |
+          set -euo pipefail
+          : > probe.tsv
+          while IFS=$'\t' read -r make registrations; do
+            escaped_make="${make//\'/\'\'}"
+            query="SELECT [Mk] AS [mk], [Cn] AS [cn], [T] AS [t], [Va] AS [va], [Ve] AS [ve], [Ct] AS [ct], [Ft] AS [ft], [Fm] AS [fm], [Ec (cm3)] AS [ec], [Ep (KW)] AS [ep], COUNT(*) AS [r] FROM [CO2Emission].[latest].[co2cars_2025Pv31] WHERE [Year] = 2025 AND [Status] = 'P' AND [Mk] = '${escaped_make}' GROUP BY [Mk], [Cn], [T], [Va], [Ve], [Ct], [Ft], [Fm], [Ec (cm3)], [Ep (KW)]"
+            safe="$(printf '%s' "$make" | sha256sum | cut -c1-12)"
+            out="probe-${safe}.json"
+            start="$(date +%s)"
+            curl --silent --show-error --fail --location --retry 2 --retry-all-errors \
               --get \
               --data-urlencode "query=${query}" \
               --data-urlencode 'p=1' \
               --data-urlencode 'nrOfHits=100' \
               https://discodata.eea.europa.eu/sql -o "$out"
+            elapsed="$(( $(date +%s) - start ))"
+            error="$(jq -r '(.error // .errors // "") | if type=="array" then join(" | ") else tostring end' "$out")"
+            count="$(jq -r 'if (.results? | type)=="array" then (.results|length) else 0 end' "$out")"
+            state='ok'
+            if [ -n "$error" ]; then state='api_rejected'; fi
+            printf '%s\t%s\t%s\t%s\t%s\n' "$make" "$registrations" "$state" "$count" "$elapsed" | tee -a probe.tsv
+          done < top-makes.tsv
 
-            echo "--- ${year} ${table} ---"
-            jq -c '{keys:(if type=="object" then keys else ["<array>"] end), error:(.error // .errors // null), result_count:(if (.results? | type)=="array" then (.results|length) else null end), first:(if (.results? | type)=="array" then .results[0] else null end)}' "$out"
-          }
-
-          run_query 2022 co2cars_2022Fv26 F
-          run_query 2023 co2cars_2023Fv28 F
-          run_query 2024 co2cars_2024Pv29 P
-          run_query 2025 co2cars_2025Pv31 P
+      - name: Report probe summary
+        run: |
+          set -euo pipefail
+          echo 'make | source rows | state | result rows | seconds'
+          cat probe.tsv
+          rejected="$(awk -F '\t' '$3=="api_rejected"{n++} END{print n+0}' probe.tsv)"
+          slow="$(awk -F '\t' '$5>=25{n++} END{print n+0}' probe.tsv)"
+          echo "rejected=${rejected}"
+          echo "near-wordpress-timeout=${slow}"
