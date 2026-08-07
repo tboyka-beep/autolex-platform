@@ -6,6 +6,7 @@
 define('ABSPATH', __DIR__ . '/');
 
 require_once dirname(__DIR__) . '/plugin/autolex-platform/includes/class-autolex-eea-sync.php';
+require_once dirname(__DIR__) . '/plugin/autolex-platform/includes/class-autolex-eea-failure-telemetry.php';
 
 $query = Autolex_EEA_Sync::build_query('BMW', '116d', 2021);
 $required = array(
@@ -122,4 +123,37 @@ foreach (array(
     }
 }
 
-echo "EEA live-sync query and response smoke test passed.\n";
+$failure_cases = array(
+    'EEA Discodata request failed: cURL error 28' => 'transport',
+    'EEA Discodata returned HTTP 503.' => 'http',
+    'EEA Discodata rejected the read-only query.' => 'api_rejected',
+    'EEA Discodata returned invalid JSON.' => 'response_format',
+    'EEA Discodata returned an unexpected JSON envelope.' => 'response_format',
+    'EEA result exceeded 500 pages and requires a narrower source target.' => 'pagination_overflow',
+    'Unsupported EEA reporting year.' => 'source_configuration',
+    'EEA discovered-make target insert failed: write error' => 'database_write',
+    'Unclassified importer exception' => 'other',
+    '' => 'missing_error',
+);
+foreach ($failure_cases as $message => $expected_category) {
+    $actual_category = Autolex_EEA_Failure_Telemetry::classify_failure_message($message);
+    if ($actual_category !== $expected_category) {
+        fwrite(STDERR, "EEA failure telemetry misclassified a smoke case: {$actual_category} != {$expected_category}\n");
+        exit(1);
+    }
+}
+
+$telemetry_source = file_get_contents(dirname(__DIR__) . '/plugin/autolex-platform/includes/class-autolex-eea-failure-telemetry.php');
+foreach (array(
+    "'privacy'      => 'aggregate_only'",
+    "'/eea-failure-summary'",
+    "WHERE status = 'failed'",
+    'MAX_ROWS = 1000',
+) as $telemetry_fragment) {
+    if (false === strpos($telemetry_source, $telemetry_fragment)) {
+        fwrite(STDERR, "Missing sanitized EEA failure telemetry guard: {$telemetry_fragment}\n");
+        exit(1);
+    }
+}
+
+echo "EEA live-sync query, response and failure telemetry smoke test passed.\n";
