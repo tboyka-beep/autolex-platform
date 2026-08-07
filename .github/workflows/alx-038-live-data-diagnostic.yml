@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Reproduce BMW make-discovery queries
+      - name: Reproduce BMW make-discovery queries at production page size
         run: |
           set -euo pipefail
 
@@ -31,7 +31,7 @@ jobs:
               --get \
               --data-urlencode "query=${query}" \
               --data-urlencode 'p=1' \
-              --data-urlencode 'nrOfHits=3' \
+              --data-urlencode 'nrOfHits=100' \
               https://discodata.eea.europa.eu/sql -o "$out"
 
             echo "--- ${year} ${table} ---"
