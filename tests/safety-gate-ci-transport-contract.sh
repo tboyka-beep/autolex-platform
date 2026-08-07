@@ -17,6 +17,14 @@ builder_required=(
   'Autolex_Safety_Gate::DATASET_APIS'
   'Autolex_Safety_Gate::discover_xml_url'
   'Autolex_Safety_Gate::normalize_alert'
+  'autolex_safety_ci_latest_report'
+  '$index_root->weeklyReport'
+  "xpath('//notifications')"
+  "'notificationdate'"
+  "'report_index_sha256'"
+  "'latest_report_reference'"
+  "'latest_report_publication_date'"
+  "'notification_count'"
   'CURLPROTO_HTTPS'
   'CURL_HTTP_VERSION_1_1'
   'LIBXML_NONET | LIBXML_NOCDATA'
@@ -31,12 +39,31 @@ for marker in "${builder_required[@]}"; do
   grep -Fq -- "$marker" "$BUILDER" || { echo "missing CI builder marker: $marker"; exit 1; }
 done
 
+# Guard against the original bug: the weekly-report index must not itself be
+# written as the production payload.
+grep -Fq "\$xml = \$detail_response['body'];" "$BUILDER" || {
+  echo 'production payload is not explicitly bound to weekly report detail XML'
+  exit 1
+}
+grep -Fq "'source_url' => \$detail_response['effective_url']" "$BUILDER" || {
+  echo 'manifest source_url is not bound to weekly report detail URL'
+  exit 1
+}
+grep -Fq "'metadata_source' => \$index_response['effective_url']" "$BUILDER" || {
+  echo 'manifest metadata_source is not bound to report index URL'
+  exit 1
+}
+
 workflow_required=(
   'pull_request:'
   'schedule:'
   "cron: '23 4 * * *'"
   'workflow_dispatch:'
+  'Acquire and validate latest official EU weekly report'
   'php scripts/build-safety-gate-inbox-payload.php safety-gate-build'
+  '.latest_report_reference'
+  '.notification_count'
+  '.recognized_vehicle_alerts'
   'actions/upload-artifact@v7'
   'if: github.event_name != '\''pull_request'\'''
   'CPANEL_API_HOST'
@@ -69,12 +96,19 @@ manifest_line="$(grep -n 'upload_file safety-gate-build/manifest.json' "$WORKFLO
 }
 
 # Production upload steps must never run for PR validation.
-secret_line="$(grep -n 'name: Validate production cPanel configuration' "$WORKFLOW" | head -n1 | cut -d: -f1)"
-[[ -n "$secret_line" ]] || { echo 'missing production cPanel step'; exit 1; }
-sed -n "${secret_line},$((secret_line + 2))p" "$WORKFLOW" | grep -Fq "if: github.event_name != 'pull_request'" || {
-  echo 'production cPanel step is not PR-gated'
-  exit 1
-}
+for step_name in \
+  'Validate production cPanel configuration' \
+  'Confirm verified inbox capability is live' \
+  'Upload XML then manifest through authenticated cPanel channel' \
+  'Trigger local import and verify exact production SHA' \
+  'Run full fail-closed production journey'; do
+  line="$(grep -n "name: ${step_name}" "$WORKFLOW" | head -n1 | cut -d: -f1)"
+  [[ -n "$line" ]] || { echo "missing production step: $step_name"; exit 1; }
+  sed -n "${line},$((line + 2))p" "$WORKFLOW" | grep -Fq "if: github.event_name != 'pull_request'" || {
+    echo "production step is not PR-gated: $step_name"
+    exit 1
+  }
+done
 
 # The production-side class stays local/read-only from HTTP perspective.
 grep -Fq "'/safety-gate-ingest-status'" "$INBOX"
@@ -87,4 +121,4 @@ fi
 php -l "$BUILDER" >/dev/null
 bash -n "$LIVE"
 
-echo 'Safety Gate CI transport contract passed.'
+echo 'Safety Gate two-stage CI transport contract passed.'
