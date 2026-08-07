@@ -3,8 +3,15 @@ set -euo pipefail
 
 SCRIPT='scripts/autolex-live-production-qa.sh'
 ROUTE='plugin/autolex-platform/includes/class-autolex-comparison-page.php'
-[[ -f "$SCRIPT" ]] || { echo 'missing live QA script'; exit 1; }
-[[ -f "$ROUTE" ]] || { echo 'missing comparison route'; exit 1; }
+PORTAL='plugin/autolex-platform/includes/class-autolex-portal.php'
+QUERY='plugin/autolex-platform/includes/trait-autolex-portal-query.php'
+MAINTENANCE='plugin/autolex-platform/includes/class-autolex-maintenance-evidence.php'
+SAFETY='plugin/autolex-platform/includes/class-autolex-safety-gate.php'
+SEO='plugin/autolex-platform/includes/class-autolex-vehicle-seo.php'
+
+for file in "$SCRIPT" "$ROUTE" "$PORTAL" "$QUERY" "$MAINTENANCE" "$SAFETY" "$SEO"; do
+  [[ -f "$file" ]] || { echo "missing launch QA dependency: $file"; exit 1; }
+done
 
 required=(
   'LIVE_QA_FAIL'
@@ -12,15 +19,30 @@ required=(
   '/wp-json/autolex/v1/status'
   'autolex-platform'
   'AUTOLEX_EXPECTED_VERSION'
+  'AUTOLEX_EXPECT_INDEXING'
+  'report_indexing_state'
   'assert_no_security_challenge'
   'assert_html_any'
+  'assert_html_file_any'
+  'fetch_json'
   'Please wait while your request is being verified'
   'data-reference-dashboard="true"'
   '/autok/'
   'Járműkatalógus'
   '/osszehasonlitas/'
   'alx3-compare'
+  '/wp-json/autolex/v1/safety-gate-status'
+  'official_eu_xml_fail_closed'
+  '/wp-json/autolex/v1/portal/vehicles?limit=1&sort=data_desc'
+  '/auto-adatlap/'
+  'autolex-vehicle-detail'
+  'application/ld+json'
+  '/wp-json/autolex/v1/maintenance/'
+  '/wp-json/autolex/v1/portal/vehicles?q='
+  'alx3-vehicle-card'
+  '/wp-json/autolex/v1/recalls?make='
   'Guaranteed public production routes'
+  'production vehicle catalogue returned no sample'
   '--retry-all-errors'
   '--connect-timeout'
   '--max-time'
@@ -28,18 +50,21 @@ required=(
 
 for marker in "${required[@]}"; do
   grep -Fq -- "$marker" "$SCRIPT" || {
-    echo "missing live QA contract marker: $marker"
+    echo "missing live launch QA contract marker: $marker"
     exit 1
   }
 done
 
-# Retired/staging-only assumptions must not silently return.
+# Retired/staging-only assumptions and hard-coded showcase vehicles must not
+# silently return to production monitoring.
 for stale in \
   "assert_html '/autok/' 'Autók'" \
   "assert_html_any '/jarmu/'" \
-  "assert_html_any '/markak/'"; do
+  "assert_html_any '/markak/'" \
+  'BMW E87' \
+  '118d'; do
   if grep -Fq -- "$stale" "$SCRIPT"; then
-    echo "stale or template-only live route assertion is active: $stale"
+    echo "stale, fixture-only or hard-coded live assertion is active: $stale"
     exit 1
   fi
 done
@@ -52,7 +77,6 @@ route_required=(
   "home_url('/autok/')"
   "array('compare' => '1')"
 )
-
 for marker in "${route_required[@]}"; do
   grep -Fq -- "$marker" "$ROUTE" || {
     echo "missing comparison route contract marker: $marker"
@@ -60,7 +84,44 @@ for marker in "${route_required[@]}"; do
   }
 done
 
+portal_required=(
+  "'/portal/vehicles'"
+  "'get_vehicles_response'"
+  "'q'"
+)
+for marker in "${portal_required[@]}"; do
+  grep -Fq -- "$marker" "$PORTAL" || {
+    echo "missing portal REST contract marker: $marker"
+    exit 1
+  }
+done
+
+grep -Fq "home_url('/auto-adatlap/' . \$id" "$QUERY" || {
+  echo 'dynamic vehicle result URL contract is missing'
+  exit 1
+}
+grep -Fq "'/maintenance/(?P<vehicle_id>\\d+)'" "$MAINTENANCE" || {
+  echo 'maintenance REST contract is missing'
+  exit 1
+}
+grep -Fq "'/safety-gate-status'" "$SAFETY" || {
+  echo 'Safety Gate status REST contract is missing'
+  exit 1
+}
+grep -Fq "'/recalls'" "$SAFETY" || {
+  echo 'Safety Gate recalls REST contract is missing'
+  exit 1
+}
+grep -Fq "~/auto-adatlap/(\\d+)" "$SEO" || {
+  echo 'vehicle SEO dynamic route parser contract is missing'
+  exit 1
+}
+
 bash -n "$SCRIPT"
 php -l "$ROUTE" >/dev/null
+php -l "$PORTAL" >/dev/null
+php -l "$MAINTENANCE" >/dev/null
+php -l "$SAFETY" >/dev/null
+php -l "$SEO" >/dev/null
 
-echo 'Live production QA public-route contract smoke test passed.'
+echo 'Autolex production launch dynamic live QA contract passed.'
