@@ -1,70 +1,133 @@
 .alx-catalog-page {
-    padding: clamp(2rem, 5vw, 4.5rem) 0 clamp(4rem, 7vw, 7rem);
+    padding: clamp(2rem, 4vw, 4rem) 0 clamp(4.5rem, 7vw, 7rem);
 }
 
 .alx-catalog-shell {
     display: grid;
-    gap: 1.5rem;
+    gap: clamp(1.25rem, 2.4vw, 2rem);
 }
 
 .alx-catalog-hero,
 .alx-catalog-workspace {
     border: 1px solid var(--alx-border);
-    border-radius: var(--alx-radius-lg);
+    border-radius: 26px;
     background: var(--alx-surface);
-    box-shadow: var(--alx-shadow-sm);
+    box-shadow: 0 18px 50px rgba(20, 54, 92, 0.075);
 }
 
 .alx-catalog-hero {
+    position: relative;
     display: flex;
-    align-items: flex-end;
+    min-height: 290px;
+    align-items: center;
     justify-content: space-between;
-    gap: 2rem;
-    padding: clamp(1.5rem, 4vw, 3rem);
+    gap: clamp(2rem, 5vw, 5rem);
+    overflow: hidden;
+    padding: clamp(2rem, 5vw, 4.5rem);
+    background:
+        radial-gradient(circle at 88% 22%, rgba(23, 105, 232, 0.15), transparent 20rem),
+        linear-gradient(125deg, #ffffff 0%, #f7fbff 52%, #eef6ff 100%);
+}
+
+.alx-catalog-hero::before {
+    content: "";
+    position: absolute;
+    right: -80px;
+    bottom: -160px;
+    width: 360px;
+    height: 360px;
+    border: 1px solid rgba(23, 105, 232, 0.12);
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 52px rgba(23, 105, 232, 0.025),
+        0 0 0 104px rgba(39, 166, 111, 0.018);
+    pointer-events: none;
+}
+
+.alx-catalog-hero > div,
+.alx-catalog-hero > .alx-button {
+    position: relative;
+    z-index: 1;
 }
 
 .alx-catalog-hero > div {
-    max-width: 50rem;
+    max-width: 52rem;
 }
 
 .alx-catalog-hero h1 {
-    margin: 0.3rem 0 0.8rem;
+    max-width: 12ch;
+    margin: 0.45rem 0 1rem;
+    font-size: clamp(2.7rem, 5vw, 4.6rem);
+    line-height: 0.98;
+    letter-spacing: -0.055em;
 }
 
 .alx-catalog-hero p:last-child {
+    max-width: 68ch;
     margin-bottom: 0;
     color: var(--alx-text-muted);
+    font-size: clamp(1rem, 1.5vw, 1.16rem);
+    line-height: 1.65;
+}
+
+.alx-catalog-hero > .alx-button {
+    min-height: 52px;
+    flex: 0 0 auto;
+    padding-inline: 1.35rem;
+    border-color: #cddbf0;
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 10px 28px rgba(20, 54, 92, 0.08);
+    backdrop-filter: blur(10px);
 }
 
 .alx-catalog-workspace {
     overflow: hidden;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
 }
 
 .alx-catalog-status {
-    padding: 0.9rem clamp(1.25rem, 3vw, 2rem);
+    position: relative;
+    padding: 1rem clamp(1.25rem, 3vw, 2rem) 1rem clamp(3rem, 5vw, 4.1rem);
     border-bottom: 1px solid var(--alx-border);
-    background: var(--alx-surface-subtle);
-    color: var(--alx-text-muted);
-    font-size: 0.94rem;
+    background: linear-gradient(90deg, #eef5ff 0%, #f6faff 54%, #ffffff 100%);
+    color: #49627f;
+    font-size: 0.95rem;
+}
+
+.alx-catalog-status::before {
+    content: "i";
+    position: absolute;
+    top: 50%;
+    left: clamp(1.2rem, 2.5vw, 2rem);
+    display: grid;
+    width: 24px;
+    height: 24px;
+    place-items: center;
+    border-radius: 50%;
+    background: #1769e8;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 900;
+    transform: translateY(-50%);
 }
 
 .alx-catalog-plugin-output {
     min-width: 0;
-    padding: clamp(1.25rem, 3vw, 2rem);
+    padding: clamp(1.25rem, 3.4vw, 2.5rem);
 }
 
 .alx-catalog-plugin-output :where(form, .filters, .filter-bar, .catalog-filters) {
     display: grid;
     gap: 1rem;
     margin-bottom: 1.5rem;
-    padding: 1rem;
+    padding: 1.15rem;
     border: 1px solid var(--alx-border);
-    border-radius: var(--alx-radius-md);
-    background: var(--alx-surface-subtle);
+    border-radius: 18px;
+    background: linear-gradient(180deg, #f8fbff, #f4f7fb);
 }
 
 .alx-catalog-plugin-output :where(input, select, button) {
-    min-height: 2.75rem;
+    min-height: 48px;
 }
 
 .alx-catalog-plugin-output :where(.grid, .cards, .vehicle-grid, .catalog-grid) {
@@ -76,24 +139,61 @@
 .alx-catalog-plugin-output :where(article, .card, .vehicle-card, .catalog-card) {
     min-width: 0;
     border: 1px solid var(--alx-border);
-    border-radius: var(--alx-radius-md);
-    background: var(--alx-surface);
-    box-shadow: var(--alx-shadow-xs);
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff, #fbfdff);
+    box-shadow: 0 10px 30px rgba(20, 54, 92, 0.055);
 }
 
 .alx-catalog-plugin-output img {
     max-width: 100%;
     height: auto;
-    border-radius: calc(var(--alx-radius-md) - 2px);
+    border-radius: 16px;
 }
 
 .alx-catalog-empty,
 .alx-catalog-error {
-    max-width: 48rem;
-    margin: 0 auto;
+    position: relative;
+    max-width: 50rem;
+    min-height: 290px;
+    margin: 1rem auto;
+    padding: clamp(2rem, 5vw, 4rem);
+    overflow: hidden;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at 88% 16%, rgba(23, 105, 232, 0.11), transparent 13rem),
+        linear-gradient(135deg, #ffffff, #f9fbff);
+    box-shadow: 0 16px 42px rgba(20, 54, 92, 0.065);
+}
+
+.alx-catalog-empty h2,
+.alx-catalog-error h2 {
+    max-width: 18ch;
+    margin-inline: auto;
+    font-size: clamp(1.65rem, 3vw, 2.35rem);
+    line-height: 1.13;
+    letter-spacing: -0.035em;
+}
+
+.alx-catalog-empty p,
+.alx-catalog-error p {
+    max-width: 42rem;
+    margin-inline: auto;
+    color: var(--alx-text-muted);
+    font-size: 1.02rem;
+    line-height: 1.65;
+}
+
+.alx-catalog-empty .alx-button,
+.alx-catalog-error .alx-button {
+    min-height: 50px;
+    margin-top: 0.5rem;
 }
 
 @media (max-width: 960px) {
+    .alx-catalog-hero {
+        min-height: 250px;
+    }
+
     .alx-catalog-plugin-output :where(.grid, .cards, .vehicle-grid, .catalog-grid) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -104,12 +204,60 @@
         padding-top: 1rem;
     }
 
+    .alx-catalog-shell {
+        gap: 1rem;
+    }
+
+    .alx-catalog-hero,
+    .alx-catalog-workspace {
+        border-radius: 20px;
+    }
+
     .alx-catalog-hero {
+        min-height: 0;
         align-items: stretch;
         flex-direction: column;
+        padding: 1.55rem;
+    }
+
+    .alx-catalog-hero h1 {
+        font-size: clamp(2.35rem, 11vw, 3.2rem);
+    }
+
+    .alx-catalog-hero > .alx-button {
+        width: 100%;
+        justify-content: center;
+        background: #f2f6fc;
+        backdrop-filter: none;
+    }
+
+    .alx-catalog-status {
+        padding: 1rem 1rem 1rem 3.1rem;
+        line-height: 1.5;
+    }
+
+    .alx-catalog-status::before {
+        left: 1rem;
+    }
+
+    .alx-catalog-plugin-output {
+        padding: 1rem;
     }
 
     .alx-catalog-plugin-output :where(.grid, .cards, .vehicle-grid, .catalog-grid) {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .alx-catalog-empty,
+    .alx-catalog-error {
+        min-height: 0;
+        margin: 0;
+        padding: 2rem 1.2rem;
+        border-radius: 18px;
+    }
+
+    .alx-catalog-empty h2,
+    .alx-catalog-error h2 {
+        font-size: clamp(1.65rem, 8vw, 2rem);
     }
 }
