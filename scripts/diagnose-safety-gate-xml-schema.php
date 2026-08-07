@@ -78,8 +78,24 @@ arsort($interesting);
 $top_tags = array_slice($tag_counts, 0, 60, true);
 $top_paths = array_slice($path_counts, 0, 80, true);
 $interesting_paths = array_slice($interesting, 0, 120, true);
+$report_samples = array();
+foreach ($root->weeklyReport as $report) {
+    $target = trim((string) $report->URL);
+    $target_host = strtolower((string) parse_url($target, PHP_URL_HOST));
+    $report_samples[] = array(
+        'reference' => trim((string) $report->reference),
+        'publicationDate' => trim((string) $report->publicationDate),
+        'year' => trim((string) $report->year),
+        'week' => trim((string) $report->week),
+        'url' => $target,
+        'url_host_allowed' => in_array($target_host, $allowed, true),
+    );
+    if (count($report_samples) >= 5) {
+        break;
+    }
+}
 
-// Print only schema names/counts. No alert values are emitted.
+// This diagnostic logs public report-index values only; no private/user data.
 echo json_encode(array(
     'root' => $root->getName(),
     'bytes' => strlen($xml),
@@ -87,4 +103,5 @@ echo json_encode(array(
     'top_tags' => $top_tags,
     'top_paths' => $top_paths,
     'interesting_paths' => $interesting_paths,
+    'report_samples' => $report_samples,
 ), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
