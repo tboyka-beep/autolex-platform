@@ -1,4 +1,4 @@
-name: ALX-036 Production Release Once
+name: ALX-037 Production Release Once
 
 on:
   push:
@@ -15,8 +15,8 @@ concurrency:
 
 jobs:
   production-release:
-    name: Deploy and activate ALX-036 production theme
-    if: contains(github.event.head_commit.message, '[alx-036-production]')
+    name: Deploy and activate ALX-037 production theme
+    if: contains(github.event.head_commit.message, '[alx-037-production]')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     environment: production
