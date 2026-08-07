@@ -1,0 +1,235 @@
+/* ALX-035: production visual polish with real, licensed stock imagery. */
+
+.alx-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.alx-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(247,250,253,.98) 0%, rgba(247,250,253,.92) 42%, rgba(247,250,253,.28) 67%, rgba(247,250,253,.04) 100%);
+}
+
+.alx-hero-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.alx-hero-visual {
+  position: absolute;
+  inset: 0 0 0 43%;
+  z-index: -2;
+  overflow: hidden;
+  border-radius: 0 16px 16px 0;
+}
+
+.alx-hero-stock-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 55% 54%;
+  filter: saturate(.96) contrast(1.03);
+}
+
+.alx-stock-credit {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  z-index: 3;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(12,25,43,.62);
+  color: rgba(255,255,255,.92);
+  font-size: 8px;
+  line-height: 1;
+  text-decoration: none;
+  backdrop-filter: blur(7px);
+}
+
+.alx-stock-credit:hover,
+.alx-stock-credit:focus-visible {
+  color: #fff;
+  background: rgba(12,25,43,.82);
+}
+
+.alx-featured-vehicle-head {
+  align-items: stretch;
+}
+
+.alx-featured-media {
+  position: relative;
+  width: 44%;
+  min-width: 150px;
+  min-height: 112px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #edf3f8;
+}
+
+.alx-featured-media img,
+.alx-compare-media img,
+.alx-knowledge-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.alx-featured-media img {
+  object-position: center 62%;
+}
+
+.alx-featured-media .alx-stock-credit {
+  right: 5px;
+  bottom: 5px;
+  font-size: 7px;
+}
+
+.alx-featured-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.alx-featured-copy h2 {
+  margin-bottom: 4px;
+}
+
+.alx-featured-copy p {
+  margin: 0;
+}
+
+.alx-featured-stats strong {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.alx-featured-stats small {
+  font-size: 8px;
+}
+
+.alx-compare-vehicles > div {
+  position: relative;
+  overflow: hidden;
+}
+
+.alx-compare-media {
+  height: 72px;
+  margin-top: 5px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #eef3f8;
+}
+
+.alx-compare-media img {
+  object-position: center 58%;
+}
+
+.alx-compare-vehicles strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alx-compare-lines dd {
+  font-variant-numeric: tabular-nums;
+}
+
+.alx-knowledge-thumb {
+  overflow: hidden;
+  padding: 0;
+  color: transparent;
+  background: #eaf0f7;
+}
+
+.alx-knowledge-thumb img {
+  object-position: center;
+}
+
+.alx-brand-logo {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #e3e9f1;
+}
+
+.alx-brand-logo img {
+  display: block;
+  width: 17px;
+  height: 17px;
+  object-fit: contain;
+}
+
+.alx-brand-logo--fallback {
+  color: #1b2b3e;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.alx-data-pending {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  color: #65758a;
+  font-size: 11px;
+}
+
+.alx-coverage-fallback dd,
+.alx-live-metric--fallback strong {
+  display: none;
+}
+
+.alx-live-metric--fallback {
+  justify-content: center;
+}
+
+.alx-safety-card .alx-safety-count:empty,
+.alx-safety-card .alx-safety-count[aria-hidden='true'] {
+  display: none;
+}
+
+@media (max-width: 1180px) {
+  .alx-hero-visual {
+    inset: 0;
+    opacity: .18;
+  }
+
+  .alx-hero::after {
+    background: linear-gradient(90deg, rgba(247,250,253,.99), rgba(247,250,253,.9));
+  }
+}
+
+@media (max-width: 640px) {
+  .alx-hero-visual {
+    opacity: .14;
+  }
+
+  .alx-stock-credit {
+    display: none;
+  }
+
+  .alx-featured-vehicle-head {
+    display: grid;
+    gap: 10px;
+  }
+
+  .alx-featured-media {
+    width: 100%;
+    min-height: 150px;
+  }
+
+  .alx-compare-media {
+    height: 88px;
+  }
+}
