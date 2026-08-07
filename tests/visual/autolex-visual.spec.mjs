@@ -70,6 +70,8 @@ for (const viewport of viewports) {
           await expect(page.locator('.alx-safety-card')).toBeVisible();
           await expect(page.locator('.alx-metrics')).toBeVisible();
           await expect(page.locator('.alx-safety-strip')).toBeVisible();
+          await expect(page.locator('.alx-recent-updates-card')).toBeVisible();
+          await expect(page.locator('.alx-brand-explore-card')).toBeHidden();
 
           if (viewport.name === 'reference') {
             const geometry = await page.evaluate(() => {
@@ -89,10 +91,12 @@ for (const viewport of viewports) {
                 grid: rect('.alx-home-grid'),
                 hero: rect('.alx-hero'),
                 quick: rect('.alx-quick-panel'),
+                featured: rect('.alx-featured-vehicle-card'),
                 mobile: rect('.alx-mobile-card'),
                 safetyCard: rect('.alx-safety-card'),
                 brand: rect('.alx-brand-panel'),
                 knowledge: rect('.alx-knowledge-card'),
+                recent: rect('.alx-recent-updates-card'),
                 lastQuick: lastQuick ? { top: lastQuick.top, bottom: lastQuick.bottom, height: lastQuick.height } : null,
                 footer: rect('.alx-site-footer'),
                 navCount: visibleNav.length,
@@ -108,12 +112,15 @@ for (const viewport of viewports) {
             expect(geometry.hero.height).toBeGreaterThanOrEqual(500);
             expect(geometry.hero.height).toBeLessThanOrEqual(650);
             expect(geometry.quick.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
+            expect(geometry.featured.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
             expect(geometry.mobile.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
             expect(geometry.safetyCard.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
             expect(geometry.brand.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
             expect(geometry.knowledge.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
+            expect(geometry.recent.width).toBeGreaterThanOrEqual(geometry.grid.width - 2);
             expect(geometry.quick.height).toBeGreaterThanOrEqual(130);
             expect(geometry.lastQuick.bottom).toBeLessThanOrEqual(geometry.quick.bottom - 4);
+            expect(geometry.recent.top).toBeGreaterThanOrEqual(geometry.knowledge.bottom + 10);
             expect(geometry.footer.height).toBeLessThanOrEqual(180);
             expect(geometry.navCount).toBe(6);
             expect(geometry.firstNav.left).toBeGreaterThanOrEqual(0);
