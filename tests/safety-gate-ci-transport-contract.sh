@@ -43,7 +43,9 @@ workflow_required=(
   'CPANEL_API_USER'
   'CPANEL_API_TOKEN'
   'CPANEL_PLUGIN_DIR'
-  'wp-content/autolex-safety-gate-inbox'
+  'wp_root="${CPANEL_PLUGIN_DIR%/wp-content/plugins/autolex-platform}"'
+  'inbox_parent="${wp_root}/wp-content"'
+  'inbox_dir="${inbox_parent}/autolex-safety-gate-inbox"'
   'scripts/validate-cpanel-response.sh'
   'safety-gate-ingest-status'
   'manifest.json'
@@ -83,7 +85,6 @@ if grep -Fq "'methods' => 'POST'" "$INBOX"; then
 fi
 
 php -l "$BUILDER" >/dev/null
-bash -n "$WORKFLOW" 2>/dev/null || true
 bash -n "$LIVE"
 
 echo 'Safety Gate CI transport contract passed.'
