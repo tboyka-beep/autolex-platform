@@ -60,6 +60,9 @@
     font-size: clamp(2.7rem, 5vw, 4.6rem);
     line-height: 0.98;
     letter-spacing: -0.055em;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
 }
 
 .alx-catalog-hero p:last-child {
@@ -221,7 +224,8 @@
     }
 
     .alx-catalog-hero h1 {
-        font-size: clamp(2.35rem, 11vw, 3.2rem);
+        max-width: none;
+        font-size: clamp(2.2rem, 9.8vw, 2.9rem);
     }
 
     .alx-catalog-hero > .alx-button {
