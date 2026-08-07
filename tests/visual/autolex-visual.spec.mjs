@@ -47,6 +47,10 @@ for (const viewport of viewports) {
         await expect(page.locator('body')).toBeVisible();
         await expect(page.locator('h1')).toHaveCount(1);
 
+        const bodyText = await page.locator('body').innerText();
+        expect(bodyText).not.toContain('WP_Styles::add was called incorrectly');
+        expect(bodyText).not.toContain('Notice: Function WP_Styles::add');
+
         const diagnostics = await page.evaluate(() => ({
           scrollWidth: document.documentElement.scrollWidth,
           scrollHeight: document.documentElement.scrollHeight,
@@ -59,7 +63,15 @@ for (const viewport of viewports) {
 
         expect(diagnostics.scrollWidth).toBeLessThanOrEqual(diagnostics.clientWidth + 1);
         expect(diagnostics.bodyBackground).not.toBe('rgb(0, 0, 0)');
+        expect(diagnostics.bodyBackground).not.toBe('rgb(5, 8, 12)');
         expect(diagnostics.mainCount).toBe(1);
+
+        if (name === 'vehicle') {
+          await expect(page.locator('.alx-vehicle-page')).toBeVisible();
+          await expect(page.locator('.alx-vehicle-hero')).toBeVisible();
+          const vehicleSurface = await page.locator('.alx-vehicle-hero').evaluate((node) => getComputedStyle(node).backgroundColor);
+          expect(vehicleSurface).not.toBe('rgb(5, 8, 12)');
+        }
 
         if (name === 'home') {
           await expect(page.locator('[data-reference-dashboard="true"]')).toHaveCount(1);
