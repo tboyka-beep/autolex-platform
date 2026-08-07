@@ -6,7 +6,6 @@ on:
     paths:
       - '.github/workflows/sync-autolex-safety-gate.yml'
       - 'scripts/build-safety-gate-inbox-payload.php'
-      - 'scripts/diagnose-safety-gate-xml-schema.php'
       - 'tests/safety-gate-ci-transport-contract.sh'
       - 'plugin/autolex-platform/includes/class-autolex-safety-gate-inbox.php'
   push:
@@ -14,7 +13,6 @@ on:
     paths:
       - '.github/workflows/sync-autolex-safety-gate.yml'
       - 'scripts/build-safety-gate-inbox-payload.php'
-      - 'scripts/diagnose-safety-gate-xml-schema.php'
       - 'tests/safety-gate-ci-transport-contract.sh'
   schedule:
     - cron: '23 4 * * *'
@@ -44,14 +42,10 @@ jobs:
       - name: Validate Safety Gate CI transport contract
         run: |
           php -l scripts/build-safety-gate-inbox-payload.php
-          php -l scripts/diagnose-safety-gate-xml-schema.php
           php tests/safety-gate-inbox-smoke.php
           bash tests/safety-gate-ci-transport-contract.sh
 
-      - name: Diagnose current official XML schema names
-        run: php scripts/diagnose-safety-gate-xml-schema.php
-
-      - name: Acquire and validate official EU payload
+      - name: Acquire and validate latest official EU weekly report
         run: |
           set -euo pipefail
           rm -rf safety-gate-build
@@ -60,7 +54,14 @@ jobs:
           test -s safety-gate-build/evidence.json
           payload_file="$(find safety-gate-build -maxdepth 1 -type f -name 'safety-gate-*.xml' -print -quit)"
           test -n "$payload_file" && test -s "$payload_file"
-          jq -e '.contract == "verified_inbox_v1" and (.sha256 | test("^[a-f0-9]{64}$")) and (.recognized_vehicle_alerts > 0)' safety-gate-build/evidence.json >/dev/null
+          jq -e '
+            .contract == "verified_inbox_v1" and
+            (.sha256 | test("^[a-f0-9]{64}$")) and
+            (.report_index_sha256 | test("^[a-f0-9]{64}$")) and
+            (.latest_report_reference | test("^Report-[0-9]{4}-[0-9]+$")) and
+            (.notification_count | type == "number" and . > 0) and
+            (.recognized_vehicle_alerts | type == "number" and . > 0)
+          ' safety-gate-build/evidence.json >/dev/null
           cat > safety-gate-build/.htaccess <<'EOF'
           <IfModule mod_authz_core.c>
               Require all denied
