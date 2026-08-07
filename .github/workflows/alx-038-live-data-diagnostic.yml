@@ -24,6 +24,10 @@ jobs:
           curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
             https://autolex.hu/wp-json/autolex/v1/eu-coverage -o coverage.json
           curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+            https://autolex.hu/wp-json/autolex/v1/engine-coverage -o engine.json
+          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+            https://autolex.hu/wp-json/autolex/v1/eea-sync-status -o sync.json
+          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
             -D home.headers https://autolex.hu/ -o home.html
 
       - name: Report public data state
@@ -33,6 +37,10 @@ jobs:
           jq . status.json
           echo '--- EU coverage ---'
           jq . coverage.json
+          echo '--- engine coverage ---'
+          jq . engine.json
+          echo '--- EEA sync queue ---'
+          jq . sync.json
           echo '--- homepage bridge markers ---'
           printf 'recent-items='; grep -o 'class="alx-recent-item"' home.html | wc -l || true
           printf 'live-metrics='; grep -o 'class="alx-live-metric' home.html | wc -l || true
