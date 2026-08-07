@@ -83,23 +83,22 @@
   white-space: nowrap;
 }
 
-/* At the approved desktop reference width the recent-data module occupies the
- * existing middle dashboard cell, so it adds information without pushing the
- * footer below the reference fold. Popular brands remain available in the
- * right rail and on the dedicated brand route. */
+/* On wide screens the recent-data module replaces the middle dashboard card
+ * visually without participating in the parent grid's row sizing. This keeps
+ * the approved 1672x941 hero/fold geometry unchanged. Popular brands remain
+ * available in the right rail and on the dedicated brand route. */
 @media (min-width: 1181px) {
-  .alx-home-center > .alx-home-cards--primary {
-    grid-row: 3;
+  .alx-home-center {
+    position: relative;
   }
 
   .alx-home-center > .alx-recent-updates-card {
-    grid-row: 3;
-    grid-column: 1;
+    position: absolute;
     z-index: 3;
-    width: 27%;
-    height: 100%;
-    margin-left: 30%;
-    align-self: stretch;
+    right: 35.5%;
+    bottom: 0;
+    width: 29%;
+    height: 212px;
     box-sizing: border-box;
   }
 
