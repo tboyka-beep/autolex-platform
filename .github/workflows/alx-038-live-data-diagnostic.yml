@@ -1,4 +1,4 @@
-name: ALX-040 Live EEA Failure Triage
+name: ALX-040 EEA Make Discovery Reproduction
 
 on:
   push:
@@ -12,27 +12,33 @@ permissions:
 
 jobs:
   live-data:
-    name: Inspect sanitized live EEA failures
+    name: Reproduce rejected EEA make discovery
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Fetch live failure telemetry
+      - name: Reproduce BMW make-discovery queries
         run: |
           set -euo pipefail
-          stamp="$(date +%s)"
-          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            -H 'Cache-Control: no-cache' \
-            "https://autolex.hu/wp-json/autolex/v1/eea-failure-summary?diag=${stamp}" -o failures.json
-          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            -H 'Cache-Control: no-cache' \
-            "https://autolex.hu/wp-json/autolex/v1/eea-sync-status?diag=${stamp}" -o sync.json
 
-      - name: Report sanitized failure distribution
-        run: |
-          set -euo pipefail
-          echo '--- EEA failure summary ---'
-          jq . failures.json
-          echo '--- Current queue summary ---'
-          jq '{targets,completed_targets,pending_targets,failed_targets,retry_targets,running_targets,rows_read,vehicles_imported,last_attempt_at,next_scheduled_at}' sync.json
-          jq -e '.service == "autolex-eea-failure-telemetry" and .status == "ok" and .privacy == "aggregate_only" and (.failed_targets | type == "number") and (.categories | type == "object")' failures.json >/dev/null
-          test "$(jq -r '.failed_targets' failures.json)" -eq "$(jq -r '.failed_targets' sync.json)"
+          run_query() {
+            year="$1"
+            table="$2"
+            status="$3"
+            out="eea-${year}.json"
+            query="SELECT [Mk] AS [mk], [Cn] AS [cn], [T] AS [t], [Va] AS [va], [Ve] AS [ve], [Ct] AS [ct], [Ft] AS [ft], [Fm] AS [fm], [Ec (cm3)] AS [ec], [Ep (KW)] AS [ep], COUNT(*) AS [r] FROM [CO2Emission].[latest].[${table}] WHERE [Year] = ${year} AND [Status] = '${status}' AND [Mk] = 'BMW' GROUP BY [Mk], [Cn], [T], [Va], [Ve], [Ct], [Ft], [Fm], [Ec (cm3)], [Ep (KW)]"
+
+            curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+              --get \
+              --data-urlencode "query=${query}" \
+              --data-urlencode 'p=1' \
+              --data-urlencode 'nrOfHits=3' \
+              https://discodata.eea.europa.eu/sql -o "$out"
+
+            echo "--- ${year} ${table} ---"
+            jq -c '{keys:(if type=="object" then keys else ["<array>"] end), error:(.error // .errors // null), result_count:(if (.results? | type)=="array" then (.results|length) else null end), first:(if (.results? | type)=="array" then .results[0] else null end)}' "$out"
+          }
+
+          run_query 2022 co2cars_2022Fv26 F
+          run_query 2023 co2cars_2023Fv28 F
+          run_query 2024 co2cars_2024Pv29 P
+          run_query 2025 co2cars_2025Pv31 P
