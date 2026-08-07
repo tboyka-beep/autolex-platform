@@ -37,7 +37,7 @@ jobs:
           for pass in 1 2 3; do
             echo "Triggering wp-cron pass ${pass}"
             curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-              "https://autolex.hu/wp-cron.php?doing_wp_cron=1&alx038=${pass}&t=$(date +%s)" >/dev/null
+              "https://autolex.hu/wp-cron.php?alx038=${pass}&t=$(date +%s)" >/dev/null
             if [ "$pass" -lt 3 ]; then
               sleep 35
             fi
