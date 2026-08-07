@@ -11,6 +11,30 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * Render a plugin-owned homepage slot and fall back only when the hook produced no output.
+ *
+ * @param string   $hook_name         WordPress action name.
+ * @param callable $fallback_renderer Escaped fallback renderer.
+ */
+$autolex_render_home_slot = static function ($hook_name, $fallback_renderer) {
+    if (!is_string($hook_name) || $hook_name === '' || !is_callable($fallback_renderer)) {
+        return;
+    }
+
+    ob_start();
+    do_action($hook_name);
+    $output = trim((string) ob_get_clean());
+
+    if ($output !== '') {
+        // Hook output is trusted theme/plugin markup, equivalent to the previous direct do_action() render.
+        echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        return;
+    }
+
+    $fallback_renderer();
+};
+
 get_header();
 ?>
 <main id="main-content" class="alx-main alx-home">
@@ -118,27 +142,54 @@ get_header();
             <section class="alx-coverage-panel" aria-labelledby="alx-coverage-title">
                 <h2 id="alx-coverage-title"><?php esc_html_e('Adatok és lefedettség', 'autolex-theme'); ?></h2>
                 <div class="alx-dynamic-slot" data-autolex-slot="coverage" aria-live="polite">
-                    <?php do_action('autolex_theme_coverage_panel'); ?>
-                    <p><?php esc_html_e('A tényleges lefedettségi adatok betöltése folyamatban.', 'autolex-theme'); ?></p>
+                    <?php
+                    $autolex_render_home_slot(
+                        'autolex_theme_coverage_panel',
+                        static function () {
+                            ?>
+                            <p><?php esc_html_e('A tényleges lefedettségi adatok betöltése folyamatban.', 'autolex-theme'); ?></p>
+                            <?php
+                        }
+                    );
+                    ?>
                 </div>
             </section>
             <section class="alx-rail-card alx-brand-panel" aria-labelledby="alx-brand-panel-title">
                 <div class="alx-panel-heading"><h2 id="alx-brand-panel-title"><?php esc_html_e('Népszerű márkák', 'autolex-theme'); ?></h2><a href="<?php echo esc_url(home_url('/autok/?view=brands')); ?>"><?php esc_html_e('Összes márka', 'autolex-theme'); ?> →</a></div>
-                <div class="alx-brand-slot" data-autolex-slot="popular-brands" aria-live="polite"><?php do_action('autolex_theme_popular_brands'); ?><p><?php esc_html_e('A népszerű márkák a valós használati adatok alapján jelennek meg.', 'autolex-theme'); ?></p></div>
+                <div class="alx-brand-slot" data-autolex-slot="popular-brands" aria-live="polite">
+                    <?php
+                    $autolex_render_home_slot(
+                        'autolex_theme_popular_brands',
+                        static function () {
+                            ?>
+                            <p><?php esc_html_e('A népszerű márkák a valós használati adatok alapján jelennek meg.', 'autolex-theme'); ?></p>
+                            <?php
+                        }
+                    );
+                    ?>
+                </div>
             </section>
         </aside>
     </div>
 
     <div class="alx-container">
         <section class="alx-metrics" aria-label="<?php esc_attr_e('Autolex lefedettségi mutatók', 'autolex-theme'); ?>">
-            <?php do_action('autolex_theme_metric_strip'); ?>
-            <div class="alx-empty-state" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));place-items:stretch;padding:0 20px 0 48px;" role="status">
+            <?php
+            $autolex_render_home_slot(
+                'autolex_theme_metric_strip',
+                static function () {
+                    ?>
+                    <div class="alx-empty-state" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));place-items:stretch;padding:0 20px 0 48px;" role="status">
                 <span style="display:grid;place-items:center;padding:12px 8px;text-align:center;"><strong style="display:block;color:var(--alx-text);font-size:18px;line-height:1;">—</strong><small style="display:block;margin-top:7px;color:var(--alx-text-muted);font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;"><?php esc_html_e('Márkák', 'autolex-theme'); ?></small></span>
                 <span style="display:grid;place-items:center;border-left:1px solid var(--alx-line);padding:12px 8px;text-align:center;"><strong style="display:block;color:var(--alx-text);font-size:18px;line-height:1;">—</strong><small style="display:block;margin-top:7px;color:var(--alx-text-muted);font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;"><?php esc_html_e('Modellek', 'autolex-theme'); ?></small></span>
                 <span style="display:grid;place-items:center;border-left:1px solid var(--alx-line);padding:12px 8px;text-align:center;"><strong style="display:block;color:var(--alx-text);font-size:18px;line-height:1;">—</strong><small style="display:block;margin-top:7px;color:var(--alx-text-muted);font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;"><?php esc_html_e('Generációk', 'autolex-theme'); ?></small></span>
                 <span style="display:grid;place-items:center;border-left:1px solid var(--alx-line);padding:12px 8px;text-align:center;"><strong style="display:block;color:var(--alx-text);font-size:18px;line-height:1;">—</strong><small style="display:block;margin-top:7px;color:var(--alx-text-muted);font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;"><?php esc_html_e('Motorváltozatok', 'autolex-theme'); ?></small></span>
-                <span style="display:grid;place-items:center;border-left:1px solid var(--alx-line);padding:12px 8px;text-align:center;"><strong style="display:block;color:var(--alx-text);font-size:18px;line-height:1;">—</strong><small style="display:block;margin-top:7px;color:var(--alx-text-muted);font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;"><?php esc_html_e('Forrásrekordok', 'autolex-theme'); ?></small></span>
-            </div>
+                        <span style="display:grid;place-items:center;border-left:1px solid var(--alx-line);padding:12px 8px;text-align:center;"><strong style="display:block;color:var(--alx-text);font-size:18px;line-height:1;">—</strong><small style="display:block;margin-top:7px;color:var(--alx-text-muted);font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;"><?php esc_html_e('Forrásrekordok', 'autolex-theme'); ?></small></span>
+                    </div>
+                    <?php
+                }
+            );
+            ?>
         </section>
 
         <section class="alx-home-cards" aria-label="<?php esc_attr_e('Kiemelt Autolex funkciók', 'autolex-theme'); ?>">

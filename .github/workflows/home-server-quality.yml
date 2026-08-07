@@ -68,6 +68,7 @@ jobs:
           php tests/source-cards-smoke.php
           php tests/source-integration-smoke.php
           php tests/provenance-coverage-smoke.php
+          php tests/theme-data-bridge-smoke.php
 
       - name: Run portal and deterministic Safety Gate smoke tests
         run: |

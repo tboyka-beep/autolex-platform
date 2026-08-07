@@ -1,0 +1,97 @@
+.alx-live-coverage {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.alx-live-coverage__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--alx-line, #e4e7ec);
+}
+
+.alx-live-coverage__row:last-child {
+  border-bottom: 0;
+}
+
+.alx-live-coverage dt {
+  color: var(--alx-text-muted, #667085);
+  font-size: 11px;
+}
+
+.alx-live-coverage dd {
+  margin: 0;
+  color: var(--alx-text, #101828);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.alx-live-brands {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.alx-live-brands a {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  border-radius: 9px;
+  padding: 8px 9px;
+  color: var(--alx-text, #101828);
+  text-decoration: none;
+}
+
+.alx-live-brands a:hover,
+.alx-live-brands a:focus-visible {
+  background: var(--alx-primary-soft, #eaf2ff);
+}
+
+.alx-live-brands span {
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.alx-live-brands small {
+  color: var(--alx-text-muted, #667085);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.alx-live-metric {
+  display: grid;
+  min-height: 76px;
+  place-items: center;
+  align-content: center;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.alx-live-metric strong {
+  display: block;
+  color: var(--alx-text, #101828);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.alx-live-metric small {
+  display: block;
+  margin-top: 7px;
+  color: var(--alx-text-muted, #667085);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .alx-live-metric {
+    min-height: 64px;
+  }
+}

@@ -1,0 +1,88 @@
+name: ALX-033 Live Data Slots
+
+on:
+  push:
+    branches:
+      - agent/alx-033-mainline
+    paths:
+      - 'theme/autolex-theme/**'
+      - 'plugin/autolex-platform/autolex-platform.php'
+      - 'plugin/autolex-platform/includes/class-autolex-theme-data-bridge.php'
+      - 'plugin/autolex-platform/assets/css/autolex-theme-data-bridge.css'
+      - 'tests/autolex-theme-*-contract.sh'
+      - 'tests/theme-data-bridge-smoke.php'
+      - 'docs/ALX-033-LIVE-DATA-SLOTS.md'
+      - '.github/workflows/alx-033-live-data-slots.yml'
+      - '.github/workflows/home-server-quality.yml'
+      - '.github/workflows/portal-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alx-033-live-data-slots-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hosted-contract:
+    name: Validate live data slots on GitHub-hosted runner
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Prepare exact repository checkout without marketplace actions
+        shell: bash
+        run: |
+          set -euo pipefail
+          workspace="${RUNNER_TEMP}/autolex-alx033-hosted-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "$workspace"
+          mkdir -p "$workspace"
+          git -C "$workspace" init
+          git -C "$workspace" remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git -C "$workspace" -c protocol.version=2 fetch --no-tags --depth=1 origin "$GITHUB_SHA"
+          git -C "$workspace" checkout --detach FETCH_HEAD
+          echo "ALX_WORKSPACE=${workspace}" >> "$GITHUB_ENV"
+      - name: Verify hosted toolchain and immutable checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$ALX_WORKSPACE"
+          for command in git php node; do
+            command -v "$command" >/dev/null || {
+              echo "Missing required command: $command" >&2
+              exit 1
+            }
+          done
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          php -r 'if (PHP_VERSION_ID < 80300) { fwrite(STDERR, "PHP 8.3 or newer is required.\n"); exit(1); }'
+      - name: Lint public theme and bridge PHP
+        run: |
+          set -euo pipefail
+          cd "$ALX_WORKSPACE"
+          find theme/autolex-theme -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          php -l plugin/autolex-platform/autolex-platform.php
+          php -l plugin/autolex-platform/includes/class-autolex-theme-data-bridge.php
+      - name: Run complete theme contract suite
+        run: |
+          set -euo pipefail
+          cd "$ALX_WORKSPACE"
+          for contract in tests/autolex-theme-*-contract.sh; do
+            echo "Running ${contract}"
+            bash "$contract"
+          done
+      - name: Prove plugin-owned theme data
+        run: |
+          cd "$ALX_WORKSPACE"
+          php tests/theme-data-bridge-smoke.php
+      - name: Confirm standard gates own the bridge smoke
+        run: |
+          cd "$ALX_WORKSPACE"
+          grep -Fq 'php tests/theme-data-bridge-smoke.php' .github/workflows/home-server-quality.yml
+          grep -Fq 'php tests/theme-data-bridge-smoke.php' .github/workflows/portal-smoke.yml
+      - name: Validate theme JavaScript
+        run: |
+          cd "$ALX_WORKSPACE"
+          find theme/autolex-theme/assets/js -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Clean exact checkout
+        if: always()
+        run: rm -rf "${ALX_WORKSPACE:-}"
