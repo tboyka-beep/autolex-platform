@@ -85,8 +85,15 @@ curl --silent --show-error --fail --retry 5 --retry-all-errors --header "$header
   "$base/wp-json/autolex-release/v1/theme-state" | tee release-evidence/after.json
 jq -e --arg sha "$GITHUB_SHA" '.state.stylesheet == "autolex-theme" and .state.release == $sha' release-evidence/after.json >/dev/null
 curl --silent --show-error --fail --retry 5 --retry-all-errors "$base/" > release-evidence/home.html
-grep -Fq 'Minden jármű. Minden adat. Egy helyen.' release-evidence/home.html
-grep -Fq 'autolex-theme' release-evidence/home.html
+
+# The approved H1 intentionally contains <br> and <span> markup. Validate the
+# semantic dashboard markers without assuming that its visible text is one
+# contiguous HTML string.
+grep -Fq 'data-reference-dashboard="true"' release-evidence/home.html
+grep -Fq 'Minden jármű.' release-evidence/home.html
+grep -Fq 'Minden adat.' release-evidence/home.html
+grep -Fq 'Egy helyen.' release-evidence/home.html
+grep -Fq '/themes/autolex-theme/' release-evidence/home.html
 
 for width in 320 375 768 1024 1440; do
   npx --yes playwright@1.55.0 screenshot --device="Desktop Chrome" --viewport-size="${width},1100" --full-page \
