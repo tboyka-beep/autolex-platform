@@ -43,6 +43,18 @@ grep -Fq 'decoding="async"' "$FRONT"
 grep -Fq 'loading="eager"' "$FRONT"
 grep -Fq 'loading="lazy"' "$FRONT"
 
+# Responsive delivery must keep the visual crop while reducing unnecessary bytes.
+grep -Fq '$hero_srcset' "$FRONT"
+grep -Fq '$featured_srcset' "$FRONT"
+grep -Fq '$compare_srcset' "$FRONT"
+grep -Fq 'srcset="<?php echo esc_attr($hero_srcset); ?>"' "$FRONT"
+grep -Fq 'sizes="(max-width: 760px) 100vw' "$FRONT"
+grep -Fq '$knowledge_dashboard_image' "$FRONT"
+grep -Fq '$knowledge_compare_image' "$FRONT"
+grep -Fq '$knowledge_featured_image' "$FRONT"
+grep -Fq '$knowledge_hero_image' "$FRONT"
+grep -Fq 'w=240&h=133&q=68' "$FRONT"
+
 # Homepage media geometry must remain stable across desktop and mobile crops.
 grep -Fq 'inset: 0 0 0 48%;' "$CSS"
 grep -Fq 'min-width: 0;' "$CSS"
