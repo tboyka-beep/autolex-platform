@@ -1,4 +1,4 @@
-name: ALX-040 EEA Heavy-Make Probe
+name: ALX-041 Live Rejection Recovery Verification
 
 on:
   push:
@@ -12,53 +12,62 @@ permissions:
 
 jobs:
   live-data:
-    name: Probe largest EEA makes with production discovery query
+    name: Verify bounded EEA rejection recovery
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
-      - name: Fetch 2025 make index
+      - name: Capture recovery baseline
         run: |
           set -euo pipefail
-          query="SELECT [Mk] AS [mk], COUNT(*) AS [r] FROM [CO2Emission].[latest].[co2cars_2025Pv31] WHERE [Year] = 2025 AND [Status] = 'P' AND NULLIF(LTRIM(RTRIM([Mk])), '') IS NOT NULL GROUP BY [Mk]"
+          stamp="$(date +%s)"
           curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            --get \
-            --data-urlencode "query=${query}" \
-            --data-urlencode 'p=1' \
-            --data-urlencode 'nrOfHits=2000' \
-            https://discodata.eea.europa.eu/sql -o make-index.json
-          jq -e '.results | type == "array" and length > 0' make-index.json >/dev/null
-          jq -r '.results | sort_by(-(.r|tonumber)) | .[0:10][] | [.mk,.r] | @tsv' make-index.json | tee top-makes.tsv
+            -H 'Cache-Control: no-cache' \
+            "https://autolex.hu/wp-json/autolex/v1/eea-sync-status?diag=${stamp}" -o before-sync.json
+          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+            -H 'Cache-Control: no-cache' \
+            "https://autolex.hu/wp-json/autolex/v1/eea-failure-summary?diag=${stamp}" -o before-failures.json
+          echo '--- baseline sync ---'
+          jq '{completed_targets,pending_targets,failed_targets,retry_targets,running_targets,rows_read,vehicles_imported,engine_proposals,link_proposals,last_attempt_at,next_scheduled_at}' before-sync.json
+          echo '--- baseline failures ---'
+          jq '{failed_targets,categories,target_types,source_years,max_attempts}' before-failures.json
 
-      - name: Run production discovery query for top makes
+      - name: Drive six native WordPress cron passes
         run: |
           set -euo pipefail
-          : > probe.tsv
-          while IFS=$'\t' read -r make registrations; do
-            escaped_make="${make//\'/\'\'}"
-            query="SELECT [Mk] AS [mk], [Cn] AS [cn], [T] AS [t], [Va] AS [va], [Ve] AS [ve], [Ct] AS [ct], [Ft] AS [ft], [Fm] AS [fm], [Ec (cm3)] AS [ec], [Ep (KW)] AS [ep], COUNT(*) AS [r] FROM [CO2Emission].[latest].[co2cars_2025Pv31] WHERE [Year] = 2025 AND [Status] = 'P' AND [Mk] = '${escaped_make}' GROUP BY [Mk], [Cn], [T], [Va], [Ve], [Ct], [Ft], [Fm], [Ec (cm3)], [Ep (KW)]"
-            safe="$(printf '%s' "$make" | sha256sum | cut -c1-12)"
-            out="probe-${safe}.json"
-            start="$(date +%s)"
-            curl --silent --show-error --fail --location --retry 2 --retry-all-errors \
-              --get \
-              --data-urlencode "query=${query}" \
-              --data-urlencode 'p=1' \
-              --data-urlencode 'nrOfHits=100' \
-              https://discodata.eea.europa.eu/sql -o "$out"
-            elapsed="$(( $(date +%s) - start ))"
-            error="$(jq -r '(.error // .errors // "") | if type=="array" then join(" | ") else tostring end' "$out")"
-            count="$(jq -r 'if (.results? | type)=="array" then (.results|length) else 0 end' "$out")"
-            state='ok'
-            if [ -n "$error" ]; then state='api_rejected'; fi
-            printf '%s\t%s\t%s\t%s\t%s\n' "$make" "$registrations" "$state" "$count" "$elapsed" | tee -a probe.tsv
-          done < top-makes.tsv
+          for pass in 1 2 3 4 5 6; do
+            echo "=== cron pass ${pass} ==="
+            curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+              "https://autolex.hu/wp-cron.php?alx041=${pass}&t=$(date +%s)" >/dev/null
+            stamp="$(date +%s)"
+            curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+              -H 'Cache-Control: no-cache' \
+              "https://autolex.hu/wp-json/autolex/v1/eea-sync-status?alx041=${pass}&diag=${stamp}" \
+              | jq -c '{completed_targets,pending_targets,failed_targets,retry_targets,running_targets,rows_read,vehicles_imported,last_attempt_at,next_scheduled_at}'
+            if [ "$pass" -lt 6 ]; then
+              sleep 35
+            fi
+          done
 
-      - name: Report probe summary
+      - name: Report recovery result
         run: |
           set -euo pipefail
-          echo 'make | source rows | state | result rows | seconds'
-          cat probe.tsv
-          rejected="$(awk -F '\t' '$3=="api_rejected"{n++} END{print n+0}' probe.tsv)"
-          slow="$(awk -F '\t' '$5>=25{n++} END{print n+0}' probe.tsv)"
-          echo "rejected=${rejected}"
-          echo "near-wordpress-timeout=${slow}"
+          stamp="$(date +%s)"
+          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+            -H 'Cache-Control: no-cache' \
+            "https://autolex.hu/wp-json/autolex/v1/eea-sync-status?final=${stamp}" -o after-sync.json
+          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+            -H 'Cache-Control: no-cache' \
+            "https://autolex.hu/wp-json/autolex/v1/eea-failure-summary?final=${stamp}" -o after-failures.json
+          echo '--- final sync ---'
+          jq '{completed_targets,pending_targets,failed_targets,retry_targets,running_targets,rows_read,vehicles_imported,engine_proposals,link_proposals,last_attempt_at,next_scheduled_at}' after-sync.json
+          echo '--- final failures ---'
+          jq '{failed_targets,categories,target_types,source_years,max_attempts}' after-failures.json
+
+          before_failed="$(jq -r '.failed_targets // 0' before-sync.json)"
+          after_failed="$(jq -r '.failed_targets // 0' after-sync.json)"
+          before_imported="$(jq -r '.vehicles_imported // 0' before-sync.json)"
+          after_imported="$(jq -r '.vehicles_imported // 0' after-sync.json)"
+          echo "failed-delta=$((after_failed - before_failed))"
+          echo "imported-delta=$((after_imported - before_imported))"
+          test "$after_failed" -le 68
+          test "$after_imported" -ge "$before_imported"
