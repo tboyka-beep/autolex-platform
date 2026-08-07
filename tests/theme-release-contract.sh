@@ -56,6 +56,15 @@ require_text "$release_script" 'autolex-release/v1/theme-state'
 require_text "$release_script" 'release-evidence/SHA256SUMS'
 require_text "$release_script" '*/wp-content/themes/autolex-theme'
 require_text "$release_script" '*/wp-content/mu-plugins'
+require_text "$release_script" 'data-reference-dashboard="true"'
+require_text "$release_script" "grep -Fq 'Minden jármű.'"
+require_text "$release_script" "grep -Fq 'Minden adat.'"
+require_text "$release_script" "grep -Fq 'Egy helyen.'"
+require_text "$release_script" "grep -Fq '/themes/autolex-theme/'"
+
+if grep -Fq "grep -Fq 'Minden jármű. Minden adat. Egy helyen.'" "$release_script"; then
+  fail 'production QA must not assume the styled H1 is contiguous raw HTML'
+fi
 
 require_text "$proof_script" 'release-evidence/activation.json'
 require_text "$proof_script" 'release-evidence/rollback.json'
