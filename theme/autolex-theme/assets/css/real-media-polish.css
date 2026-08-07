@@ -1059,3 +1059,44 @@ body.home [role="tab"]:focus-visible {
     font-size: 20px;
   }
 }
+
+/* ALX-042.2: responsive flow corrections found by screenshot review. */
+.alx-home-cards--primary .alx-brand-explore-card {
+  display: flex;
+}
+
+.alx-recent-updates-card {
+  position: static;
+  inset: auto;
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
+  align-self: stretch;
+  transform: none;
+}
+
+.alx-compare-vehicles--photos > .alx-compare-media:first-child {
+  background-position: center 72%;
+}
+
+@media (max-width: 960px) {
+  body.home .alx-home-center > .alx-hero { order: 1; }
+  body.home .alx-home-center > .alx-metrics { order: 2; }
+  body.home .alx-home-rail--left > .alx-quick-panel { order: 3; }
+  body.home .alx-home-center > .alx-home-cards--primary { order: 4; }
+  body.home .alx-home-rail--left > .alx-mobile-card { order: 5; }
+  body.home .alx-home-rail--left > .alx-safety-card { order: 6; }
+  body.home .alx-home-rail--right > .alx-brand-panel { order: 7; }
+  body.home .alx-home-rail--right > .alx-coverage-panel { order: 8; grid-column: auto; }
+  body.home .alx-home-rail--right > .alx-knowledge-card { order: 9; grid-column: auto; }
+  body.home .alx-home-center > .alx-recent-updates-card { order: 10; }
+
+  .alx-home-cards--primary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .alx-compare-card {
+    grid-column: auto;
+  }
+}
