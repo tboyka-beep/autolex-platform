@@ -37,10 +37,35 @@ $autolex_quick_links = array(
     array('label' => __('Tudástár', 'autolex-theme'), 'description' => __('Útmutatók, cikkek, magyarázatok', 'autolex-theme'), 'url' => home_url('/tudastar/'), 'icon' => 'book'),
 );
 
-$hero_image = 'https://images.unsplash.com/photo-1773793097960-5dbdcbc081c0?auto=format&fit=crop&w=1600&q=82';
-$featured_image = 'https://images.unsplash.com/photo-1523983302122-73e869e1f850?auto=format&fit=crop&w=900&q=82';
-$compare_image = 'https://images.unsplash.com/photo-1537994725085-277ef72d1cb6?auto=format&fit=crop&w=900&q=82';
-$dashboard_image = 'https://images.unsplash.com/photo-1633113215883-a43e36af27e4?auto=format&fit=crop&w=420&q=78';
+$hero_image = 'https://images.unsplash.com/photo-1773793097960-5dbdcbc081c0?auto=format&fit=crop&w=1440&h=810&q=76';
+$hero_srcset = implode(', ', array(
+    'https://images.unsplash.com/photo-1773793097960-5dbdcbc081c0?auto=format&fit=crop&w=480&h=270&q=72 480w',
+    'https://images.unsplash.com/photo-1773793097960-5dbdcbc081c0?auto=format&fit=crop&w=768&h=432&q=72 768w',
+    'https://images.unsplash.com/photo-1773793097960-5dbdcbc081c0?auto=format&fit=crop&w=1024&h=576&q=74 1024w',
+    'https://images.unsplash.com/photo-1773793097960-5dbdcbc081c0?auto=format&fit=crop&w=1440&h=810&q=76 1440w',
+));
+$featured_image = 'https://images.unsplash.com/photo-1523983302122-73e869e1f850?auto=format&fit=crop&w=900&h=560&q=74';
+$featured_srcset = implode(', ', array(
+    'https://images.unsplash.com/photo-1523983302122-73e869e1f850?auto=format&fit=crop&w=360&h=224&q=70 360w',
+    'https://images.unsplash.com/photo-1523983302122-73e869e1f850?auto=format&fit=crop&w=640&h=398&q=72 640w',
+    'https://images.unsplash.com/photo-1523983302122-73e869e1f850?auto=format&fit=crop&w=900&h=560&q=74 900w',
+));
+$compare_image = 'https://images.unsplash.com/photo-1537994725085-277ef72d1cb6?auto=format&fit=crop&w=720&h=448&q=72';
+$compare_srcset = implode(', ', array(
+    'https://images.unsplash.com/photo-1537994725085-277ef72d1cb6?auto=format&fit=crop&w=240&h=149&q=68 240w',
+    'https://images.unsplash.com/photo-1537994725085-277ef72d1cb6?auto=format&fit=crop&w=480&h=299&q=70 480w',
+    'https://images.unsplash.com/photo-1537994725085-277ef72d1cb6?auto=format&fit=crop&w=720&h=448&q=72 720w',
+));
+$featured_compare_image = 'https://images.unsplash.com/photo-1523983302122-73e869e1f850?auto=format&fit=crop&w=720&h=448&q=72';
+$featured_compare_srcset = implode(', ', array(
+    'https://images.unsplash.com/photo-1523983302122-73e869e1f850?auto=format&fit=crop&w=240&h=149&q=68 240w',
+    'https://images.unsplash.com/photo-1523983302122-73e869e1f850?auto=format&fit=crop&w=480&h=299&q=70 480w',
+    'https://images.unsplash.com/photo-1523983302122-73e869e1f850?auto=format&fit=crop&w=720&h=448&q=72 720w',
+));
+$knowledge_dashboard_image = 'https://images.unsplash.com/photo-1633113215883-a43e36af27e4?auto=format&fit=crop&w=240&h=133&q=68';
+$knowledge_compare_image = 'https://images.unsplash.com/photo-1537994725085-277ef72d1cb6?auto=format&fit=crop&w=240&h=133&q=68';
+$knowledge_featured_image = 'https://images.unsplash.com/photo-1523983302122-73e869e1f850?auto=format&fit=crop&w=240&h=133&q=68';
+$knowledge_hero_image = 'https://images.unsplash.com/photo-1773793097960-5dbdcbc081c0?auto=format&fit=crop&w=240&h=133&q=68';
 
 get_header();
 ?>
@@ -112,7 +137,7 @@ get_header();
                 </div>
 
                 <div class="alx-hero-visual">
-                    <img class="alx-hero-stock-photo" src="<?php echo esc_url($hero_image); ?>" alt="<?php esc_attr_e('Ezüst szedán hegyi úton – illusztráció', 'autolex-theme'); ?>" width="1600" height="900" loading="eager" decoding="async" fetchpriority="high">
+                    <img class="alx-hero-stock-photo" src="<?php echo esc_url($hero_image); ?>" srcset="<?php echo esc_attr($hero_srcset); ?>" sizes="(max-width: 760px) 100vw, (max-width: 1180px) 58vw, 760px" alt="<?php esc_attr_e('Ezüst szedán hegyi úton – illusztráció', 'autolex-theme'); ?>" width="1440" height="810" loading="eager" decoding="async" fetchpriority="high">
                     <a class="alx-stock-credit" href="https://unsplash.com/photos/2kO5bZFLj1E" target="_blank" rel="noopener noreferrer">Chandler Cruttenden / Unsplash</a>
                 </div>
             </section>
@@ -143,7 +168,7 @@ get_header();
                             ?>
                         </div>
                         <div class="alx-featured-media">
-                            <img src="<?php echo esc_url($featured_image); ?>" alt="<?php esc_attr_e('BMW szedán – stock illusztráció', 'autolex-theme'); ?>" width="900" height="560" loading="lazy" decoding="async">
+                            <img src="<?php echo esc_url($featured_image); ?>" srcset="<?php echo esc_attr($featured_srcset); ?>" sizes="(max-width: 760px) 100vw, 44vw" alt="<?php esc_attr_e('BMW szedán – stock illusztráció', 'autolex-theme'); ?>" width="900" height="560" loading="lazy" decoding="async">
                             <a class="alx-stock-credit" href="https://unsplash.com/photos/_8WDl2zgB_0" target="_blank" rel="noopener noreferrer">Arteum.ro / Unsplash</a>
                         </div>
                     </div>
@@ -163,9 +188,9 @@ get_header();
                 <article class="alx-dashboard-card alx-compare-card">
                     <div class="alx-card-heading"><p class="alx-card-kicker"><?php esc_html_e('Összehasonlítás', 'autolex-theme'); ?></p><a href="<?php echo esc_url(home_url('/osszehasonlitas/')); ?>"><?php esc_html_e('Megnyitás', 'autolex-theme'); ?> →</a></div>
                     <div class="alx-compare-vehicles alx-compare-vehicles--photos" aria-hidden="true">
-                        <div class="alx-compare-media"><img src="<?php echo esc_url($compare_image); ?>" alt="" width="900" height="560" loading="lazy" decoding="async"></div>
+                        <div class="alx-compare-media"><img src="<?php echo esc_url($compare_image); ?>" srcset="<?php echo esc_attr($compare_srcset); ?>" sizes="(max-width: 760px) 44vw, 220px" alt="" width="720" height="448" loading="lazy" decoding="async"></div>
                         <span class="alx-versus">VS.</span>
-                        <div class="alx-compare-media"><img src="<?php echo esc_url($featured_image); ?>" alt="" width="900" height="560" loading="lazy" decoding="async"></div>
+                        <div class="alx-compare-media"><img src="<?php echo esc_url($featured_compare_image); ?>" srcset="<?php echo esc_attr($featured_compare_srcset); ?>" sizes="(max-width: 760px) 44vw, 220px" alt="" width="720" height="448" loading="lazy" decoding="async"></div>
                     </div>
                     <?php
                     $autolex_render_home_slot(
@@ -178,6 +203,23 @@ get_header();
                     <a class="alx-card-action" href="<?php echo esc_url(home_url('/osszehasonlitas/')); ?>"><?php esc_html_e('Összehasonlítás megnyitása', 'autolex-theme'); ?> →</a>
                 </article>
             </section>
+
+            <article class="alx-dashboard-card alx-recent-updates-card" aria-labelledby="alx-recent-updates-title">
+                <div class="alx-card-heading">
+                    <p class="alx-card-kicker" id="alx-recent-updates-title"><?php esc_html_e('Legutóbb frissítve', 'autolex-theme'); ?></p>
+                    <a href="<?php echo esc_url(home_url('/autok/')); ?>"><?php esc_html_e('Katalógus', 'autolex-theme'); ?> →</a>
+                </div>
+                <div class="alx-dynamic-slot" data-autolex-slot="recently-updated" aria-live="polite">
+                    <?php
+                    $autolex_render_home_slot(
+                        'autolex_theme_recently_updated',
+                        static function () {
+                            ?><p class="alx-data-pending"><?php esc_html_e('A legutóbb frissített járműadatok betöltése folyamatban van.', 'autolex-theme'); ?></p><?php
+                        }
+                    );
+                    ?>
+                </div>
+            </article>
         </div>
 
         <aside class="alx-home-rail alx-home-rail--right" aria-label="<?php esc_attr_e('Adatok, márkák és tudástár', 'autolex-theme'); ?>">
@@ -220,10 +262,10 @@ get_header();
             <section class="alx-rail-card alx-knowledge-card" aria-labelledby="alx-knowledge-card-title">
                 <div class="alx-panel-heading"><h2 id="alx-knowledge-card-title"><?php esc_html_e('Tudástár', 'autolex-theme'); ?></h2><a href="<?php echo esc_url(home_url('/tudastar/')); ?>"><?php esc_html_e('Összes cikk', 'autolex-theme'); ?> →</a></div>
                 <ul class="alx-knowledge-list">
-                    <li><a href="<?php echo esc_url(home_url('/tudastar/#muszaki-alapok')); ?>"><span class="alx-knowledge-thumb"><img src="<?php echo esc_url($dashboard_image); ?>" alt="" width="180" height="100" loading="lazy" decoding="async"></span><span><strong><?php esc_html_e('Hogyan olvassuk le a VIN számot?', 'autolex-theme'); ?></strong><small><?php esc_html_e('Útmutató', 'autolex-theme'); ?></small></span></a></li>
-                    <li><a href="<?php echo esc_url(home_url('/tudastar/')); ?>"><span class="alx-knowledge-thumb"><img src="<?php echo esc_url($compare_image); ?>" alt="" width="180" height="100" loading="lazy" decoding="async"></span><span><strong><?php esc_html_e('Téli gumi: mikor és miért fontos?', 'autolex-theme'); ?></strong><small><?php esc_html_e('Biztonság', 'autolex-theme'); ?></small></span></a></li>
-                    <li><a href="<?php echo esc_url(home_url('/tudastar/')); ?>"><span class="alx-knowledge-thumb"><img src="<?php echo esc_url($featured_image); ?>" alt="" width="180" height="100" loading="lazy" decoding="async"></span><span><strong><?php esc_html_e('Motorolaj: mit, mikor, miért?', 'autolex-theme'); ?></strong><small><?php esc_html_e('Karbantartás', 'autolex-theme'); ?></small></span></a></li>
-                    <li><a href="<?php echo esc_url(home_url('/tudastar/')); ?>"><span class="alx-knowledge-thumb"><img src="<?php echo esc_url($hero_image); ?>" alt="" width="180" height="100" loading="lazy" decoding="async"></span><span><strong><?php esc_html_e('Fékek és alapvető biztonsági ellenőrzések', 'autolex-theme'); ?></strong><small><?php esc_html_e('Biztonság', 'autolex-theme'); ?></small></span></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/tudastar/#muszaki-alapok')); ?>"><span class="alx-knowledge-thumb"><img src="<?php echo esc_url($knowledge_dashboard_image); ?>" alt="" width="180" height="100" loading="lazy" decoding="async"></span><span><strong><?php esc_html_e('Hogyan olvassuk le a VIN számot?', 'autolex-theme'); ?></strong><small><?php esc_html_e('Útmutató', 'autolex-theme'); ?></small></span></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/tudastar/')); ?>"><span class="alx-knowledge-thumb"><img src="<?php echo esc_url($knowledge_compare_image); ?>" alt="" width="180" height="100" loading="lazy" decoding="async"></span><span><strong><?php esc_html_e('Téli gumi: mikor és miért fontos?', 'autolex-theme'); ?></strong><small><?php esc_html_e('Biztonság', 'autolex-theme'); ?></small></span></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/tudastar/')); ?>"><span class="alx-knowledge-thumb"><img src="<?php echo esc_url($knowledge_featured_image); ?>" alt="" width="180" height="100" loading="lazy" decoding="async"></span><span><strong><?php esc_html_e('Motorolaj: mit, mikor, miért?', 'autolex-theme'); ?></strong><small><?php esc_html_e('Karbantartás', 'autolex-theme'); ?></small></span></a></li>
+                    <li><a href="<?php echo esc_url(home_url('/tudastar/')); ?>"><span class="alx-knowledge-thumb"><img src="<?php echo esc_url($knowledge_hero_image); ?>" alt="" width="180" height="100" loading="lazy" decoding="async"></span><span><strong><?php esc_html_e('Fékek és alapvető biztonsági ellenőrzések', 'autolex-theme'); ?></strong><small><?php esc_html_e('Biztonság', 'autolex-theme'); ?></small></span></a></li>
                 </ul>
             </section>
         </aside>
