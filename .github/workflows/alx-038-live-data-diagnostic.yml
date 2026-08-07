@@ -1,4 +1,4 @@
-name: ALX-039 Live Homepage Verification
+name: ALX-040 Live EEA Failure Triage
 
 on:
   push:
@@ -12,45 +12,27 @@ permissions:
 
 jobs:
   live-data:
-    name: Verify live Autolex homepage data
+    name: Inspect sanitized live EEA failures
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Advance one due WordPress cron batch
-        run: |
-          set -euo pipefail
-          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            "https://autolex.hu/wp-cron.php?alx039=1&t=$(date +%s)" >/dev/null
-
-      - name: Verify live homepage and coverage
+      - name: Fetch live failure telemetry
         run: |
           set -euo pipefail
           stamp="$(date +%s)"
           curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
             -H 'Cache-Control: no-cache' \
+            "https://autolex.hu/wp-json/autolex/v1/eea-failure-summary?diag=${stamp}" -o failures.json
+          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
+            -H 'Cache-Control: no-cache' \
             "https://autolex.hu/wp-json/autolex/v1/eea-sync-status?diag=${stamp}" -o sync.json
-          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            -H 'Cache-Control: no-cache' \
-            "https://autolex.hu/wp-json/autolex/v1/eu-coverage?diag=${stamp}" -o coverage.json
-          curl --silent --show-error --fail --location --retry 3 --retry-all-errors \
-            -H 'Cache-Control: no-cache' \
-            "https://autolex.hu/?alx039=${stamp}" -o home.html
 
-          echo '--- EEA sync ---'
-          jq '{completed_targets,pending_targets,failed_targets,running_targets,rows_read,vehicles_imported,engine_proposals,link_proposals,last_completed_at,last_attempt_at,next_scheduled_at}' sync.json
-          echo '--- EU coverage ---'
-          jq '{vehicles,makes,models,registrations,latest_data_year,source_observations}' coverage.json
-          echo '--- homepage ---'
-          recent="$(grep -o 'class="alx-recent-item"' home.html | wc -l || true)"
-          metrics="$(grep -o 'class="alx-live-metric' home.html | wc -l || true)"
-          grid="$(grep -o 'data-alx-recent-updates="true"' home.html | wc -l || true)"
-          pending="$(grep -o 'alx-data-pending' home.html | wc -l || true)"
-          echo "recent-items=${recent}"
-          echo "live-metrics=${metrics}"
-          echo "recent-grid=${grid}"
-          echo "pending-markers=${pending}"
-
-          test "$(jq -r '.vehicles // 0' coverage.json)" -gt 0
-          test "${metrics}" -eq 5
-          test "${recent}" -eq 3
-          test "${grid}" -eq 1
+      - name: Report sanitized failure distribution
+        run: |
+          set -euo pipefail
+          echo '--- EEA failure summary ---'
+          jq . failures.json
+          echo '--- Current queue summary ---'
+          jq '{targets,completed_targets,pending_targets,failed_targets,retry_targets,running_targets,rows_read,vehicles_imported,last_attempt_at,next_scheduled_at}' sync.json
+          jq -e '.service == "autolex-eea-failure-telemetry" and .status == "ok" and .privacy == "aggregate_only" and (.failed_targets | type == "number") and (.categories | type == "object")' failures.json >/dev/null
+          test "$(jq -r '.failed_targets' failures.json)" -eq "$(jq -r '.failed_targets' sync.json)"
