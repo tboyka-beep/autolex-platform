@@ -145,6 +145,21 @@
         return true;
     }
 
+    function setFailClosedVisibility(element, failClosed) {
+        if (!element) {
+            return;
+        }
+        if (failClosed) {
+            element.hidden = true;
+            element.style.display = 'none';
+            element.dataset.alxMediaFailClosed = '1';
+            return;
+        }
+        element.hidden = false;
+        element.style.removeProperty('display');
+        element.dataset.alxMediaFailClosed = '0';
+    }
+
     function ensureMedia(card) {
         if (!card || card.dataset.alxVehicleMediaResolved === '1') {
             return;
@@ -203,13 +218,11 @@
         var media = findNamedVehicle(nameNode.textContent);
         var image = mediaBox.querySelector('img');
         if (!media || !image || !applyMediaToImage(image, media)) {
-            mediaBox.hidden = true;
-            mediaBox.dataset.alxMediaFailClosed = '1';
+            setFailClosedVisibility(mediaBox, true);
             return;
         }
 
-        mediaBox.hidden = false;
-        mediaBox.dataset.alxMediaFailClosed = '0';
+        setFailClosedVisibility(mediaBox, false);
         var credit = mediaBox.querySelector('.alx-stock-credit');
         if (credit) {
             credit.href = media.source;
@@ -240,19 +253,16 @@
         var right = findNamedVehicle(names[1].textContent);
         var images = photoRow.querySelectorAll('img');
         if (!left || !right || images.length !== 2) {
-            photoRow.hidden = true;
-            photoRow.dataset.alxMediaFailClosed = '1';
+            setFailClosedVisibility(photoRow, true);
             return;
         }
 
         if (!applyMediaToImage(images[0], left) || !applyMediaToImage(images[1], right)) {
-            photoRow.hidden = true;
-            photoRow.dataset.alxMediaFailClosed = '1';
+            setFailClosedVisibility(photoRow, true);
             return;
         }
 
-        photoRow.hidden = false;
-        photoRow.dataset.alxMediaFailClosed = '0';
+        setFailClosedVisibility(photoRow, false);
     }
 
     function scan(root) {
