@@ -12,18 +12,24 @@ done
 required=(
   'PUBLIC_PRESENTATION_LIVE_FAIL'
   'PUBLIC_PRESENTATION_LIVE_OK'
+  'PUBLIC_PRESENTATION_LIVE_INFO'
   '/wp-json/autolex/v1/portal/facets'
   '/wp-json/autolex/v1/portal/vehicles?limit=48&sort=data_desc'
   'fuel_type_raw'
-  'Benzin'
-  'Dízel'
+  "['petrol', 'Benzin']"
+  "['gasoline', 'Benzin']"
+  "['diesel', 'Dízel']"
+  'MutationObserver'
+  'public vehicle fuel is missing fuel_type_raw provenance'
+  'raw English fuel leaked through public REST'
+  'public fuel facet has no presentation label'
+  'English fuel leaked as public facet label'
   'autolex-public-presentation.js'
   'autolex-public-presentation.css'
   'data-autolex-public-facts="true"'
   'RÖGZÍTETT KATALÓGUSADATOK'
   'vehicle summary overstates all catalogue values as independently verified'
   'Röviden erről a változatról'
-  'no known English source fuel was proven through localized facets'
   '--retry-all-errors'
   '--connect-timeout'
 )
@@ -33,6 +39,11 @@ for marker in "${required[@]}"; do
     exit 1
   }
 done
+
+if grep -Fq 'no known English source fuel was proven through localized facets' "$SCRIPT"; then
+  echo 'live proof must not depend on the current dataset containing an English raw fuel value'
+  exit 1
+fi
 
 for workflow in "$HOSTED" "$HOME"; do
   grep -Fq 'bash scripts/autolex-public-presentation-live-qa.sh' "$workflow" || {
