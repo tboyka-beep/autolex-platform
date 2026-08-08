@@ -44,7 +44,7 @@ if (empty(Autolex_Vehicle_Media::resolve('Opel', 'Corsa', 'F'))) {
 }
 
 $script = file_get_contents(__DIR__ . '/../plugin/autolex-platform/assets/js/autolex-vehicle-media.js');
-if (!is_string($script) || false === strpos($script, 'data-alx-verified-vehicle-media')) {
+if (!is_string($script) || false === strpos($script, 'alxVerifiedVehicleMedia')) {
     $fail('Client enhancer must mark verified vehicle media.');
 }
 if (false === strpos($script, 'media.make') || false === strpos($script, 'media.model')) {
