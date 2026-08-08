@@ -117,6 +117,34 @@
         return null;
     }
 
+    function findNamedVehicle(label) {
+        var normalizedLabel = normalize(label);
+        if (!normalizedLabel) {
+            return null;
+        }
+        var keys = Object.keys(mediaMap);
+        for (var i = 0; i < keys.length; i += 1) {
+            var media = mediaMap[keys[i]] || {};
+            var name = normalize((media.make || '') + ' ' + (media.model || ''));
+            if (name && normalizedLabel === name) {
+                return media;
+            }
+        }
+        return null;
+    }
+
+    function applyMediaToImage(image, media) {
+        if (!image || !media || !media.image || !media.source || !media.credit) {
+            return false;
+        }
+        image.src = media.image;
+        image.removeAttribute('srcset');
+        image.alt = media.alt || ((media.make || '') + ' ' + (media.model || '')).trim();
+        image.dataset.alxVehicleImage = '1';
+        image.dataset.alxVerifiedVehicleMedia = '1';
+        return true;
+    }
+
     function ensureMedia(card) {
         if (!card || card.dataset.alxVehicleMediaResolved === '1') {
             return;
@@ -131,10 +159,7 @@
 
         var existing = card.querySelector('img[data-alx-vehicle-image="1"]');
         if (existing) {
-            existing.src = media.image;
-            existing.removeAttribute('srcset');
-            existing.alt = media.alt || ((media.make || '') + ' ' + (media.model || '')).trim();
-            existing.dataset.alxVerifiedVehicleMedia = '1';
+            applyMediaToImage(existing, media);
             return;
         }
 
@@ -142,12 +167,9 @@
         figure.className = 'alx-verified-vehicle-media';
 
         var image = document.createElement('img');
-        image.src = media.image;
-        image.alt = media.alt || ((media.make || '') + ' ' + (media.model || '')).trim();
         image.loading = 'lazy';
         image.decoding = 'async';
-        image.dataset.alxVehicleImage = '1';
-        image.dataset.alxVerifiedVehicleMedia = '1';
+        applyMediaToImage(image, media);
         figure.appendChild(image);
 
         var credit = document.createElement('a');
@@ -161,6 +183,64 @@
         card.insertBefore(figure, card.firstChild);
     }
 
+    function syncFeaturedVehicle() {
+        var card = document.querySelector('.alx-featured-vehicle-card');
+        if (!card) {
+            return;
+        }
+        var nameNode = card.querySelector('.alx-featured-data h2');
+        var mediaBox = card.querySelector('.alx-featured-media');
+        if (!nameNode || !mediaBox) {
+            return;
+        }
+
+        var media = findNamedVehicle(nameNode.textContent);
+        var image = mediaBox.querySelector('img');
+        if (!media || !image || !applyMediaToImage(image, media)) {
+            mediaBox.hidden = true;
+            mediaBox.dataset.alxMediaFailClosed = '1';
+            return;
+        }
+
+        mediaBox.hidden = false;
+        mediaBox.dataset.alxMediaFailClosed = '0';
+        var credit = mediaBox.querySelector('.alx-stock-credit');
+        if (credit) {
+            credit.href = media.source;
+            credit.textContent = media.credit;
+        }
+    }
+
+    function syncComparisonPreview() {
+        var card = document.querySelector('.alx-compare-card');
+        if (!card) {
+            return;
+        }
+        var names = card.querySelectorAll('.alx-compare-data .alx-compare-names strong');
+        var photoRow = card.querySelector('.alx-compare-vehicles--photos');
+        if (!photoRow || names.length !== 2) {
+            return;
+        }
+
+        var left = findNamedVehicle(names[0].textContent);
+        var right = findNamedVehicle(names[1].textContent);
+        var images = photoRow.querySelectorAll('img');
+        if (!left || !right || images.length !== 2) {
+            photoRow.hidden = true;
+            photoRow.dataset.alxMediaFailClosed = '1';
+            return;
+        }
+
+        if (!applyMediaToImage(images[0], left) || !applyMediaToImage(images[1], right)) {
+            photoRow.hidden = true;
+            photoRow.dataset.alxMediaFailClosed = '1';
+            return;
+        }
+
+        photoRow.hidden = false;
+        photoRow.dataset.alxMediaFailClosed = '0';
+    }
+
     function scan(root) {
         var scope = root || document;
         var selectors = [
@@ -172,8 +252,14 @@
         Array.prototype.forEach.call(cards, ensureMedia);
     }
 
+    function syncNamedHomepageMedia() {
+        syncFeaturedVehicle();
+        syncComparisonPreview();
+    }
+
     function boot() {
         scan(document);
+        syncNamedHomepageMedia();
         if (!window.MutationObserver || !document.body) {
             return;
         }
@@ -188,6 +274,7 @@
                     }
                 });
             });
+            syncNamedHomepageMedia();
         });
         observer.observe(document.body, { childList: true, subtree: true });
     }
