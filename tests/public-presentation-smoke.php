@@ -90,8 +90,16 @@ if (isset($fact_map['Motorkód'])) {
 }
 foreach (array('Generáció', 'Motorváltozat', 'Hengerűrtartalom', 'Teljesítmény', 'Gyártási időszak') as $required) {
     if (!isset($fact_map[$required])) {
-        $fail('Source-backed vehicle summary missing factual field: ' . $required);
+        $fail('Record-backed vehicle summary missing factual field: ' . $required);
     }
+}
+
+$presentation = file_get_contents(__DIR__ . '/../plugin/autolex-platform/includes/class-autolex-public-presentation.php');
+if (!is_string($presentation) || false === strpos($presentation, 'RÖGZÍTETT KATALÓGUSADATOK')) {
+    $fail('Vehicle summary must identify fields as recorded catalogue data.');
+}
+if (is_string($presentation) && false !== strpos($presentation, 'ELLENŐRZÖTT KATALÓGUSADATOK')) {
+    $fail('Vehicle summary must not overstate every catalogue record as independently verified.');
 }
 
 $loader = file_get_contents(__DIR__ . '/../plugin/autolex-platform/autolex-platform.php');
