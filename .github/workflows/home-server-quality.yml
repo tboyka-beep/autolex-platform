@@ -75,6 +75,7 @@ jobs:
           php tests/portal-smoke.php
           php tests/catalog-filter-smoke.php
           php tests/public-presentation-smoke.php
+          php tests/vehicle-fact-fallback-smoke.php
           php tests/portal-design-smoke.php
           php tests/portal-shell-42-smoke.php
           php tests/catalog-design-42-smoke.php

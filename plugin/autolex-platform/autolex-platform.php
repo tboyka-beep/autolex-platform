@@ -38,6 +38,7 @@ require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-relations.ph
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-seo.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-media.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-public-presentation.php';
+require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-fact-fallback.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-portal.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-comparison-page.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-operations-center.php';
@@ -58,6 +59,7 @@ function autolex_platform()
     Autolex_Vehicle_SEO::instance();
     Autolex_Vehicle_Media::instance();
     Autolex_Public_Presentation::instance();
+    Autolex_Vehicle_Fact_Fallback::instance();
     Autolex_Portal::instance();
     Autolex_Comparison_Page::instance();
     Autolex_Operations_Center::instance();
