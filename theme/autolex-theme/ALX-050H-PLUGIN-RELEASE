@@ -1,0 +1,3 @@
+ALX-050H transactional plugin production release.
+Exact main SHA only. Home Server runner only.
+The previous plugin directory must remain as a rollback snapshot until live dynamic vehicle-detail verification succeeds.
