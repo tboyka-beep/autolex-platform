@@ -58,7 +58,14 @@ function autolex_platform()
     Autolex_Vehicle_Relations::instance();
     Autolex_Vehicle_SEO::instance();
     Autolex_Vehicle_Media::instance();
-    Autolex_Public_Presentation::instance();
+
+    // ALX-050G: keep deterministic REST/client-side terminology localization,
+    // but do not wrap the complete public WordPress response in a global PHP
+    // output buffer. Production diagnostics proved a 200 text/html response
+    // could be emitted with a zero-byte body on dynamic vehicle-detail routes.
+    $public_presentation = Autolex_Public_Presentation::instance();
+    remove_action('template_redirect', array($public_presentation, 'start_html_localizer'), 1);
+
     Autolex_Vehicle_Fact_Fallback::instance();
     Autolex_Portal::instance();
     Autolex_Comparison_Page::instance();
