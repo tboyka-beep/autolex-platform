@@ -1,0 +1,7 @@
+ALX-050U bufferless vehicle-detail production release
+Home Server runner only
+Exact merged main SHA required
+Both known whole-page vehicle-detail buffers must be disabled
+Candidate staging tree must be proven before active plugin rename
+Explicit rollback required on activation or live proof failure
+Fail closed unless dynamic vehicle detail returns non-empty HTML + autolex-vehicle-detail + JSON-LD
