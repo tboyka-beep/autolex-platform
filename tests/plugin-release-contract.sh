@@ -16,7 +16,8 @@ grep -Fq 'remote_zip="${plugins_dir}/${zip_name}"' "$script"
 grep -Fq 'require_item "$plugins_dir" "$plugin_name"' "$script"
 grep -Fq 'require_absent_item "$plugins_dir" "$staging_name"' "$script"
 grep -Fq 'cp -a plugin/autolex-platform "${work_dir}/${staging_name}"' "$script"
-grep -Fq 'api2_fileop extract "$remote_zip"' "$script"
+grep -Fq 'api2_fileop extract "$remote_zip" "$plugins_dir"' "$script"
+grep -Fq 'PLUGIN_RELEASE_EXTRACT:' "$script"
 grep -Fq "require_item \"\$staging_dir\" 'autolex-platform.php'" "$script"
 grep -Fq 'if ! api2_fileop_try rename "$CPANEL_PLUGIN_DIR" "$backup_name"; then' "$script"
 grep -Fq 'if ! api2_fileop_try rename "$staging_dir" "$plugin_name"; then' "$script"
@@ -29,9 +30,9 @@ grep -Fq 'PLUGIN_RELEASE_ROLLBACK' "$script"
 grep -Fq "grep -Fqi 'autolex-vehicle-detail'" "$script"
 grep -Fq "grep -Fqi 'application/ld+json'" "$script"
 
-# Prove the staging tree is extracted and inspected before the live directory
-# is renamed away. This is the core ALX-050L safety invariant.
-extract_line="$(grep -nF 'api2_fileop extract "$remote_zip"' "$script" | head -1 | cut -d: -f1)"
+# Prove extraction targets the plugins directory explicitly and the staged tree
+# is inspected before the live directory is renamed away.
+extract_line="$(grep -nF 'api2_fileop extract "$remote_zip" "$plugins_dir"' "$script" | head -1 | cut -d: -f1)"
 staged_entry_line="$(grep -nF "require_item \"\$staging_dir\" 'autolex-platform.php'" "$script" | head -1 | cut -d: -f1)"
 backup_line="$(grep -nF 'if ! api2_fileop_try rename "$CPANEL_PLUGIN_DIR" "$backup_name"; then' "$script" | head -1 | cut -d: -f1)"
 activate_line="$(grep -nF 'if ! api2_fileop_try rename "$staging_dir" "$plugin_name"; then' "$script" | head -1 | cut -d: -f1)"
@@ -40,6 +41,13 @@ verify_line="$(grep -nF 'if ! verify_live; then' "$script" | head -1 | cut -d: -
 [[ "$staged_entry_line" -lt "$backup_line" ]]
 [[ "$backup_line" -lt "$activate_line" ]]
 [[ "$activate_line" -lt "$verify_line" ]]
+
+# ALX-050M proved that extract-without-destination can return success while
+# leaving only the ZIP. Forbid regression to an implicit extraction target.
+if grep -Fxq 'api2_fileop extract "$remote_zip"' "$script"; then
+  echo 'Extract must use an explicit cPanel destination.' >&2
+  exit 1
+fi
 
 # Full paths are sources; rename destinations must remain basenames. Reintroducing
 # a full plugins path recreates the ALX-050H doubled public_html path failure.
