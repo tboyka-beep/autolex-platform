@@ -1,0 +1,129 @@
+name: ALX-050C Production Theme Release Once
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/alx-050c-theme-production-once.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autolex-theme-release-production
+  cancel-in-progress: false
+
+jobs:
+  production-release-once:
+    name: Atomic production theme release
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Enforce one-shot main commit boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff-tree --no-commit-id --name-only --diff-filter=A -r "$GITHUB_SHA" \
+            | grep -Fx '.github/workflows/alx-050c-theme-production-once.yml'
+          git diff-tree --no-commit-id --name-only --diff-filter=A -r "$GITHUB_SHA" \
+            | grep -Fx 'theme/autolex-theme/ALX-050C-RELEASE'
+          grep -Fq 'atomic same-slug promotion' theme/autolex-theme/ALX-050C-RELEASE
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Prepare production release configuration
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_PLUGIN_DIR: ${{ secrets.CPANEL_PLUGIN_DIR }}
+        run: |
+          set -euo pipefail
+          for name in CPANEL_API_HOST CPANEL_API_USER CPANEL_API_TOKEN CPANEL_PLUGIN_DIR; do
+            test -n "${!name:-}" || { echo "Missing ${name}" >&2; exit 1; }
+          done
+          case "$CPANEL_PLUGIN_DIR" in
+            */wp-content/plugins/autolex-platform) ;;
+            *) echo 'CPANEL_PLUGIN_DIR has an unexpected suffix.' >&2; exit 1 ;;
+          esac
+
+          wp_root="${CPANEL_PLUGIN_DIR%/wp-content/plugins/autolex-platform}"
+          token="$(openssl rand -hex 32)"
+          echo "::add-mask::${token}"
+          {
+            echo "CPANEL_THEME_DIR=${wp_root}/wp-content/themes/autolex-theme"
+            echo "CPANEL_MU_PLUGIN_DIR=${wp_root}/wp-content/mu-plugins"
+            echo 'AUTOLEX_BASE_URL=https://autolex.hu'
+            echo "AUTOLEX_THEME_RELEASE_TOKEN=${token}"
+          } >> "$GITHUB_ENV"
+
+      - name: Validate rollback-safe immutable release
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+        run: |
+          bash tests/theme-release-contract.sh
+          php tests/theme-release-filesystem-smoke.php
+          find theme/autolex-theme release -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          bash -n scripts/release-autolex-theme.sh
+          bash scripts/release-autolex-theme.sh validate
+
+      - name: Deploy staged theme, atomically promote and prove rollback snapshot
+        id: deploy
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+        run: bash scripts/release-autolex-theme.sh release
+
+      - name: Emergency rollback check after failed production release
+        if: failure() && steps.deploy.outcome == 'failure'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-evidence
+          state_file='release-evidence/one-shot-failure-state.json'
+          curl --silent --show-error --fail --retry 5 --retry-all-errors \
+            --header "X-Autolex-Release-Token: ${AUTOLEX_THEME_RELEASE_TOKEN}" \
+            "${AUTOLEX_BASE_URL%/}/wp-json/autolex-release/v1/theme-state" \
+            | tee "$state_file"
+
+          if jq -e --arg sha "$GITHUB_SHA" \
+              '.state.release == $sha and .state.rollback.available == true' \
+              "$state_file" >/dev/null; then
+            curl --silent --show-error --fail --retry 5 --retry-all-errors --request POST \
+              --header "X-Autolex-Release-Token: ${AUTOLEX_THEME_RELEASE_TOKEN}" \
+              "${AUTOLEX_BASE_URL%/}/wp-json/autolex-release/v1/rollback" \
+              | tee release-evidence/one-shot-emergency-rollback.json
+            jq -e --arg sha "$GITHUB_SHA" \
+              '.status == "rolled_back" and .after.release != $sha' \
+              release-evidence/one-shot-emergency-rollback.json >/dev/null
+          else
+            printf '{"status":"no_active_failed_release_to_rollback","sha":"%s"}\n' "$GITHUB_SHA" \
+              > release-evidence/one-shot-emergency-rollback.json
+          fi
+
+      - name: Upload SHA-bound production release evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: autolex-theme-release-production-${{ github.sha }}
+          path: release-evidence
+          if-no-files-found: error
+          retention-days: 30
