@@ -1,0 +1,5 @@
+ALX-050K production rollback recovery
+Home Server runner only
+Restore exact rollback-bd7508031eae13a5 snapshot only
+Refuse recovery if active plugin directory already exists
+Exact merged main SHA required
