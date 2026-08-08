@@ -35,33 +35,54 @@ jobs:
           rollback_dir="${plugins_dir}/autolex-platform.rollback-${release_token}"
           failed_dir="${plugins_dir}/autolex-platform.failed-${release_token}"
           auth="Authorization: cpanel ${CPANEL_API_USER}:${CPANEL_API_TOKEN}"
-          api="https://${CPANEL_API_HOST}:2083/execute/Fileman/list_files"
-          inspect_dir() {
-            local label="$1" dir="$2" tmp code
+
+          list_dir() {
+            local dir="$1" tmp code
             tmp="$(mktemp)"
             code="$(curl --silent --show-error --location --connect-timeout 15 --max-time 60 \
               --header "$auth" --get --output "$tmp" --write-out '%{http_code}' \
               --data-urlencode "dir=${dir}" --data-urlencode 'show_hidden=1' \
-              --data-urlencode 'types=dir|file' "$api")"
-            echo "PLUGIN_STATE_HTTP: ${label}=${code}"
-            if [[ "$code" != 200 ]] || ! jq -e '.result.status == 1' "$tmp" >/dev/null 2>&1; then
-              echo "PLUGIN_STATE_MISSING_OR_UNREADABLE: ${label}"
+              "https://${CPANEL_API_HOST}:2083/execute/Fileman/list_files" || true)"
+            echo "PLUGIN_STATE_UAPI_HTTP: dir=${dir##*/} code=${code:-transport_error}" >&2
+            if [[ "$code" == 200 ]] && jq -e '.result.status == 1' "$tmp" >/dev/null 2>&1; then
+              jq -c '{ok:true,items:[.result.data[]? | {name:(.name // ""),type:(.type // ""),size:(.size // 0)}]}' "$tmp"
               rm -f "$tmp"
               return 0
             fi
-            echo "PLUGIN_STATE_PRESENT: ${label}"
-            jq -r --arg label "$label" '.result.data[]? | select((.name // "") == "autolex-platform.php" or (.name // "") == "includes" or (.name // "") == "assets") | "PLUGIN_STATE_ITEM: \($label) name=\(.name) type=\(.type // "unknown") size=\(.size // 0)"' "$tmp"
+
+            code="$(curl --silent --show-error --location --connect-timeout 15 --max-time 60 \
+              --header "$auth" --get --output "$tmp" --write-out '%{http_code}' \
+              --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
+              --data-urlencode 'cpanel_jsonapi_apiversion=2' \
+              --data-urlencode 'cpanel_jsonapi_module=Fileman' \
+              --data-urlencode 'cpanel_jsonapi_func=listfiles' \
+              --data-urlencode "dir=${dir}" --data-urlencode 'showdotfiles=1' \
+              "https://${CPANEL_API_HOST}:2083/json-api/cpanel" || true)"
+            echo "PLUGIN_STATE_API2_HTTP: dir=${dir##*/} code=${code:-transport_error}" >&2
+            if [[ "$code" == 200 ]] && jq -e '.cpanelresult.event.result == 1' "$tmp" >/dev/null 2>&1; then
+              jq -c '{ok:true,items:[.cpanelresult.data[]? | {name:(.file // .name // ""),type:(.type // .mimetype // ""),size:(.size // 0)}]}' "$tmp"
+              rm -f "$tmp"
+              return 0
+            fi
+            printf '{"ok":false,"items":[]}\n'
             rm -f "$tmp"
           }
-          parent_tmp="$(mktemp)"
-          parent_code="$(curl --silent --show-error --location --connect-timeout 15 --max-time 60 \
-            --header "$auth" --get --output "$parent_tmp" --write-out '%{http_code}' \
-            --data-urlencode "dir=${plugins_dir}" --data-urlencode 'show_hidden=1' \
-            --data-urlencode 'types=dir|file' "$api")"
-          test "$parent_code" = 200
-          jq -e '.result.status == 1' "$parent_tmp" >/dev/null
-          jq -r '.result.data[]? | select((.name // "") | startswith("autolex-platform")) | "PLUGIN_STATE_PARENT: name=\(.name) type=\(.type // "unknown") size=\(.size // 0)"' "$parent_tmp"
-          rm -f "$parent_tmp"
+
+          parent_json="$(list_dir "$plugins_dir")"
+          jq -e '.ok == true' <<<"$parent_json" >/dev/null || { echo 'PLUGIN_STATE_FAIL: plugin parent unreadable' >&2; exit 1; }
+          jq -r '.items[] | select(.name | startswith("autolex-platform")) | "PLUGIN_STATE_PARENT: name=\(.name) type=\(.type) size=\(.size)"' <<<"$parent_json"
+
+          inspect_dir() {
+            local label="$1" dir="$2" data
+            data="$(list_dir "$dir")"
+            if ! jq -e '.ok == true' <<<"$data" >/dev/null; then
+              echo "PLUGIN_STATE_MISSING_OR_UNREADABLE: ${label}"
+              return 0
+            fi
+            echo "PLUGIN_STATE_PRESENT: ${label}"
+            jq -r --arg label "$label" '.items[] | select(.name == "autolex-platform.php" or .name == "includes" or .name == "assets") | "PLUGIN_STATE_ITEM: \($label) name=\(.name) type=\(.type) size=\(.size)"' <<<"$data"
+          }
+
           inspect_dir active "$plugin_dir"
           inspect_dir rollback "$rollback_dir"
           inspect_dir failed "$failed_dir"
