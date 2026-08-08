@@ -11,12 +11,14 @@ done
 for marker in \
   'ALX050F_PROBE_FAIL' \
   'ALX050F_PROBE_OK' \
+  '::error title=ALX-050F live detail probe::' \
   'http_code=%{http_code}' \
   'effective_url=%{url_effective}' \
   'content_type=%{content_type}' \
   'redirects=%{num_redirects}' \
   'body_sha256=' \
   'body_prefix=' \
+  'fingerprint=' \
   'Please wait while your request is being verified' \
   '<!doctype html|<html' \
   'autolex-vehicle-detail' \
