@@ -148,6 +148,15 @@ jobs:
         with:
           php-version: '8.3'
           coverage: none
+      - name: Install exact production release browser
+        run: npx --yes playwright@1.55.0 install --with-deps chromium
+      - name: Verify production release browser preflight
+        run: |
+          set -euo pipefail
+          npx --yes playwright@1.55.0 screenshot --device="Desktop Chrome" \
+            'data:text/html,<title>Autolex release preflight</title><h1>OK</h1>' \
+            /tmp/autolex-release-browser-preflight.png
+          test -s /tmp/autolex-release-browser-preflight.png
       - name: Prepare production release configuration
         env:
           CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}

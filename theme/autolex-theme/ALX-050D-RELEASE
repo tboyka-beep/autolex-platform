@@ -1,0 +1,3 @@
+ALX-050D
+Purpose: production retry after the rollback-safe ALX-050C release proved same-slug rollback but immediate screenshot QA lacked Chromium.
+Policy: install and execute the exact Playwright 1.55.0 Chromium runtime before any production theme activation.
