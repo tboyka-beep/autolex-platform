@@ -22,9 +22,19 @@ fetch() {
 facets="$TMP_DIR/facets.json"
 vehicles="$TMP_DIR/vehicles.json"
 catalog="$TMP_DIR/catalog.html"
+presentation_js="$TMP_DIR/public-presentation.js"
 fetch "${BASE_URL%/}/wp-json/autolex/v1/portal/facets" "$facets"
 fetch "${BASE_URL%/}/wp-json/autolex/v1/portal/vehicles?limit=48&sort=data_desc" "$vehicles"
 fetch "${BASE_URL%/}/autok/" "$catalog"
+fetch "${BASE_URL%/}/wp-content/plugins/autolex-platform/assets/js/autolex-public-presentation.js" "$presentation_js"
+
+# The deployed dynamic presentation asset itself must contain the explicit
+# English-to-Hungarian mappings even when the current production dataset has
+# no English raw fuel values at the moment this proof runs.
+grep -Fq "['petrol', 'Benzin']" "$presentation_js" || fail 'live public presentation JS is missing Petrol -> Benzin mapping'
+grep -Fq "['diesel', 'Dízel']" "$presentation_js" || fail 'live public presentation JS is missing Diesel -> Dízel mapping'
+grep -Fq "['gasoline', 'Benzin']" "$presentation_js" || fail 'live public presentation JS is missing Gasoline -> Benzin mapping'
+grep -Fq 'MutationObserver' "$presentation_js" || fail 'live public presentation JS is missing dynamic-content localization'
 
 detail_url="$(python3 - "$facets" "$vehicles" <<'PY'
 import json, sys
@@ -35,16 +45,41 @@ vehicles = json.load(open(vehicles_path, encoding='utf-8'))
 expected = {
     'petrol': 'Benzin',
     'gasoline': 'Benzin',
+    'benzin': 'Benzin',
     'diesel': 'Dízel',
+    'gasoil': 'Dízel',
+    'dízel': 'Dízel',
+    'dizel': 'Dízel',
     'electric': 'Elektromos',
     'electricity': 'Elektromos',
+    'electric vehicle': 'Elektromos',
+    'bev': 'Elektromos',
+    'elektromos': 'Elektromos',
     'petrol/electric': 'Benzin / elektromos',
     'gasoline/electric': 'Benzin / elektromos',
     'diesel/electric': 'Dízel / elektromos',
+    'hybrid': 'Hibrid',
+    'hybrid electric': 'Hibrid',
+    'hev': 'Hibrid',
+    'plug-in hybrid': 'Plug-in hibrid',
+    'plug in hybrid': 'Plug-in hibrid',
+    'phev': 'Plug-in hibrid',
+    'mild hybrid': 'Lágy hibrid',
+    'mhev': 'Lágy hibrid',
     'lpg': 'LPG (autógáz)',
     'cng': 'CNG (sűrített földgáz)',
+    'ng': 'Földgáz (NG)',
+    'lng': 'LNG (cseppfolyósított földgáz)',
     'hydrogen': 'Hidrogén',
+    'h2': 'Hidrogén',
+    'ethanol': 'Etanol',
     'e85': 'E85 (etanol)',
+    'biodiesel': 'Biodízel',
+}
+english_public_forbidden = {
+    'petrol', 'gasoline', 'diesel', 'gasoil', 'electric', 'electricity',
+    'electric vehicle', 'hybrid', 'hybrid electric', 'plug-in hybrid',
+    'plug in hybrid', 'mild hybrid', 'hydrogen', 'ethanol', 'biodiesel',
 }
 
 def norm(value):
@@ -53,36 +88,55 @@ def norm(value):
 fuels = facets.get('fuels')
 if not isinstance(fuels, list) or not fuels:
     raise SystemExit('PUBLIC_PRESENTATION_LIVE_FAIL: public fuel facets are empty')
-proved = 0
+
+known = 0
 for item in fuels:
     if not isinstance(item, dict):
-        continue
+        raise SystemExit('PUBLIC_PRESENTATION_LIVE_FAIL: malformed fuel facet item')
     raw = str(item.get('value') or '').strip()
     label = str(item.get('label') or '').strip()
+    if not raw:
+        raise SystemExit('PUBLIC_PRESENTATION_LIVE_FAIL: empty fuel facet value')
+    if not label:
+        raise SystemExit(f'PUBLIC_PRESENTATION_LIVE_FAIL: public fuel facet has no presentation label: {raw!r}')
     key = norm(raw)
+    label_key = norm(label)
+    if label_key in english_public_forbidden:
+        raise SystemExit(f'PUBLIC_PRESENTATION_LIVE_FAIL: English fuel leaked as public facet label: {label!r}')
     if key in expected:
-        proved += 1
+        known += 1
         if label != expected[key]:
             raise SystemExit(f'PUBLIC_PRESENTATION_LIVE_FAIL: fuel facet {raw!r} label={label!r} expected={expected[key]!r}')
-if proved == 0:
-    raise SystemExit('PUBLIC_PRESENTATION_LIVE_FAIL: no known English source fuel was proven through localized facets')
 
 items = vehicles.get('items')
 if not isinstance(items, list) or not items:
     raise SystemExit('PUBLIC_PRESENTATION_LIVE_FAIL: production catalogue has no vehicle sample')
+
+fuel_rows = 0
+raw_provenance_rows = 0
 for item in items:
     if not isinstance(item, dict):
         continue
     public = str(item.get('fuel_type') or '').strip()
     raw = str(item.get('fuel_type_raw') or '').strip()
-    if norm(public) in expected:
-        raise SystemExit(f'PUBLIC_PRESENTATION_LIVE_FAIL: raw English fuel leaked through REST: {public!r}')
-    if norm(raw) in expected and public != expected[norm(raw)]:
-        raise SystemExit(f'PUBLIC_PRESENTATION_LIVE_FAIL: REST fuel mismatch raw={raw!r} public={public!r}')
+    if public:
+        fuel_rows += 1
+        if not raw:
+            raise SystemExit('PUBLIC_PRESENTATION_LIVE_FAIL: public vehicle fuel is missing fuel_type_raw provenance')
+        raw_provenance_rows += 1
+    if norm(public) in english_public_forbidden:
+        raise SystemExit(f'PUBLIC_PRESENTATION_LIVE_FAIL: raw English fuel leaked through public REST: {public!r}')
+    raw_key = norm(raw)
+    if raw_key in expected and public != expected[raw_key]:
+        raise SystemExit(f'PUBLIC_PRESENTATION_LIVE_FAIL: REST fuel mismatch raw={raw!r} public={public!r} expected={expected[raw_key]!r}')
+
+if fuel_rows == 0 or raw_provenance_rows == 0:
+    raise SystemExit('PUBLIC_PRESENTATION_LIVE_FAIL: production vehicle sample cannot prove fuel raw/public provenance')
 
 sample = next((item for item in items if isinstance(item, dict) and item.get('url')), None)
 if not sample:
     raise SystemExit('PUBLIC_PRESENTATION_LIVE_FAIL: no vehicle detail URL in public REST sample')
+print(f"PUBLIC_PRESENTATION_LIVE_INFO: fuel_facets={len(fuels)} known_facets={known} fuel_rows={fuel_rows} raw_provenance_rows={raw_provenance_rows}", file=sys.stderr)
 print(str(sample['url']))
 PY
 )" || exit 1
@@ -130,4 +184,4 @@ for path in sys.argv[1:]:
         raise SystemExit(f'PUBLIC_PRESENTATION_LIVE_FAIL: untranslated visible terms in {path}: {parser.bad}')
 PY
 
-printf 'PUBLIC_PRESENTATION_LIVE_OK: Hungarian fuel facets, REST output and record-backed factual vehicle summary are live\n'
+printf 'PUBLIC_PRESENTATION_LIVE_OK: Hungarian fuel facets, REST raw/public provenance, dynamic terminology mappings and record-backed factual vehicle summary are live\n'
