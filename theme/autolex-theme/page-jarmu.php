@@ -13,7 +13,10 @@ get_header();
 
 while (have_posts()) :
     the_post();
-    $content = trim((string) get_the_content());
+    // Dynamic /auto-adatlap/ content is supplied by plugin filters even when
+    // the backing WordPress page has no raw post_content. Resolve the complete
+    // server-side content before deciding whether the workspace is empty.
+    $content = trim((string) apply_filters('the_content', (string) get_the_content()));
     $sections = array(
         'attekintes'          => __('Áttekintés', 'autolex-theme'),
         'motor'               => __('Motor', 'autolex-theme'),
@@ -80,7 +83,7 @@ while (have_posts()) :
                 </div>
                 <?php if ($content !== '') : ?>
                     <div class="alx-vehicle-plugin-output">
-                        <?php the_content(); ?>
+                        <?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- trusted WordPress the_content filter output. ?>
                     </div>
                 <?php else : ?>
                     <section class="alx-vehicle-empty" aria-labelledby="alx-vehicle-empty-title">
