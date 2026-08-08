@@ -6,8 +6,10 @@ on:
       - main
     paths:
       - 'scripts/autolex-live-production-qa.sh'
+      - 'scripts/autolex-vehicle-media-live-qa.sh'
       - 'scripts/recover-autolex-safety-gate.sh'
       - 'tests/live-production-qa-smoke.sh'
+      - 'tests/vehicle-media-live-qa-smoke.sh'
       - 'tests/safety-gate-smoke.php'
       - '.github/workflows/autolex-live-production-qa.yml'
       - '.github/workflows/autolex-live-home-server-qa.yml'
@@ -53,8 +55,12 @@ jobs:
           echo "Runner: ${RUNNER_NAME:-unknown}"
           echo "Host: $(hostname)"
       - name: Validate live QA contract locally
-        run: bash tests/live-production-qa-smoke.sh
+        run: |
+          bash tests/live-production-qa-smoke.sh
+          bash tests/vehicle-media-live-qa-smoke.sh
       - name: Recover transient Safety Gate sync state
         run: bash scripts/recover-autolex-safety-gate.sh
       - name: Run fail-closed live production QA
         run: bash scripts/autolex-live-production-qa.sh
+      - name: Prove exact verified vehicle media mappings
+        run: bash scripts/autolex-vehicle-media-live-qa.sh

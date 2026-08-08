@@ -42,6 +42,15 @@ final class Autolex_Vehicle_Media
                 'credit'     => 'Alexander Migl / Wikimedia Commons',
                 'alt'        => 'Opel Corsa F ötajtós ferdehátú',
             ),
+            'nissan|qashqai' => array(
+                'make'       => 'Nissan',
+                'model'      => 'Qashqai',
+                'generation' => 'J12',
+                'image'      => 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Nissan_Qashqai_%28J12%29_IMG_4900.jpg/1280px-Nissan_Qashqai_%28J12%29_IMG_4900.jpg',
+                'source'     => 'https://commons.wikimedia.org/wiki/File:Nissan_Qashqai_(J12)_IMG_4900.jpg',
+                'credit'     => 'Alexander Migl / Wikimedia Commons',
+                'alt'        => 'Nissan Qashqai J12 SUV',
+            ),
         );
 
         /**
