@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: '.',
-  testMatch: /autolex-visual\.spec\.mjs/,
+  testMatch: /(?:autolex-visual|vehicle-media)\.spec\.mjs/,
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,
