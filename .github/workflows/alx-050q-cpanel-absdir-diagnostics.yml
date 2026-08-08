@@ -1,0 +1,54 @@
+name: ALX-050Q cPanel Absolute Directory Diagnostics
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/alx-050q-cpanel-absdir-diagnostics.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-plugin-parent:
+    name: Resolve production plugin parent absolute path from home-server
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read-only Fileman getabsdir proof
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_PLUGIN_DIR: ${{ secrets.CPANEL_PLUGIN_DIR }}
+        run: |
+          set -euo pipefail
+          test "$(hostname)" = 'home-server'
+          for name in CPANEL_API_HOST CPANEL_API_USER CPANEL_API_TOKEN CPANEL_PLUGIN_DIR; do
+            test -n "${!name:-}" || { echo "missing ${name}" >&2; exit 1; }
+          done
+          plugin_dir="${CPANEL_PLUGIN_DIR%/}"
+          plugins_dir="${plugin_dir%/autolex-platform}"
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT
+          code="$(curl --silent --show-error --location --connect-timeout 15 --max-time 60 \
+            --header "Authorization: cpanel ${CPANEL_API_USER}:${CPANEL_API_TOKEN}" \
+            --get --output "$tmp" --write-out '%{http_code}' \
+            --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
+            --data-urlencode 'cpanel_jsonapi_apiversion=2' \
+            --data-urlencode 'cpanel_jsonapi_module=Fileman' \
+            --data-urlencode 'cpanel_jsonapi_func=getabsdir' \
+            --data-urlencode "absdir=${plugins_dir}" \
+            "https://${CPANEL_API_HOST}:2083/json-api/cpanel")"
+          echo "ABS_DIR_HTTP: ${code}"
+          test "$code" = 200
+          jq -e '.cpanelresult.event.result == 1' "$tmp" >/dev/null
+          abs="$(jq -r '.cpanelresult.data[0].absdir // empty' "$tmp")"
+          test -n "$abs"
+          case "$abs" in
+            /*/wp-content/plugins) ;;
+            *) echo "ABS_DIR_FAIL: unexpected suffix" >&2; exit 1 ;;
+          esac
+          echo "ABS_DIR_RESULT: ${abs}"
+          echo 'ABS_DIR_DIAGNOSTICS_OK'
