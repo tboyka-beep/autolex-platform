@@ -20,6 +20,8 @@ required=(
   'autolex-public-presentation.js'
   'autolex-public-presentation.css'
   'data-autolex-public-facts="true"'
+  'RÖGZÍTETT KATALÓGUSADATOK'
+  'vehicle summary overstates all catalogue values as independently verified'
   'Röviden erről a változatról'
   'no known English source fuel was proven through localized facets'
   '--retry-all-errors'
