@@ -5,10 +5,12 @@ gate='release/autolex-theme-release-gate.php'
 filesystem='release/autolex-theme-release-filesystem.php'
 workflow='.github/workflows/release-autolex-theme.yml'
 once_workflow='.github/workflows/alx-050c-theme-production-once.yml'
+retry_workflow='.github/workflows/alx-050d-theme-production-retry-once.yml'
 release_script='scripts/release-autolex-theme.sh'
 proof_script='scripts/prove-autolex-theme-release.sh'
 filesystem_smoke='tests/theme-release-filesystem-smoke.php'
 release_marker='theme/autolex-theme/ALX-050C-RELEASE'
+retry_marker='theme/autolex-theme/ALX-050D-RELEASE'
 
 fail() {
   echo "Theme release contract failed: $*" >&2
@@ -26,7 +28,15 @@ require_text() {
   grep -Fq -- "$needle" "$file" || fail "${file} is missing required marker: ${needle}"
 }
 
-for file in "$gate" "$filesystem" "$workflow" "$once_workflow" "$release_script" "$proof_script" "$filesystem_smoke" "$release_marker"; do
+require_order() {
+  local file="$1" first="$2" second="$3" first_line second_line
+  first_line="$(grep -Fn -- "$first" "$file" | head -n 1 | cut -d: -f1)"
+  second_line="$(grep -Fn -- "$second" "$file" | head -n 1 | cut -d: -f1)"
+  test -n "$first_line" && test -n "$second_line" && [ "$first_line" -lt "$second_line" ] || \
+    fail "${file} must place '${first}' before '${second}'"
+}
+
+for file in "$gate" "$filesystem" "$workflow" "$once_workflow" "$retry_workflow" "$release_script" "$proof_script" "$filesystem_smoke" "$release_marker" "$retry_marker"; do
   require_file "$file"
 done
 
@@ -68,12 +78,18 @@ require_text "$workflow" 'CPANEL_PLUGIN_DIR'
 require_text "$workflow" 'wp-content/themes/autolex-theme'
 require_text "$workflow" 'php tests/theme-release-filesystem-smoke.php'
 require_text "$workflow" 'autolex-theme-release-filesystem.php'
+require_text "$workflow" 'Install exact production release browser'
+require_text "$workflow" 'npx --yes playwright@1.55.0 install --with-deps chromium'
+require_text "$workflow" 'Verify production release browser preflight'
+require_text "$workflow" '/tmp/autolex-release-browser-preflight.png'
 require_text "$workflow" 'Deploy, atomically activate and run immediate live QA'
 require_text "$workflow" 'Emergency rollback check after failed production release'
 require_text "$workflow" '.state.rollback.available == true'
 require_text "$workflow" 'actions/upload-artifact@v7'
 require_text "$workflow" 'echo "::add-mask::${token}"'
 require_text "$workflow" 'echo "AUTOLEX_THEME_RELEASE_TOKEN=${token}" >> "$GITHUB_ENV"'
+require_order "$workflow" 'npx --yes playwright@1.55.0 install --with-deps chromium' 'Prepare production release configuration'
+require_order "$workflow" 'Verify production release browser preflight' 'Deploy, atomically activate and run immediate live QA'
 
 require_text "$once_workflow" 'ALX-050C Production Theme Release Once'
 require_text "$once_workflow" "- '.github/workflows/alx-050c-theme-production-once.yml'"
@@ -84,6 +100,27 @@ require_text "$once_workflow" 'environment: production'
 require_text "$once_workflow" 'bash scripts/release-autolex-theme.sh release'
 require_text "$once_workflow" 'one-shot-emergency-rollback.json'
 require_text "$release_marker" 'atomic same-slug promotion'
+
+# ALX-050D is a separate add-only retry because the ALX-050C one-shot guard is
+# intentionally consumed. The retry must prove the exact browser binary before
+# any release configuration or activation begins.
+require_text "$retry_workflow" 'ALX-050D Production Theme Retry Once'
+require_text "$retry_workflow" "- '.github/workflows/alx-050d-theme-production-retry-once.yml'"
+require_text "$retry_workflow" 'Enforce one-shot retry main commit boundary'
+require_text "$retry_workflow" 'git diff-tree --no-commit-id --name-only --diff-filter=A -r "$GITHUB_SHA"'
+require_text "$retry_workflow" "grep -Fx '.github/workflows/alx-050d-theme-production-retry-once.yml'"
+require_text "$retry_workflow" "grep -Fx 'theme/autolex-theme/ALX-050D-RELEASE'"
+require_text "$retry_workflow" 'environment: production'
+require_text "$retry_workflow" 'Install exact production release browser'
+require_text "$retry_workflow" 'npx --yes playwright@1.55.0 install --with-deps chromium'
+require_text "$retry_workflow" 'Verify production release browser preflight'
+require_text "$retry_workflow" '/tmp/autolex-release-browser-preflight.png'
+require_text "$retry_workflow" 'Validate rollback-safe immutable retry'
+require_text "$retry_workflow" 'bash scripts/release-autolex-theme.sh release'
+require_text "$retry_workflow" 'alx-050d-emergency-rollback.json'
+require_text "$retry_marker" 'Playwright 1.55.0 Chromium runtime before any production theme activation'
+require_order "$retry_workflow" 'npx --yes playwright@1.55.0 install --with-deps chromium' 'Prepare production release configuration'
+require_order "$retry_workflow" 'Verify production release browser preflight' 'bash scripts/release-autolex-theme.sh release'
 
 require_text "$release_script" 'CPANEL_THEME_DIR'
 require_text "$release_script" 'CPANEL_MU_PLUGIN_DIR'
@@ -135,7 +172,7 @@ require_text "$proof_script" 'themeStylesheet'
 require_text "$proof_script" '[320, 375, 768, 1024, 1440]'
 require_text "$proof_script" '! -name SHA256SUMS'
 
-if grep -Fq 'set -x' "$workflow" "$once_workflow" "$release_script" "$proof_script"; then
+if grep -Fq 'set -x' "$workflow" "$once_workflow" "$retry_workflow" "$release_script" "$proof_script"; then
   fail 'release implementation enables shell tracing and may expose secrets'
 fi
 
@@ -145,4 +182,4 @@ fi
 
 php "$filesystem_smoke" >/dev/null
 bash -n "$release_script"
-echo 'Autolex atomic same-slug reversible theme release contract passed.'
+echo 'Autolex atomic same-slug reversible theme release and browser preflight contract passed.'
