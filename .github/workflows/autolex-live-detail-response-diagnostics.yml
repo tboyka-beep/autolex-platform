@@ -1,0 +1,44 @@
+name: Autolex Live Detail Response Diagnostics
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/probe-autolex-live-detail-response.sh'
+      - '.github/workflows/autolex-live-detail-response-diagnostics.yml'
+      - 'tests/alx-050f-live-detail-diagnostics-contract.sh'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/probe-autolex-live-detail-response.sh'
+      - '.github/workflows/autolex-live-detail-response-diagnostics.yml'
+      - 'tests/alx-050f-live-detail-diagnostics-contract.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autolex-live-detail-diagnostics-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate diagnostic contract
+        run: bash tests/alx-050f-live-detail-diagnostics-contract.sh
+
+  home-server-live-detail:
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require trusted Home Server runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$(hostname)" == "home-server" ]] || { echo "unexpected runner: $(hostname)"; exit 1; }
+      - name: Probe dynamic production vehicle detail response
+        shell: bash
+        run: bash scripts/probe-autolex-live-detail-response.sh
