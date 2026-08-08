@@ -46,9 +46,9 @@ jobs:
           jq -e '.cpanelresult.event.result == 1' "$tmp" >/dev/null
           abs="$(jq -r '.cpanelresult.data[0].absdir // empty' "$tmp")"
           test -n "$abs"
+          echo "ABS_DIR_RESULT: ${abs}"
           case "$abs" in
             /*/wp-content/plugins) ;;
             *) echo "ABS_DIR_FAIL: unexpected suffix" >&2; exit 1 ;;
           esac
-          echo "ABS_DIR_RESULT: ${abs}"
           echo 'ABS_DIR_DIAGNOSTICS_OK'
