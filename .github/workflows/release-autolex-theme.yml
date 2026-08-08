@@ -15,6 +15,7 @@ on:
     paths:
       - '.github/workflows/release-autolex-theme.yml'
       - 'tests/theme-release-contract.sh'
+      - 'tests/theme-release-filesystem-smoke.php'
       - 'scripts/prove-autolex-theme-release.sh'
       - 'scripts/release-autolex-theme.sh'
       - 'release/**'
@@ -60,6 +61,8 @@ jobs:
       - name: Validate release proof contracts
         run: |
           bash tests/theme-release-contract.sh
+          php tests/theme-release-filesystem-smoke.php
+          php -l release/autolex-theme-release-filesystem.php
           php -l release/autolex-theme-release-gate.php
           bash -n scripts/prove-autolex-theme-release.sh
           bash -n scripts/release-autolex-theme.sh
@@ -77,6 +80,8 @@ jobs:
           echo 'AUTOLEX_BASE_URL=http://127.0.0.1:8888' >> "$GITHUB_ENV"
 
           mkdir -p release-build/autolex-theme-release-gate release-evidence
+          cp release/autolex-theme-release-filesystem.php \
+            release-build/autolex-theme-release-gate/autolex-theme-release-filesystem.php
           python3 - <<'PY'
           import os
           from pathlib import Path
@@ -136,6 +141,9 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
@@ -172,24 +180,41 @@ jobs:
           CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
         run: |
           bash tests/theme-release-contract.sh
+          php tests/theme-release-filesystem-smoke.php
           find theme/autolex-theme release -type f -name '*.php' -print0 | xargs -0 -n1 php -l
           bash scripts/release-autolex-theme.sh validate
-      - name: Deploy, activate and run immediate live QA
+      - name: Deploy, atomically activate and run immediate live QA
         id: deploy
         env:
           CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
           CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
           CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
         run: bash scripts/release-autolex-theme.sh release
-      - name: Rollback after failed production activation
+      - name: Emergency rollback check after failed production release
         if: failure() && steps.deploy.outcome == 'failure'
         run: |
+          set -euo pipefail
           mkdir -p release-evidence
-          curl --silent --show-error --fail --retry 5 --retry-all-errors --request POST \
+          state_file='release-evidence/failure-state.json'
+          curl --silent --show-error --fail --retry 5 --retry-all-errors \
             --header "X-Autolex-Release-Token: ${AUTOLEX_THEME_RELEASE_TOKEN}" \
-            "${AUTOLEX_BASE_URL%/}/wp-json/autolex-release/v1/rollback" \
-            | tee release-evidence/rollback.json
-          jq -e '.status == "rolled_back" and .after.stylesheet != "autolex-theme"' release-evidence/rollback.json
+            "${AUTOLEX_BASE_URL%/}/wp-json/autolex-release/v1/theme-state" \
+            | tee "$state_file"
+
+          if jq -e --arg sha "$GITHUB_SHA" \
+              '.state.release == $sha and .state.rollback.available == true' \
+              "$state_file" >/dev/null; then
+            curl --silent --show-error --fail --retry 5 --retry-all-errors --request POST \
+              --header "X-Autolex-Release-Token: ${AUTOLEX_THEME_RELEASE_TOKEN}" \
+              "${AUTOLEX_BASE_URL%/}/wp-json/autolex-release/v1/rollback" \
+              | tee release-evidence/workflow-emergency-rollback.json
+            jq -e --arg sha "$GITHUB_SHA" \
+              '.status == "rolled_back" and .after.release != $sha' \
+              release-evidence/workflow-emergency-rollback.json >/dev/null
+          else
+            printf '{"status":"no_active_failed_release_to_rollback","sha":"%s"}\n' "$GITHUB_SHA" \
+              > release-evidence/workflow-emergency-rollback.json
+          fi
       - name: Upload SHA-bound production evidence
         if: always()
         uses: actions/upload-artifact@v7
