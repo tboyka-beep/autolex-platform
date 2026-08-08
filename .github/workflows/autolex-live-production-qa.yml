@@ -9,8 +9,7 @@ on:
       - 'tests/safety-gate-smoke.php'
       - '.github/workflows/autolex-live-production-qa.yml'
       - '.github/workflows/autolex-live-home-server-qa.yml'
-      - 'plugin/autolex-platform/includes/class-autolex-comparison-page.php'
-      - 'plugin/autolex-platform/includes/class-autolex-safety-gate.php'
+      - 'plugin/autolex-platform/**'
   push:
     branches:
       - main
@@ -21,8 +20,7 @@ on:
       - 'tests/safety-gate-smoke.php'
       - '.github/workflows/autolex-live-production-qa.yml'
       - '.github/workflows/autolex-live-home-server-qa.yml'
-      - 'plugin/autolex-platform/includes/class-autolex-comparison-page.php'
-      - 'plugin/autolex-platform/includes/class-autolex-safety-gate.php'
+      - 'plugin/autolex-platform/**'
   workflow_dispatch:
     inputs:
       expected_version:

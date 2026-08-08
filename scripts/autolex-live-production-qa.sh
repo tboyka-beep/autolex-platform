@@ -113,6 +113,25 @@ report_indexing_state "$TMP_DIR/home.html" "$TMP_DIR/home.headers" "$EXPECTED_IN
 assert_html_any '/autok/' 'catalog' 'Járműkatalógus'
 assert_html_any '/osszehasonlitas/' 'compare' 'alx3-compare'
 
+# Exact vehicle-media production proof. The public catalogue HTML must expose
+# the verified mapping, and the deployed JS/CSS assets must carry the same
+# fail-closed implementation that passed PR browser regression.
+grep -Fqi 'AutolexVehicleMedia' "$TMP_DIR/catalog.html" || fail 'vehicle media localized config missing from live catalogue'
+grep -Fqi 'Opel_Corsa_F_IMG_5815' "$TMP_DIR/catalog.html" || fail 'verified Opel Corsa media mapping missing from live catalogue'
+
+media_js="$TMP_DIR/vehicle-media.js"
+media_js_headers="$TMP_DIR/vehicle-media-js.headers"
+fetch "${BASE_URL%/}/wp-content/plugins/autolex-platform/assets/js/autolex-vehicle-media.js" "$media_js" "$media_js_headers" >/dev/null
+for marker in 'setFailClosedVisibility' 'exactGenerationPrefix' 'alxMediaFailClosed'; do
+  grep -Fq "$marker" "$media_js" || fail "live vehicle-media JS missing contract marker: $marker"
+done
+
+media_css="$TMP_DIR/vehicle-media.css"
+media_css_headers="$TMP_DIR/vehicle-media-css.headers"
+fetch "${BASE_URL%/}/wp-content/plugins/autolex-platform/assets/css/autolex-vehicle-media.css" "$media_css" "$media_css_headers" >/dev/null
+grep -Fq '.alx-verified-vehicle-media' "$media_css" || fail 'live vehicle-media CSS contract missing'
+printf 'LIVE_QA_OK: vehicle-media exact mapping and fail-closed assets are live\n'
+
 # Prove official Safety Gate storage is healthy and sourced from an allowlisted
 # EU host. A zero/unsynchronised store is a launch blocker, not a cosmetic state.
 safety_body="$(fetch_json "${BASE_URL%/}/wp-json/autolex/v1/safety-gate-status" 'safety-gate-status')"
