@@ -1,5 +1,5 @@
 <?php
-/** ALX-046 fail-closed vehicle media identity contract. */
+/** ALX-046+ fail-closed vehicle media identity contract. */
 
 if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
@@ -37,10 +37,27 @@ if (!empty(Autolex_Vehicle_Media::resolve('Opel', 'Astra'))) {
     $fail('Unknown models must fail closed instead of receiving generic Opel media.');
 }
 if (!empty(Autolex_Vehicle_Media::resolve('Opel', 'Corsa', 'E'))) {
-    $fail('Known generation mismatch must fail closed.');
+    $fail('Known Corsa generation mismatch must fail closed.');
 }
 if (empty(Autolex_Vehicle_Media::resolve('Opel', 'Corsa', 'F'))) {
-    $fail('Exact generation match must resolve.');
+    $fail('Exact Corsa generation match must resolve.');
+}
+
+$qashqai = Autolex_Vehicle_Media::resolve('Nissan', 'Qashqai');
+if (empty($qashqai['image']) || false === strpos($qashqai['image'], 'Nissan_Qashqai_%28J12%29_IMG_4900')) {
+    $fail('Nissan Qashqai must resolve to verified J12 media.');
+}
+if (empty($qashqai['source']) || false === strpos($qashqai['source'], 'commons.wikimedia.org')) {
+    $fail('Qashqai verified media must carry a source page.');
+}
+if (empty(Autolex_Vehicle_Media::resolve('Nissan', 'Qashqai', 'J12'))) {
+    $fail('Exact Qashqai J12 generation match must resolve.');
+}
+if (!empty(Autolex_Vehicle_Media::resolve('Nissan', 'Qashqai', 'J11'))) {
+    $fail('Qashqai J11 must not receive J12 media.');
+}
+if (!empty(Autolex_Vehicle_Media::resolve('Nissan', 'Juke'))) {
+    $fail('Unknown Nissan models must fail closed instead of receiving Qashqai media.');
 }
 
 $script = file_get_contents(__DIR__ . '/../plugin/autolex-platform/assets/js/autolex-vehicle-media.js');
