@@ -70,11 +70,11 @@ done
 # Every plugin change must schedule the production journey after merge. This
 # prevents new public behavior from bypassing the broad live gate through a
 # narrow path filter.
-grep -Fq "- 'plugin/autolex-platform/**'" "$WORKFLOW" || {
+grep -Fq -- "- 'plugin/autolex-platform/**'" "$WORKFLOW" || {
   echo 'live production QA is not triggered by all plugin changes'
   exit 1
 }
-[[ "$(grep -Fc "- 'plugin/autolex-platform/**'" "$WORKFLOW")" -ge 2 ]] || {
+[[ "$(grep -Fc -- "- 'plugin/autolex-platform/**'" "$WORKFLOW")" -ge 2 ]] || {
   echo 'plugin-wide live QA trigger must cover pull_request and push'
   exit 1
 }
