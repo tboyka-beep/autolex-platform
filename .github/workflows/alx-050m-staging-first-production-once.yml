@@ -1,0 +1,85 @@
+name: ALX-050M Staging-First Plugin Production Once
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/release-autolex-plugin.sh'
+      - 'tests/plugin-release-contract.sh'
+      - '.github/workflows/alx-050m-staging-first-production-once.yml'
+      - 'theme/autolex-theme/ALX-050M-STAGING-FIRST-RELEASE'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/alx-050m-staging-first-production-once.yml'
+      - 'theme/autolex-theme/ALX-050M-STAGING-FIRST-RELEASE'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autolex-plugin-release-production
+  cancel-in-progress: false
+
+jobs:
+  validate-contract:
+    name: Validate staging-first plugin release contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate release helper
+        run: |
+          set -euo pipefail
+          bash tests/plugin-release-contract.sh
+          CPANEL_API_HOST=example.invalid \
+          CPANEL_API_USER=example \
+          CPANEL_API_TOKEN=example \
+          CPANEL_PLUGIN_DIR=public_html/wp-content/plugins/autolex-platform \
+          bash scripts/release-autolex-plugin.sh validate
+
+  production-release:
+    name: Staging-first plugin production release from home-server
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate-contract
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Enforce exact one-shot main commit boundary
+        run: |
+          set -euo pipefail
+          test "$(hostname)" = 'home-server'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff-tree --no-commit-id --name-only --diff-filter=A -r "$GITHUB_SHA" | grep -Fx '.github/workflows/alx-050m-staging-first-production-once.yml'
+          git diff-tree --no-commit-id --name-only --diff-filter=A -r "$GITHUB_SHA" | grep -Fx 'theme/autolex-theme/ALX-050M-STAGING-FIRST-RELEASE'
+          grep -Fq 'Candidate must be staged and proven before active plugin rename' theme/autolex-theme/ALX-050M-STAGING-FIRST-RELEASE
+
+      - name: Validate plugin and staging-first rollback contract on Home Server
+        run: |
+          set -euo pipefail
+          bash tests/plugin-release-contract.sh
+          find plugin/autolex-platform -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Stage, swap and verify plugin with explicit rollback
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_PLUGIN_DIR: ${{ secrets.CPANEL_PLUGIN_DIR }}
+          AUTOLEX_BASE_URL: https://autolex.hu
+          AUTOLEX_RELEASE_SHA: ${{ github.sha }}
+        run: bash scripts/release-autolex-plugin.sh release
+
+      - name: Full fail-closed live production proof
+        env:
+          AUTOLEX_EXPECTED_VERSION: '4.2.0'
+        run: |
+          set -euo pipefail
+          bash scripts/autolex-live-production-qa.sh
+          bash scripts/autolex-vehicle-media-live-qa.sh
+          bash scripts/autolex-public-presentation-live-qa.sh

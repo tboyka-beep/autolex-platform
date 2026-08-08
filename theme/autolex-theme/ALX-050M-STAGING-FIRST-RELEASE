@@ -1,0 +1,6 @@
+ALX-050M staging-first plugin production release
+Home Server runner only
+Exact merged main SHA required
+Candidate must be staged and proven before active plugin rename
+Explicit rollback required on activation or live proof failure
+Fail closed unless dynamic vehicle detail returns HTML + autolex-vehicle-detail + JSON-LD
