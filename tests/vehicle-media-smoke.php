@@ -47,9 +47,18 @@ $script = file_get_contents(__DIR__ . '/../plugin/autolex-platform/assets/js/aut
 if (!is_string($script) || false === strpos($script, 'alxVerifiedVehicleMedia')) {
     $fail('Client enhancer must mark verified vehicle media.');
 }
-foreach (array('extractIdentity', 'matchesMedia', 'identity.make !== make', 'exactGenerationPrefix') as $needle) {
+foreach (array(
+    'extractIdentity',
+    'matchesMedia',
+    'identity.make !== make',
+    'exactGenerationPrefix',
+    'syncFeaturedVehicle',
+    'syncComparisonPreview',
+    'alxMediaFailClosed',
+    'alxNamedMediaKey'
+) as $needle) {
     if (false === strpos($script, $needle)) {
-        $fail('Client enhancer must enforce structured make/model/generation identity: ' . $needle);
+        $fail('Client enhancer must enforce identity/fail-closed media rules: ' . $needle);
     }
 }
 if (false !== strpos($script, "findMatch(card.textContent")) {
@@ -60,6 +69,9 @@ if (false !== strpos($script, ".alx-hierarchy-plugin-output li") || false !== st
 }
 if (false === strpos($script, 'img[data-alx-vehicle-image="1"]')) {
     $fail('Existing images may only be replaced when explicitly marked as vehicle imagery.');
+}
+if (false === strpos($script, 'mediaBox.hidden = true') || false === strpos($script, 'photoRow.hidden = true')) {
+    $fail('Named homepage media must hide misleading stock imagery when no verified match exists.');
 }
 
 echo "vehicle-media-smoke: OK\n";
