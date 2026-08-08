@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 
 MODE="${1:-validate}"
 : "${CPANEL_API_HOST:=}"
@@ -98,31 +98,50 @@ if [[ "$MODE" == validate ]]; then
 fi
 [[ "$MODE" == release ]] || fail "unsupported mode: ${MODE}"
 
+# cPanel API 2 Fileman::fileop treats source paths as relative to the account's
+# /home directory, but rename destinations are names relative to the source
+# directory. Keep full paths for source/upload/extract operations and basenames
+# for rename destinations so a path can never be prefixed twice.
+CPANEL_PLUGIN_DIR="${CPANEL_PLUGIN_DIR%/}"
 plugins_dir="${CPANEL_PLUGIN_DIR%/autolex-platform}"
+plugin_name="${CPANEL_PLUGIN_DIR##*/}"
 release_token="$(printf '%s' "$AUTOLEX_RELEASE_SHA" | tr -cd 'A-Za-z0-9' | cut -c1-16)"
-backup_dir="${plugins_dir}autolex-platform.rollback-${release_token}"
-failed_dir="${plugins_dir}autolex-platform.failed-${release_token}"
+backup_name="${plugin_name}.rollback-${release_token}"
+failed_name="${plugin_name}.failed-${release_token}"
+backup_dir="${plugins_dir}/${backup_name}"
+failed_dir="${plugins_dir}/${failed_name}"
 zip_name="autolex-platform-${release_token}.zip"
 zip_path="$(pwd)/${zip_name}"
+remote_zip="${plugins_dir}/${zip_name}"
+
+case "$plugins_dir" in
+  */wp-content/plugins) ;;
+  *) fail 'derived plugin parent directory is unsafe' ;;
+esac
+[[ "$plugin_name" == autolex-platform ]] || fail 'derived plugin directory name is unsafe'
 
 rm -f "$zip_path"
 ( cd plugin && zip -rq "$zip_path" autolex-platform -x '*/.git/*' '*/node_modules/*' '*/vendor/*' '*/.DS_Store' )
 test -s "$zip_path" || fail 'release ZIP was not created'
 printf 'PLUGIN_RELEASE_INFO: zip_sha256=%s\n' "$(sha256sum "$zip_path" | awk '{print $1}')"
+printf 'PLUGIN_RELEASE_INFO: parent=%s active=%s backup=%s\n' "$plugins_dir" "$plugin_name" "$backup_name"
 
 upload_zip "$zip_path" "$plugins_dir"
-api2_fileop rename "$CPANEL_PLUGIN_DIR" "$backup_dir"
+api2_fileop rename "$CPANEL_PLUGIN_DIR" "$backup_name"
 rollback_needed=1
 rollback() {
   if [[ "${rollback_needed:-0}" == 1 ]]; then
-    api2_fileop rename "$CPANEL_PLUGIN_DIR" "$failed_dir" || true
-    api2_fileop rename "$backup_dir" "$CPANEL_PLUGIN_DIR" || true
+    api2_fileop rename "$CPANEL_PLUGIN_DIR" "$failed_name" || true
+    api2_fileop rename "$backup_dir" "$plugin_name" || true
     printf 'PLUGIN_RELEASE_ROLLBACK: restored previous plugin directory\n' >&2
   fi
 }
 trap rollback ERR
-api2_fileop extract "${plugins_dir}${zip_name}" "$plugins_dir" zip
+
+# Extract operates on the uploaded archive itself; cPanel's API does not use
+# destfiles for extract, so omission avoids another relative-path ambiguity.
+api2_fileop extract "$remote_zip"
 verify_live || fail 'post-activation live contract failed'
 rollback_needed=0
 trap - ERR
-printf 'PLUGIN_RELEASE_SUCCESS: sha=%s backup=%s\n' "$AUTOLEX_RELEASE_SHA" "$backup_dir"
+printf 'PLUGIN_RELEASE_SUCCESS: sha=%s backup=%s failed=%s\n' "$AUTOLEX_RELEASE_SHA" "$backup_dir" "$failed_dir"
