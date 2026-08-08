@@ -67,17 +67,19 @@ for marker in "${required[@]}"; do
   }
 done
 
-# Every plugin change must schedule the production journey after merge. This
-# prevents new public behavior from bypassing the broad live gate through a
-# narrow path filter.
-grep -Fq -- "- 'plugin/autolex-platform/**'" "$WORKFLOW" || {
-  echo 'live production QA is not triggered by all plugin changes'
-  exit 1
-}
-[[ "$(grep -Fc -- "- 'plugin/autolex-platform/**'" "$WORKFLOW")" -ge 2 ]] || {
-  echo 'plugin-wide live QA trigger must cover pull_request and push'
-  exit 1
-}
+# Every plugin OR theme change must schedule the production journey after
+# merge. Public behavior must not bypass the broad live gate through a narrow
+# path filter.
+for path_marker in "- 'plugin/autolex-platform/**'" "- 'theme/autolex-theme/**'"; do
+  grep -Fq -- "$path_marker" "$WORKFLOW" || {
+    echo "live production QA trigger missing: $path_marker"
+    exit 1
+  }
+  [[ "$(grep -Fc -- "$path_marker" "$WORKFLOW")" -ge 2 ]] || {
+    echo "live QA trigger must cover pull_request and push: $path_marker"
+    exit 1
+  }
+done
 
 recovery_required=(
   'SAFETY_RECOVERY_FAIL'

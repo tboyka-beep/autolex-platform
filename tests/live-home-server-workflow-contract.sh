@@ -8,6 +8,7 @@ required=(
   'runs-on: [self-hosted, Linux, X64]'
   'test "$(hostname)" = "home-server"'
   "- 'plugin/autolex-platform/**'"
+  "- 'theme/autolex-theme/**'"
   'bash tests/live-production-qa-smoke.sh'
   'bash scripts/recover-autolex-safety-gate.sh'
   'bash scripts/autolex-live-production-qa.sh'

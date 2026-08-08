@@ -35,7 +35,22 @@ grep -Fq 'aria-labelledby="alx-vehicle-directory-title"' "$TEMPLATE"
 grep -Fq 'id="alx-vehicle-data"' "$TEMPLATE"
 grep -Fq 'aria-live="polite"' "$TEMPLATE"
 grep -Fq 'alx-vehicle-plugin-output' "$TEMPLATE"
-grep -Fq 'the_content()' "$TEMPLATE"
+grep -Fq "apply_filters('the_content', (string) get_the_content())" "$TEMPLATE"
+grep -Fq 'echo $content' "$TEMPLATE"
+grep -Fq 'Dynamic /auto-adatlap/ content is supplied by plugin filters' "$TEMPLATE"
+
+# The template must decide empty/non-empty state from the already filtered
+# server-side content. Calling the_content() only after a raw get_the_content()
+# check reintroduces the production bug where dynamic vehicle facts disappear.
+if grep -Fq '<?php the_content(); ?>' "$TEMPLATE"; then
+  echo 'vehicle detail template must not defer the_content filtering until after the raw-content empty check'
+  exit 1
+fi
+if grep -Eq '\$content[[:space:]]*=[[:space:]]*trim\(\(string\)[[:space:]]*get_the_content\(\)\)' "$TEMPLATE"; then
+  echo 'vehicle detail empty-state must not be decided from unfiltered raw post content'
+  exit 1
+fi
+
 grep -Fq 'nem jelenít meg becsült vagy kitalált értékeket' "$TEMPLATE"
 grep -Fq "home_url('/visszahivasok/')" "$TEMPLATE"
 grep -Fq "home_url('/forrasok/')" "$TEMPLATE"
@@ -53,4 +68,4 @@ if grep -n -E '\.ct-|!important|prefers-color-scheme:[[:space:]]*dark' "$TEMPLAT
   exit 1
 fi
 
-echo 'Autolex vehicle detail information architecture contract passed.'
+echo 'Autolex vehicle detail information architecture and filtered-content contract passed.'
