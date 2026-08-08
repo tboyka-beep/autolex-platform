@@ -1,0 +1,5 @@
+ALX-050I corrected transactional plugin production release
+Home Server runner only
+Exact merged main SHA required
+Rollback snapshot required
+Fail closed on any production verification failure
