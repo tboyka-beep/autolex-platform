@@ -1,5 +1,5 @@
 <?php
-/** ALX-050E route-independent server factual-summary fallback contract. */
+/** ALX-050E/T route-independent factual-summary fallback contract. */
 
 if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
@@ -19,12 +19,12 @@ $summary = '<section ' . $marker . ' data-autolex-public-facts-fallback="true">R
 $html = '<!doctype html><html><body><main><article>vehicle</article></main></body></html>';
 $injected = Autolex_Vehicle_Fact_Fallback::inject_summary_html($html, $summary);
 if (substr_count($injected, $marker) !== 1) {
-    $fail('Fallback must inject the factual summary exactly once.');
+    $fail('Fallback helper must inject the factual summary exactly once when called explicitly.');
 }
 $summary_pos = strpos($injected, $marker);
 $main_close_pos = stripos($injected, '</main>');
 if ($summary_pos === false || $main_close_pos === false || $summary_pos > $main_close_pos) {
-    $fail('Fallback factual summary must be inserted before </main>.');
+    $fail('Fallback helper factual summary must be inserted before </main>.');
 }
 
 $already = '<html><body><main><section ' . $marker . '>primary renderer</section></main></body></html>';
@@ -42,7 +42,7 @@ if (Autolex_Vehicle_Fact_Fallback::inject_summary_html($html, '<section>missing 
 $body_only = '<!doctype html><html><body><article>vehicle</article></body></html>';
 $body_injected = Autolex_Vehicle_Fact_Fallback::inject_summary_html($body_only, $summary);
 if (substr_count($body_injected, $marker) !== 1 || strpos($body_injected, $marker) > stripos($body_injected, '</body>')) {
-    $fail('Fallback must use </body> only when </main> is unavailable.');
+    $fail('Fallback helper must use </body> only when </main> is unavailable.');
 }
 
 $malformed = '<div>partial response without document close anchors</div>';
@@ -65,21 +65,45 @@ foreach (array(
     'Hiányzó adatot az Autolex nem becsül és nem talál ki.',
 ) as $needle) {
     if (false === strpos($source, $needle)) {
-        $fail('Fallback contract marker missing: ' . $needle);
+        $fail('Fallback helper contract marker missing: ' . $needle);
     }
 }
 
 if (substr_count($source, 'data-autolex-public-facts="true"') < 2) {
-    $fail('Fallback must both detect and emit the duplicate-prevention marker.');
+    $fail('Fallback helper must both detect and emit the duplicate-prevention marker.');
+}
+
+$presentation = file_get_contents(__DIR__ . '/../plugin/autolex-platform/includes/class-autolex-public-presentation.php');
+foreach (array(
+    "add_filter('the_content', array(\$this, 'prepend_vehicle_fact_summary'), 75)",
+    'data-autolex-public-facts="true"',
+) as $needle) {
+    if (!is_string($presentation) || false === strpos($presentation, $needle)) {
+        $fail('Primary the_content factual renderer missing: ' . $needle);
+    }
 }
 
 $loader = file_get_contents(__DIR__ . '/../plugin/autolex-platform/autolex-platform.php');
 foreach (array(
     "includes/class-autolex-vehicle-fact-fallback.php",
-    'Autolex_Vehicle_Fact_Fallback::instance()',
+    '$vehicle_fact_fallback = Autolex_Vehicle_Fact_Fallback::instance();',
+    "remove_action('template_redirect', array(\$vehicle_fact_fallback, 'start_buffer'), 2);",
 ) as $needle) {
     if (!is_string($loader) || false === strpos($loader, $needle)) {
-        $fail('Plugin bootstrap missing factual fallback integration: ' . $needle);
+        $fail('Plugin bootstrap missing ALX-050T fallback-buffer safety contract: ' . $needle);
+    }
+}
+if (is_string($loader) && false !== strpos($loader, "add_action('template_redirect', array(\$vehicle_fact_fallback, 'start_buffer')")) {
+    $fail('Plugin bootstrap must not re-register the factual fallback whole-page output buffer.');
+}
+
+// Both known response-wide buffers must be explicitly disabled at plugin bootstrap.
+foreach (array(
+    "remove_action('template_redirect', array(\$public_presentation, 'start_html_localizer'), 1);",
+    "remove_action('template_redirect', array(\$vehicle_fact_fallback, 'start_buffer'), 2);",
+) as $needle) {
+    if (!is_string($loader) || false === strpos($loader, $needle)) {
+        $fail('Whole-page buffer disable marker missing: ' . $needle);
     }
 }
 

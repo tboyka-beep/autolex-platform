@@ -66,7 +66,13 @@ function autolex_platform()
     $public_presentation = Autolex_Public_Presentation::instance();
     remove_action('template_redirect', array($public_presentation, 'start_html_localizer'), 1);
 
-    Autolex_Vehicle_Fact_Fallback::instance();
+    // ALX-050T: the route-independent factual fallback used the same whole-page
+    // output-buffer pattern on /auto-adatlap/ requests. The primary factual
+    // summary is already provided through the normal `the_content` filter, so
+    // keep the helper available but disable its response-wide buffer as well.
+    $vehicle_fact_fallback = Autolex_Vehicle_Fact_Fallback::instance();
+    remove_action('template_redirect', array($vehicle_fact_fallback, 'start_buffer'), 2);
+
     Autolex_Portal::instance();
     Autolex_Comparison_Page::instance();
     Autolex_Operations_Center::instance();
