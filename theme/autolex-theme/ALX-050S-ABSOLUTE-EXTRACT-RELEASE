@@ -1,0 +1,7 @@
+ALX-050S server-resolved absolute-extract staging-first production release
+Home Server runner only
+Exact merged main SHA required
+Candidate extract source and destination must come from cPanel Fileman getdir-resolved public_html path
+Candidate staging tree must be proven before active plugin rename
+Explicit rollback required on activation or live proof failure
+Fail closed unless dynamic vehicle detail returns HTML + autolex-vehicle-detail + JSON-LD
