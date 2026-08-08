@@ -36,6 +36,7 @@ jobs:
           php -l plugin/autolex-platform/includes/class-autolex-comparison-page.php
           php -l plugin/autolex-platform/includes/class-autolex-vehicle-relations.php
           php -l plugin/autolex-platform/includes/class-autolex-vehicle-seo.php
+          php -l plugin/autolex-platform/includes/class-autolex-vehicle-media.php
           php -l plugin/autolex-platform/includes/class-autolex-theme-data-bridge.php
           php -l tests/catalog-filter-smoke.php
           php -l tests/portal-design-smoke.php
@@ -44,6 +45,7 @@ jobs:
           php -l tests/vehicle-detail-smoke.php
           php -l tests/vehicle-relations-smoke.php
           php -l tests/vehicle-seo-smoke.php
+          php -l tests/vehicle-media-smoke.php
           php -l tests/visual-layer-smoke.php
           php -l tests/safety-gate-live-smoke.php
           php -l tests/safety-gate-inbox-smoke.php
@@ -54,6 +56,7 @@ jobs:
           node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
           node --check plugin/autolex-platform/assets/js/autolex-maintenance-evidence.js
           node --check plugin/autolex-platform/assets/js/autolex-vehicle-relations.js
+          node --check plugin/autolex-platform/assets/js/autolex-vehicle-media.js
 
       - name: Test data quality and free-source policy
         run: php tests/portal-smoke.php
@@ -63,6 +66,9 @@ jobs:
 
       - name: Test catalogue filter contracts
         run: php tests/catalog-filter-smoke.php
+
+      - name: Test verified vehicle media identity contract
+        run: php tests/vehicle-media-smoke.php
 
       - name: Test complete portal design contract
         run: php tests/portal-design-smoke.php
