@@ -108,10 +108,10 @@ foreach (array('class-autolex-public-presentation.php', 'Autolex_Public_Presenta
         $fail('Plugin bootstrap missing public presentation integration: ' . $needle);
     }
 }
-if (!is_string($loader) || false === strpos($loader, "remove_action('template_redirect', array($public_presentation, 'start_html_localizer'), 1);")) {
+if (!is_string($loader) || false === strpos($loader, "remove_action('template_redirect', array(\$public_presentation, 'start_html_localizer'), 1);")) {
     $fail('ALX-050G must disable the global public HTML output-buffer hook after presentation bootstrap.');
 }
-if (is_string($loader) && false !== strpos($loader, "add_action('template_redirect', array($public_presentation, 'start_html_localizer')")) {
+if (is_string($loader) && false !== strpos($loader, "add_action('template_redirect', array(\$public_presentation, 'start_html_localizer')")) {
     $fail('Plugin bootstrap must not re-register the global public HTML output buffer.');
 }
 
