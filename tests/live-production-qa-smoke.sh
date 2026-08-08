@@ -3,14 +3,18 @@ set -euo pipefail
 
 SCRIPT='scripts/autolex-live-production-qa.sh'
 RECOVERY='scripts/recover-autolex-safety-gate.sh'
+WORKFLOW='.github/workflows/autolex-live-production-qa.yml'
 ROUTE='plugin/autolex-platform/includes/class-autolex-comparison-page.php'
 PORTAL='plugin/autolex-platform/includes/class-autolex-portal.php'
 QUERY='plugin/autolex-platform/includes/trait-autolex-portal-query.php'
 MAINTENANCE='plugin/autolex-platform/includes/class-autolex-maintenance-evidence.php'
 SAFETY='plugin/autolex-platform/includes/class-autolex-safety-gate.php'
 SEO='plugin/autolex-platform/includes/class-autolex-vehicle-seo.php'
+MEDIA_CLASS='plugin/autolex-platform/includes/class-autolex-vehicle-media.php'
+MEDIA_JS='plugin/autolex-platform/assets/js/autolex-vehicle-media.js'
+MEDIA_CSS='plugin/autolex-platform/assets/css/autolex-vehicle-media.css'
 
-for file in "$SCRIPT" "$RECOVERY" "$ROUTE" "$PORTAL" "$QUERY" "$MAINTENANCE" "$SAFETY" "$SEO"; do
+for file in "$SCRIPT" "$RECOVERY" "$WORKFLOW" "$ROUTE" "$PORTAL" "$QUERY" "$MAINTENANCE" "$SAFETY" "$SEO" "$MEDIA_CLASS" "$MEDIA_JS" "$MEDIA_CSS"; do
   [[ -f "$file" ]] || { echo "missing launch QA dependency: $file"; exit 1; }
 done
 
@@ -32,6 +36,13 @@ required=(
   'Járműkatalógus'
   '/osszehasonlitas/'
   'alx3-compare'
+  'AutolexVehicleMedia'
+  'Opel_Corsa_F_IMG_5815'
+  '/wp-content/plugins/autolex-platform/assets/js/autolex-vehicle-media.js'
+  '/wp-content/plugins/autolex-platform/assets/css/autolex-vehicle-media.css'
+  'setFailClosedVisibility'
+  'exactGenerationPrefix'
+  'LIVE_QA_OK: vehicle-media exact mapping and fail-closed assets are live'
   '/wp-json/autolex/v1/safety-gate-status'
   'official_eu_xml_fail_closed'
   '/wp-json/autolex/v1/portal/vehicles?limit=1&sort=data_desc'
@@ -56,6 +67,18 @@ for marker in "${required[@]}"; do
   }
 done
 
+# Every plugin change must schedule the production journey after merge. This
+# prevents new public behavior from bypassing the broad live gate through a
+# narrow path filter.
+grep -Fq "- 'plugin/autolex-platform/**'" "$WORKFLOW" || {
+  echo 'live production QA is not triggered by all plugin changes'
+  exit 1
+}
+[[ "$(grep -Fc "- 'plugin/autolex-platform/**'" "$WORKFLOW")" -ge 2 ]] || {
+  echo 'plugin-wide live QA trigger must cover pull_request and push'
+  exit 1
+}
+
 recovery_required=(
   'SAFETY_RECOVERY_FAIL'
   'SAFETY_RECOVERY_OK'
@@ -75,7 +98,8 @@ for marker in "${recovery_required[@]}"; do
 done
 
 # Retired/staging-only assumptions and hard-coded showcase vehicles must not
-# silently return to production monitoring.
+# silently return to production monitoring. The Corsa string above is only a
+# deployed media-contract marker, never the dynamic live vehicle sample.
 for stale in \
   "assert_html '/autok/' 'Autók'" \
   "assert_html_any '/jarmu/'" \
@@ -141,6 +165,24 @@ grep -Fq "~/auto-adatlap/(\\d+)" "$SEO" || {
   exit 1
 }
 
+# Vehicle media remains fail-closed in both server mapping and browser logic.
+for marker in "'opel|corsa'" "'generation' => 'F'" 'Opel_Corsa_F_IMG_5815'; do
+  grep -Fq -- "$marker" "$MEDIA_CLASS" || {
+    echo "missing verified vehicle media mapping marker: $marker"
+    exit 1
+  }
+done
+for marker in 'setFailClosedVisibility' 'exactGenerationPrefix' 'alxMediaFailClosed'; do
+  grep -Fq -- "$marker" "$MEDIA_JS" || {
+    echo "missing fail-closed vehicle media JS marker: $marker"
+    exit 1
+  }
+done
+grep -Fq '.alx-verified-vehicle-media' "$MEDIA_CSS" || {
+  echo 'vehicle media CSS contract is missing'
+  exit 1
+}
+
 bash -n "$SCRIPT"
 bash -n "$RECOVERY"
 php -l "$ROUTE" >/dev/null
@@ -148,5 +190,6 @@ php -l "$PORTAL" >/dev/null
 php -l "$MAINTENANCE" >/dev/null
 php -l "$SAFETY" >/dev/null
 php -l "$SEO" >/dev/null
+php -l "$MEDIA_CLASS" >/dev/null
 
-echo 'Autolex production launch dynamic live QA and Safety Gate recovery contract passed.'
+echo 'Autolex production launch dynamic live QA, vehicle media and Safety Gate recovery contract passed.'
