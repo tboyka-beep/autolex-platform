@@ -47,8 +47,19 @@ $script = file_get_contents(__DIR__ . '/../plugin/autolex-platform/assets/js/aut
 if (!is_string($script) || false === strpos($script, 'alxVerifiedVehicleMedia')) {
     $fail('Client enhancer must mark verified vehicle media.');
 }
-if (false === strpos($script, 'media.make') || false === strpos($script, 'media.model')) {
-    $fail('Client enhancer must require both make and model identity.');
+foreach (array('extractIdentity', 'matchesMedia', 'identity.make !== make', 'exactGenerationPrefix') as $needle) {
+    if (false === strpos($script, $needle)) {
+        $fail('Client enhancer must enforce structured make/model/generation identity: ' . $needle);
+    }
+}
+if (false !== strpos($script, "findMatch(card.textContent")) {
+    $fail('Whole-card free-text matching is forbidden.');
+}
+if (false !== strpos($script, ".alx-hierarchy-plugin-output li") || false !== strpos($script, ".alx-hierarchy-plugin-output a")) {
+    $fail('Unstructured hierarchy nodes must not receive guessed media.');
+}
+if (false === strpos($script, 'img[data-alx-vehicle-image="1"]')) {
+    $fail('Existing images may only be replaced when explicitly marked as vehicle imagery.');
 }
 
 echo "vehicle-media-smoke: OK\n";
