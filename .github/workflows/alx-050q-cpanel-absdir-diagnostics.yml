@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
-      - name: Read-only Fileman getabsdir proof
+      - name: Read-only Fileman getdir proof
         env:
           CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
           CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
@@ -28,8 +28,13 @@ jobs:
           for name in CPANEL_API_HOST CPANEL_API_USER CPANEL_API_TOKEN CPANEL_PLUGIN_DIR; do
             test -n "${!name:-}" || { echo "missing ${name}" >&2; exit 1; }
           done
+          command -v php >/dev/null
           plugin_dir="${CPANEL_PLUGIN_DIR%/}"
-          plugins_dir="${plugin_dir%/autolex-platform}"
+          plugins_rel="${plugin_dir%/autolex-platform}"
+          case "$plugins_rel" in
+            public_html/wp-content/plugins) ;;
+            *) echo 'ABS_DIR_FAIL: configured plugin path is not below public_html/wp-content/plugins' >&2; exit 1 ;;
+          esac
           tmp="$(mktemp)"
           trap 'rm -f "$tmp"' EXIT
           code="$(curl --silent --show-error --location --connect-timeout 15 --max-time 60 \
@@ -38,17 +43,23 @@ jobs:
             --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
             --data-urlencode 'cpanel_jsonapi_apiversion=2' \
             --data-urlencode 'cpanel_jsonapi_module=Fileman' \
-            --data-urlencode 'cpanel_jsonapi_func=getabsdir' \
-            --data-urlencode "absdir=${plugins_dir}" \
+            --data-urlencode 'cpanel_jsonapi_func=getdir' \
+            --data-urlencode 'dir=public_html' \
             "https://${CPANEL_API_HOST}:2083/json-api/cpanel")"
-          echo "ABS_DIR_HTTP: ${code}"
+          echo "HOME_DIR_HTTP: ${code}"
           test "$code" = 200
           jq -e '.cpanelresult.event.result == 1' "$tmp" >/dev/null
-          abs="$(jq -r '.cpanelresult.data[0].absdir // empty' "$tmp")"
-          test -n "$abs"
-          echo "ABS_DIR_RESULT: ${abs}"
-          case "$abs" in
-            /*/wp-content/plugins) ;;
-            *) echo "ABS_DIR_FAIL: unexpected suffix" >&2; exit 1 ;;
+          encoded="$(jq -r '.cpanelresult.data[0].dir // empty' "$tmp")"
+          test -n "$encoded"
+          public_html_abs="$(php -r 'echo urldecode($argv[1]);' "$encoded")"
+          case "$public_html_abs" in
+            /home/*/public_html) ;;
+            *) echo 'ABS_DIR_FAIL: unexpected decoded public_html path' >&2; exit 1 ;;
+          esac
+          plugins_abs="${public_html_abs}/wp-content/plugins"
+          echo "ABS_DIR_RESULT: ${plugins_abs}"
+          case "$plugins_abs" in
+            /home/*/public_html/wp-content/plugins) ;;
+            *) echo 'ABS_DIR_FAIL: unexpected plugins path' >&2; exit 1 ;;
           esac
           echo 'ABS_DIR_DIAGNOSTICS_OK'
