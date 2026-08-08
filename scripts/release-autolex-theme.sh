@@ -43,7 +43,9 @@ PY
 api_base="https://${CPANEL_API_HOST}:2083"
 auth_header="Authorization: cpanel ${CPANEL_API_USER}:${CPANEL_API_TOKEN}"
 theme_root="$(dirname "$CPANEL_THEME_DIR")"
-stage_dir="${theme_root}/.autolex-release/${GITHUB_SHA}/autolex-theme"
+stage_base="${theme_root}/.autolex-release"
+stage_release_root="${stage_base}/${GITHUB_SHA}"
+stage_dir="${stage_release_root}/autolex-theme"
 
 assert_no_challenge() {
   local body="$1" label="$2"
@@ -58,18 +60,14 @@ mkdir_remote() {
   local full="$1" parent name body
   parent="$(dirname "$full")"; name="$(basename "$full")"
   body="$(mktemp)"
-  if ! curl --silent --show-error --fail-with-body --get --retry 4 --retry-all-errors \
-      --header "$auth_header" \
-      --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
-      --data-urlencode 'cpanel_jsonapi_apiversion=2' \
-      --data-urlencode 'cpanel_jsonapi_module=Fileman' \
-      --data-urlencode 'cpanel_jsonapi_func=mkdir' \
-      --data-urlencode "path=${parent}" --data-urlencode "name=${name}" \
-      --data-urlencode 'permissions=0755' "${api_base}/json-api/cpanel" >"$body"; then
-    # Existing directories may make mkdir non-zero at the API level; transport
-    # failures remain fatal and are handled by curl above.
-    true
-  fi
+  curl --silent --show-error --fail-with-body --get --retry 4 --retry-all-errors \
+    --header "$auth_header" \
+    --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
+    --data-urlencode 'cpanel_jsonapi_apiversion=2' \
+    --data-urlencode 'cpanel_jsonapi_module=Fileman' \
+    --data-urlencode 'cpanel_jsonapi_func=mkdir' \
+    --data-urlencode "path=${parent}" --data-urlencode "name=${name}" \
+    --data-urlencode 'permissions=0755' "${api_base}/json-api/cpanel" >"$body"
   assert_no_challenge "$body" "mkdir ${full}"
   rm -f "$body"
 }
@@ -109,6 +107,8 @@ PY
 # Gate/helper first: the currently active theme is untouched until the full new
 # tree exists under a SHA-bound hidden staging directory.
 upload_tree release-build/gate "$CPANEL_MU_PLUGIN_DIR"
+mkdir_remote "$stage_base"
+mkdir_remote "$stage_release_root"
 upload_tree release-build/theme "$stage_dir"
 
 base="${AUTOLEX_BASE_URL%/}"
