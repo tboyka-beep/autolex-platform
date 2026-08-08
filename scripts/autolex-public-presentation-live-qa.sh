@@ -92,7 +92,11 @@ fetch "$detail_url" "$detail"
 
 grep -Fq 'autolex-public-presentation.js' "$catalog" || fail 'public terminology JS is not enqueued on live catalogue'
 grep -Fq 'autolex-public-presentation.css' "$detail" || fail 'public factual-content stylesheet is not live on vehicle detail'
-grep -Fq 'data-autolex-public-facts="true"' "$detail" || fail 'source-backed factual vehicle summary is missing from live detail page'
+grep -Fq 'data-autolex-public-facts="true"' "$detail" || fail 'record-backed factual vehicle summary is missing from live detail page'
+grep -Fq 'RÖGZÍTETT KATALÓGUSADATOK' "$detail" || fail 'vehicle summary must identify values as recorded catalogue data'
+if grep -Fq 'ELLENŐRZÖTT KATALÓGUSADATOK' "$detail"; then
+  fail 'vehicle summary overstates all catalogue values as independently verified'
+fi
 grep -Fq 'Röviden erről a változatról' "$detail" || fail 'Hungarian factual vehicle summary heading is missing'
 
 python3 - "$catalog" "$detail" <<'PY'
@@ -126,4 +130,4 @@ for path in sys.argv[1:]:
         raise SystemExit(f'PUBLIC_PRESENTATION_LIVE_FAIL: untranslated visible terms in {path}: {parser.bad}')
 PY
 
-printf 'PUBLIC_PRESENTATION_LIVE_OK: Hungarian fuel facets, REST output and source-backed vehicle summary are live\n'
+printf 'PUBLIC_PRESENTATION_LIVE_OK: Hungarian fuel facets, REST output and record-backed factual vehicle summary are live\n'
