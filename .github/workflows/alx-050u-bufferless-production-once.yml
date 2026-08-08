@@ -1,0 +1,91 @@
+name: ALX-050U Bufferless Vehicle Detail Production Once
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'plugin/autolex-platform/**'
+      - 'scripts/release-autolex-plugin.sh'
+      - 'tests/plugin-release-contract.sh'
+      - 'tests/vehicle-fact-fallback-smoke.php'
+      - '.github/workflows/alx-050u-bufferless-production-once.yml'
+      - 'theme/autolex-theme/ALX-050U-BUFFERLESS-RELEASE'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/alx-050u-bufferless-production-once.yml'
+      - 'theme/autolex-theme/ALX-050U-BUFFERLESS-RELEASE'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autolex-plugin-release-production
+  cancel-in-progress: false
+
+jobs:
+  validate-contract:
+    name: Validate bufferless vehicle-detail production contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate buffer and release contracts
+        run: |
+          set -euo pipefail
+          php tests/vehicle-fact-fallback-smoke.php
+          bash tests/plugin-release-contract.sh
+          grep -Fq "remove_action('template_redirect', array(\$public_presentation, 'start_html_localizer'), 1);" plugin/autolex-platform/autolex-platform.php
+          grep -Fq "remove_action('template_redirect', array(\$vehicle_fact_fallback, 'start_buffer'), 2);" plugin/autolex-platform/autolex-platform.php
+          CPANEL_API_HOST=example.invalid \
+          CPANEL_API_USER=example \
+          CPANEL_API_TOKEN=example \
+          CPANEL_PLUGIN_DIR=public_html/wp-content/plugins/autolex-platform \
+          bash scripts/release-autolex-plugin.sh validate
+
+  production-release:
+    name: Bufferless vehicle-detail release from home-server
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate-contract
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Enforce exact one-shot main commit boundary
+        run: |
+          set -euo pipefail
+          test "$(hostname)" = 'home-server'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff-tree --no-commit-id --name-only --diff-filter=A -r "$GITHUB_SHA" | grep -Fx '.github/workflows/alx-050u-bufferless-production-once.yml'
+          git diff-tree --no-commit-id --name-only --diff-filter=A -r "$GITHUB_SHA" | grep -Fx 'theme/autolex-theme/ALX-050U-BUFFERLESS-RELEASE'
+          grep -Fq 'Both known whole-page vehicle-detail buffers must be disabled' theme/autolex-theme/ALX-050U-BUFFERLESS-RELEASE
+
+      - name: Validate plugin, buffer and rollback contracts on Home Server
+        run: |
+          set -euo pipefail
+          php tests/vehicle-fact-fallback-smoke.php
+          bash tests/plugin-release-contract.sh
+          find plugin/autolex-platform -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Stage, activate and verify bufferless plugin with rollback
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_PLUGIN_DIR: ${{ secrets.CPANEL_PLUGIN_DIR }}
+          AUTOLEX_BASE_URL: https://autolex.hu
+          AUTOLEX_RELEASE_SHA: ${{ github.sha }}
+        run: bash scripts/release-autolex-plugin.sh release
+
+      - name: Full fail-closed live production proof
+        env:
+          AUTOLEX_EXPECTED_VERSION: '4.2.0'
+        run: |
+          set -euo pipefail
+          bash scripts/autolex-live-production-qa.sh
+          bash scripts/autolex-vehicle-media-live-qa.sh
+          bash scripts/autolex-public-presentation-live-qa.sh
