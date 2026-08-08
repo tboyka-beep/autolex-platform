@@ -99,17 +99,29 @@ final class Autolex_Vehicle_Media
             return;
         }
 
-        $relative = 'assets/js/autolex-vehicle-media.js';
-        $absolute = AUTOLEX_PLATFORM_DIR . $relative;
-        if (!is_readable($absolute)) {
+        $script_relative = 'assets/js/autolex-vehicle-media.js';
+        $script_absolute = AUTOLEX_PLATFORM_DIR . $script_relative;
+        $style_relative = 'assets/css/autolex-vehicle-media.css';
+        $style_absolute = AUTOLEX_PLATFORM_DIR . $style_relative;
+
+        if (is_readable($style_absolute)) {
+            wp_enqueue_style(
+                'autolex-vehicle-media',
+                plugins_url($style_relative, AUTOLEX_PLATFORM_FILE),
+                array(),
+                (string) filemtime($style_absolute)
+            );
+        }
+
+        if (!is_readable($script_absolute)) {
             return;
         }
 
         wp_enqueue_script(
             'autolex-vehicle-media',
-            plugins_url($relative, AUTOLEX_PLATFORM_FILE),
+            plugins_url($script_relative, AUTOLEX_PLATFORM_FILE),
             array(),
-            (string) filemtime($absolute),
+            (string) filemtime($script_absolute),
             true
         );
 
