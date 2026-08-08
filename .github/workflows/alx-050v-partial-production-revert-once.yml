@@ -1,0 +1,73 @@
+name: ALX-050V Partial Production Revert Once
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/revert-autolex-plugin-release.sh'
+      - '.github/workflows/alx-050v-partial-production-revert-once.yml'
+      - 'theme/autolex-theme/ALX-050V-PARTIAL-REVERT'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/alx-050v-partial-production-revert-once.yml'
+      - 'theme/autolex-theme/ALX-050V-PARTIAL-REVERT'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autolex-plugin-release-production
+  cancel-in-progress: false
+
+jobs:
+  validate-revert:
+    name: Validate partial production revert contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate revert helper
+        run: |
+          set -euo pipefail
+          bash -n scripts/revert-autolex-plugin-release.sh
+          grep -Fq 'active plugin directory missing before revert' scripts/revert-autolex-plugin-release.sh
+          grep -Fq 'exact rollback snapshot missing before revert' scripts/revert-autolex-plugin-release.sh
+          grep -Fq 'rename_dir "$plugin_dir" "$failed_name"' scripts/revert-autolex-plugin-release.sh
+          grep -Fq 'rename_dir "$backup_dir" "$plugin_name"' scripts/revert-autolex-plugin-release.sh
+          grep -Fq 'PLUGIN_REVERT_SUCCESS' scripts/revert-autolex-plugin-release.sh
+          CPANEL_API_HOST=example.invalid \
+          CPANEL_API_USER=example \
+          CPANEL_API_TOKEN=example \
+          CPANEL_PLUGIN_DIR=public_html/wp-content/plugins/autolex-platform \
+          AUTOLEX_REVERT_RELEASE_SHA=57f99e043a2e7b59a92786bc5181135809a08ea6 \
+          bash scripts/revert-autolex-plugin-release.sh validate
+
+  revert-production:
+    name: Revert partial production release from home-server
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate-revert
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - name: Enforce exact one-shot main commit boundary
+        run: |
+          set -euo pipefail
+          test "$(hostname)" = 'home-server'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff-tree --no-commit-id --name-only --diff-filter=A -r "$GITHUB_SHA" | grep -Fx '.github/workflows/alx-050v-partial-production-revert-once.yml'
+          git diff-tree --no-commit-id --name-only --diff-filter=A -r "$GITHUB_SHA" | grep -Fx 'theme/autolex-theme/ALX-050V-PARTIAL-REVERT'
+          grep -Fq 'Restore autolex-platform.rollback-57f99e043a2e7b59' theme/autolex-theme/ALX-050V-PARTIAL-REVERT
+      - name: Restore previous proven plugin snapshot
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_PLUGIN_DIR: ${{ secrets.CPANEL_PLUGIN_DIR }}
+          AUTOLEX_BASE_URL: https://autolex.hu
+          AUTOLEX_REVERT_RELEASE_SHA: 57f99e043a2e7b59a92786bc5181135809a08ea6
+        run: bash scripts/revert-autolex-plugin-release.sh revert
