@@ -1,0 +1,66 @@
+name: ALX-050K Production Rollback Recovery Once
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/recover-autolex-plugin-rollback.sh'
+      - '.github/workflows/alx-050k-rollback-recovery-once.yml'
+      - 'theme/autolex-theme/ALX-050K-ROLLBACK-RECOVERY'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/alx-050k-rollback-recovery-once.yml'
+      - 'theme/autolex-theme/ALX-050K-ROLLBACK-RECOVERY'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autolex-plugin-recovery-production
+  cancel-in-progress: false
+
+jobs:
+  validate-recovery:
+    name: Validate exact rollback recovery contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate recovery helper
+        run: |
+          set -euo pipefail
+          bash -n scripts/recover-autolex-plugin-rollback.sh
+          grep -Fq "exact rollback directory missing" scripts/recover-autolex-plugin-rollback.sh
+          grep -Fq "active plugin directory already exists; refusing ambiguous recovery" scripts/recover-autolex-plugin-rollback.sh
+          grep -Fq 'fileop_rename "$rollback_dir" "$plugin_name"' scripts/recover-autolex-plugin-rollback.sh
+          grep -Fq 'PLUGIN_ROLLBACK_SUCCESS' scripts/recover-autolex-plugin-rollback.sh
+
+  recover-production:
+    name: Restore exact plugin rollback from home-server
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate-recovery
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - name: Enforce exact one-shot recovery boundary
+        run: |
+          set -euo pipefail
+          test "$(hostname)" = 'home-server'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff-tree --no-commit-id --name-only --diff-filter=A -r "$GITHUB_SHA" | grep -Fx '.github/workflows/alx-050k-rollback-recovery-once.yml'
+          git diff-tree --no-commit-id --name-only --diff-filter=A -r "$GITHUB_SHA" | grep -Fx 'theme/autolex-theme/ALX-050K-ROLLBACK-RECOVERY'
+          grep -Fq 'Restore exact rollback-bd7508031eae13a5 snapshot only' theme/autolex-theme/ALX-050K-ROLLBACK-RECOVERY
+      - name: Restore known previous plugin snapshot
+        env:
+          CPANEL_API_HOST: ${{ secrets.CPANEL_API_HOST }}
+          CPANEL_API_USER: ${{ secrets.CPANEL_API_USER }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          CPANEL_PLUGIN_DIR: ${{ secrets.CPANEL_PLUGIN_DIR }}
+          AUTOLEX_BASE_URL: https://autolex.hu
+          AUTOLEX_FAILED_RELEASE_SHA: bd7508031eae13a5c757f5ca56a10d11e44486e2
+        run: bash scripts/recover-autolex-plugin-rollback.sh
