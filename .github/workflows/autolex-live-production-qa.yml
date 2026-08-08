@@ -15,6 +15,7 @@ on:
       - '.github/workflows/autolex-live-production-qa.yml'
       - '.github/workflows/autolex-live-home-server-qa.yml'
       - 'plugin/autolex-platform/**'
+      - 'theme/autolex-theme/**'
   push:
     branches:
       - main
@@ -31,6 +32,7 @@ on:
       - '.github/workflows/autolex-live-production-qa.yml'
       - '.github/workflows/autolex-live-home-server-qa.yml'
       - 'plugin/autolex-platform/**'
+      - 'theme/autolex-theme/**'
   workflow_dispatch:
     inputs:
       expected_version:
