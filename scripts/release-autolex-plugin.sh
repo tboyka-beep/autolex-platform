@@ -63,6 +63,9 @@ api2_fileop_try() {
     rm -rf "$tmp"
     return 13
   fi
+  if [[ "$op" == extract ]]; then
+    jq -r '.cpanelresult.data[]? | "PLUGIN_RELEASE_EXTRACT: src=\(.src // "") dest=\(.dest // "")"' "$body"
+  fi
   rm -rf "$tmp"
 }
 
@@ -207,8 +210,10 @@ printf 'PLUGIN_RELEASE_INFO: zip_sha256=%s\n' "$(sha256sum "$zip_path" | awk '{p
 printf 'PLUGIN_RELEASE_INFO: parent=%s active=%s staging=%s backup=%s\n' "$plugins_dir" "$plugin_name" "$staging_name" "$backup_name"
 
 # Stage and prove the new tree while the live plugin is still untouched.
+# cPanel API2 Fileman::fileop may report extract success without materializing
+# the tree unless an explicit destination is supplied on this host.
 upload_zip "$zip_path" "$plugins_dir"
-api2_fileop extract "$remote_zip"
+api2_fileop extract "$remote_zip" "$plugins_dir"
 require_item "$plugins_dir" "$plugin_name" 'active plugin directory after staging extract'
 require_item "$plugins_dir" "$staging_name" 'staging directory after extract'
 require_item "$staging_dir" 'autolex-platform.php' 'staged plugin entry file'
