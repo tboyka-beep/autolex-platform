@@ -6,6 +6,7 @@ on:
       - 'scripts/autolex-live-production-qa.sh'
       - 'scripts/recover-autolex-safety-gate.sh'
       - 'tests/live-production-qa-smoke.sh'
+      - 'tests/live-home-server-workflow-contract.sh'
       - 'tests/safety-gate-smoke.php'
       - '.github/workflows/autolex-live-production-qa.yml'
       - '.github/workflows/autolex-live-home-server-qa.yml'
@@ -17,6 +18,7 @@ on:
       - 'scripts/autolex-live-production-qa.sh'
       - 'scripts/recover-autolex-safety-gate.sh'
       - 'tests/live-production-qa-smoke.sh'
+      - 'tests/live-home-server-workflow-contract.sh'
       - 'tests/safety-gate-smoke.php'
       - '.github/workflows/autolex-live-production-qa.yml'
       - '.github/workflows/autolex-live-home-server-qa.yml'
@@ -45,7 +47,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Validate shell syntax and contract markers
-        run: bash tests/live-production-qa-smoke.sh
+        run: |
+          bash tests/live-production-qa-smoke.sh
+          bash tests/live-home-server-workflow-contract.sh
 
   live-hosted:
     name: Verify production from GitHub-hosted runner
