@@ -23,7 +23,7 @@ validate_config() {
     */wp-content/plugins/autolex-platform) ;;
     *) fail 'CPANEL_PLUGIN_DIR must end in /wp-content/plugins/autolex-platform' ;;
   esac
-  for cmd in bash curl jq zip sed grep sha256sum cp mktemp; do
+  for cmd in bash curl jq zip sed grep sha256sum cp mktemp php; do
     command -v "$cmd" >/dev/null || fail "missing command: $cmd"
   done
   test -f plugin/autolex-platform/autolex-platform.php || fail 'plugin entry file missing'
@@ -64,7 +64,7 @@ api2_fileop_try() {
     return 13
   fi
   if [[ "$op" == extract ]]; then
-    jq -r '.cpanelresult.data[]? | "PLUGIN_RELEASE_EXTRACT: src=\(.src // "") dest=\(.dest // "")"' "$body"
+    jq -r '.cpanelresult.data[]? | "PLUGIN_RELEASE_EXTRACT: result=ok"' "$body"
   fi
   rm -rf "$tmp"
 }
@@ -92,6 +92,36 @@ api2_list_dir() {
   fi
   cat "$tmp"
   rm -f "$tmp"
+}
+
+resolve_plugins_abs() {
+  local tmp code encoded public_html_abs relative_suffix plugins_abs
+  tmp="$(mktemp)"
+  code="$(curl --silent --show-error --location --retry 3 --retry-delay 2 --retry-all-errors \
+    --connect-timeout 15 --max-time 60 --get --header "$(auth_header)" \
+    --output "$tmp" --write-out '%{http_code}' \
+    --data-urlencode "cpanel_jsonapi_user=${CPANEL_API_USER}" \
+    --data-urlencode 'cpanel_jsonapi_apiversion=2' \
+    --data-urlencode 'cpanel_jsonapi_module=Fileman' \
+    --data-urlencode 'cpanel_jsonapi_func=getdir' \
+    --data-urlencode 'dir=public_html' \
+    "$(api_base)/json-api/cpanel")" || { rm -f "$tmp"; return 10; }
+  if [[ "$code" != 200 ]] || ! jq -e '.cpanelresult.event.result == 1' "$tmp" >/dev/null 2>&1; then
+    rm -f "$tmp"
+    return 11
+  fi
+  encoded="$(jq -r '.cpanelresult.data[0].dir // empty' "$tmp")"
+  rm -f "$tmp"
+  test -n "$encoded" || return 12
+  public_html_abs="$(php -r 'echo urldecode($argv[1]);' "$encoded")"
+  printf '%s' "$public_html_abs" | grep -Eq '^/home/[^/]+/public_html$' || return 13
+  case "$plugins_dir" in
+    public_html/*) relative_suffix="${plugins_dir#public_html}" ;;
+    *) return 14 ;;
+  esac
+  plugins_abs="${public_html_abs}${relative_suffix}"
+  printf '%s' "$plugins_abs" | grep -Eq '^/home/[^/]+/public_html/wp-content/plugins$' || return 15
+  printf '%s' "$plugins_abs"
 }
 
 dir_has_item() {
@@ -195,6 +225,9 @@ case "$plugins_dir" in
   *) fail 'derived plugin parent directory is unsafe' ;;
 esac
 [[ "$plugin_name" == autolex-platform ]] || fail 'derived plugin directory name is unsafe'
+plugins_abs="$(resolve_plugins_abs)" || fail 'could not resolve server-verified absolute plugins path'
+remote_zip_abs="${plugins_abs}/${zip_name}"
+printf 'PLUGIN_RELEASE_ABS_PARENT_OK\n'
 
 # Fail before any production mutation unless the current active plugin is
 # present and every exact-SHA reserved directory name is unused.
@@ -210,10 +243,10 @@ printf 'PLUGIN_RELEASE_INFO: zip_sha256=%s\n' "$(sha256sum "$zip_path" | awk '{p
 printf 'PLUGIN_RELEASE_INFO: parent=%s active=%s staging=%s backup=%s\n' "$plugins_dir" "$plugin_name" "$staging_name" "$backup_name"
 
 # Stage and prove the new tree while the live plugin is still untouched.
-# cPanel API2 Fileman::fileop may report extract success without materializing
-# the tree unless an explicit destination is supplied on this host.
+# The host-proven Fileman::getdir path is used only for extract source/dest;
+# upload, listing, rename and rollback retain their already-proven semantics.
 upload_zip "$zip_path" "$plugins_dir"
-api2_fileop extract "$remote_zip" "$plugins_dir"
+api2_fileop extract "$remote_zip_abs" "$plugins_abs"
 require_item "$plugins_dir" "$plugin_name" 'active plugin directory after staging extract'
 require_item "$plugins_dir" "$staging_name" 'staging directory after extract'
 require_item "$staging_dir" 'autolex-platform.php' 'staged plugin entry file'
