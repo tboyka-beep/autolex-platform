@@ -194,6 +194,12 @@
             return;
         }
 
+        var identityKey = normalize(nameNode.textContent);
+        if (!identityKey || card.dataset.alxNamedMediaKey === identityKey) {
+            return;
+        }
+        card.dataset.alxNamedMediaKey = identityKey;
+
         var media = findNamedVehicle(nameNode.textContent);
         var image = mediaBox.querySelector('img');
         if (!media || !image || !applyMediaToImage(image, media)) {
@@ -207,7 +213,9 @@
         var credit = mediaBox.querySelector('.alx-stock-credit');
         if (credit) {
             credit.href = media.source;
-            credit.textContent = media.credit;
+            if (credit.textContent !== media.credit) {
+                credit.textContent = media.credit;
+            }
         }
     }
 
@@ -221,6 +229,12 @@
         if (!photoRow || names.length !== 2) {
             return;
         }
+
+        var identityKey = normalize(names[0].textContent) + '|' + normalize(names[1].textContent);
+        if (card.dataset.alxNamedMediaKey === identityKey) {
+            return;
+        }
+        card.dataset.alxNamedMediaKey = identityKey;
 
         var left = findNamedVehicle(names[0].textContent);
         var right = findNamedVehicle(names[1].textContent);
