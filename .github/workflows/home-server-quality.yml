@@ -74,6 +74,7 @@ jobs:
         run: |
           php tests/portal-smoke.php
           php tests/catalog-filter-smoke.php
+          php tests/public-presentation-smoke.php
           php tests/portal-design-smoke.php
           php tests/portal-shell-42-smoke.php
           php tests/catalog-design-42-smoke.php
@@ -85,6 +86,7 @@ jobs:
           php tests/safety-gate-inbox-smoke.php
           node --check plugin/autolex-platform/assets/js/autolex-portal-3.js
           node --check plugin/autolex-platform/assets/js/autolex-maintenance-evidence.js
+          node --check plugin/autolex-platform/assets/js/autolex-public-presentation.js
 
       - name: Confirm live Safety Gate ownership
         run: |
