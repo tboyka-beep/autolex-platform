@@ -1,0 +1,35 @@
+name: ALX-050W Normal Content Factual Summary
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'plugin/autolex-platform/autolex-platform.php'
+      - 'plugin/autolex-platform/includes/class-autolex-vehicle-fact-content.php'
+      - 'plugin/autolex-platform/includes/class-autolex-vehicle-fact-fallback.php'
+      - 'plugin/autolex-platform/includes/class-autolex-public-presentation.php'
+      - 'tests/vehicle-fact-content-smoke.php'
+      - 'tests/vehicle-fact-fallback-smoke.php'
+      - '.github/workflows/alx-050w-factual-content.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  factual-content-contract:
+    name: Validate normal-content factual summary contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: PHP syntax
+        run: |
+          set -euo pipefail
+          php -l plugin/autolex-platform/includes/class-autolex-vehicle-fact-content.php
+          php -l plugin/autolex-platform/autolex-platform.php
+          php -l tests/vehicle-fact-content-smoke.php
+      - name: Prove URI/render and bufferless contracts
+        run: |
+          set -euo pipefail
+          php tests/vehicle-fact-content-smoke.php
+          php tests/vehicle-fact-fallback-smoke.php

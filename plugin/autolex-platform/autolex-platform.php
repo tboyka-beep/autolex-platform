@@ -39,6 +39,7 @@ require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-seo.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-media.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-public-presentation.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-fact-fallback.php';
+require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-fact-content.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-portal.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-comparison-page.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-operations-center.php';
@@ -72,6 +73,11 @@ function autolex_platform()
     // keep the helper available but disable its response-wide buffer as well.
     $vehicle_fact_fallback = Autolex_Vehicle_Fact_Fallback::instance();
     remove_action('template_redirect', array($vehicle_fact_fallback, 'start_buffer'), 2);
+
+    // ALX-050W: ensure the record-backed summary through the normal WordPress
+    // content filter even when the virtual detail shell invokes the_content
+    // outside the primary loop/main-query guards used by the original renderer.
+    Autolex_Vehicle_Fact_Content::instance();
 
     Autolex_Portal::instance();
     Autolex_Comparison_Page::instance();
