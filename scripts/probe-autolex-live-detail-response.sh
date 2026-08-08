@@ -5,7 +5,18 @@ BASE_URL="${AUTOLEX_BASE_URL:-https://autolex.hu}"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
+annotate_error() {
+  local message="$*"
+  if [[ -n "${GITHUB_ACTIONS:-}" ]]; then
+    message="${message//'%'/'%25'}"
+    message="${message//$'\r'/'%0D'}"
+    message="${message//$'\n'/'%0A'}"
+    printf '::error title=ALX-050F live detail probe::%s\n' "$message" >&2
+  fi
+}
+
 fail() {
+  annotate_error "ALX050F_PROBE_FAIL: $*"
   printf 'ALX050F_PROBE_FAIL: %s\n' "$*" >&2
   exit 1
 }
@@ -52,33 +63,40 @@ curl --silent --show-error --location --retry 3 --retry-delay 2 --retry-all-erro
   --write-out 'http_code=%{http_code}\neffective_url=%{url_effective}\ncontent_type=%{content_type}\nredirects=%{num_redirects}\nsize_download=%{size_download}\n' \
   "$vehicle_url" >"$meta" || fail "detail transport failed: $vehicle_url"
 
-cat "$meta"
-printf 'requested_url=%s\n' "$vehicle_url"
-printf 'body_sha256=%s\n' "$(sha256sum "$body" | awk '{print $1}')"
-printf 'header_content_type=%s\n' "$(awk 'BEGIN{IGNORECASE=1} /^content-type:/{sub(/\r$/,""); value=$0} END{print value}' "$headers")"
-
-python3 - "$body" <<'PY'
+http_code="$(awk -F= '$1=="http_code"{print $2}' "$meta")"
+effective_url="$(awk -F= '$1=="effective_url"{sub(/^effective_url=/,""); print}' "$meta")"
+content_type="$(awk -F= '$1=="content_type"{sub(/^content_type=/,""); print}' "$meta")"
+redirects="$(awk -F= '$1=="redirects"{print $2}' "$meta")"
+size_download="$(awk -F= '$1=="size_download"{print $2}' "$meta")"
+body_sha256="$(sha256sum "$body" | awk '{print $1}')"
+header_content_type="$(awk 'BEGIN{IGNORECASE=1} /^content-type:/{sub(/\r$/,""); value=$0} END{print value}' "$headers")"
+body_prefix="$(python3 - "$body" <<'PY'
 import re, sys
 raw = open(sys.argv[1], 'rb').read(512)
 text = raw.decode('utf-8', 'replace')
 text = re.sub(r'\s+', ' ', text).strip()
-print('body_prefix=' + text[:300])
+print(text[:300])
 PY
+)"
 
-http_code="$(awk -F= '$1=="http_code"{print $2}' "$meta")"
-effective_url="$(awk -F= '$1=="effective_url"{sub(/^effective_url=/,""); print}' "$meta")"
-content_type="$(awk -F= '$1=="content_type"{sub(/^content_type=/,""); print}' "$meta")"
+cat "$meta"
+printf 'requested_url=%s\n' "$vehicle_url"
+printf 'body_sha256=%s\n' "$body_sha256"
+printf 'header_content_type=%s\n' "$header_content_type"
+printf 'body_prefix=%s\n' "$body_prefix"
 
-[[ "$http_code" == "200" ]] || fail "detail HTTP $http_code effective=$effective_url"
+fingerprint="http_code=${http_code:-unknown}; effective_url=${effective_url:-unknown}; content_type=${content_type:-unknown}; redirects=${redirects:-unknown}; size_download=${size_download:-unknown}; body_sha256=${body_sha256:-unknown}; body_prefix=${body_prefix:-empty}"
 
-grep -Fqi 'Please wait while your request is being verified' "$body" && fail 'known hosting verification challenge'
-grep -Fqi '<title>One moment, please...</title>' "$body" && fail 'known hosting challenge page'
+[[ "$http_code" == "200" ]] || fail "detail HTTP failure; $fingerprint"
+
+grep -Fqi 'Please wait while your request is being verified' "$body" && fail "known hosting verification challenge; $fingerprint"
+grep -Fqi '<title>One moment, please...</title>' "$body" && fail "known hosting challenge page; $fingerprint"
 
 if ! grep -Eqi '<!doctype html|<html' "$body"; then
-  fail "detail response is not HTML content_type=${content_type:-unknown} effective=$effective_url"
+  fail "detail response is not HTML; $fingerprint"
 fi
 
-grep -Fqi 'autolex-vehicle-detail' "$body" || fail 'vehicle detail marker missing'
-grep -Fqi 'application/ld+json' "$body" || fail 'vehicle JSON-LD missing'
+grep -Fqi 'autolex-vehicle-detail' "$body" || fail "vehicle detail marker missing; $fingerprint"
+grep -Fqi 'application/ld+json' "$body" || fail "vehicle JSON-LD missing; $fingerprint"
 
 printf 'ALX050F_PROBE_OK: live vehicle detail is HTML and carries the server detail contract\n'
