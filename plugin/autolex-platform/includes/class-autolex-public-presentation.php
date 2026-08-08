@@ -1,6 +1,6 @@
 <?php
 /**
- * Hungarian public terminology and source-backed vehicle summary layer.
+ * Hungarian public terminology and record-backed vehicle summary layer.
  *
  * Raw source/database values remain untouched. This class only normalizes
  * public presentation and adds factual content from already stored fields.
@@ -339,7 +339,7 @@ final class Autolex_Public_Presentation
         <section class="alxbc-section alx3-detail-section alx-public-facts" data-autolex-public-facts="true" aria-labelledby="alx-public-facts-title">
             <div class="alxbc-section-head alx3-detail-heading">
                 <div>
-                    <span><?php echo esc_html__('ELLENŐRZÖTT KATALÓGUSADATOK', 'autolex-platform'); ?></span>
+                    <span><?php echo esc_html__('RÖGZÍTETT KATALÓGUSADATOK', 'autolex-platform'); ?></span>
                     <h2 id="alx-public-facts-title"><?php echo esc_html__('Röviden erről a változatról', 'autolex-platform'); ?></h2>
                 </div>
                 <b><?php echo esc_html(number_format_i18n(count($facts))); ?> <?php echo esc_html__('rögzített mező', 'autolex-platform'); ?></b>
