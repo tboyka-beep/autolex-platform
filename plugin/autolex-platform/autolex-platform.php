@@ -126,9 +126,13 @@ function autolex_enqueue_visual_layer()
             'path' => 'assets/css/autolex-vehicle-experience-light.css',
             'deps' => array('autolex-catalog-light'),
         ),
+        'autolex-public-presentation' => array(
+            'path' => 'assets/css/autolex-public-presentation.css',
+            'deps' => array('autolex-vehicle-experience-light'),
+        ),
         'autolex-home-41' => array(
             'path' => 'assets/css/autolex-home-41.css',
-            'deps' => array('autolex-vehicle-experience-light'),
+            'deps' => array('autolex-public-presentation'),
         ),
     );
 
