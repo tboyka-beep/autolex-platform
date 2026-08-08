@@ -1,0 +1,6 @@
+ALX-050V partial production revert
+Home Server runner only
+Exact merged main SHA required
+Restore autolex-platform.rollback-57f99e043a2e7b59
+Isolate current candidate before rollback activation
+Verify status 4.2.0 and vehicle catalog baseline after revert
