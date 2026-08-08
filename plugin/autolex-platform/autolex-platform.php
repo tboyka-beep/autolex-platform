@@ -37,6 +37,7 @@ require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-comparison.p
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-relations.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-seo.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-vehicle-media.php';
+require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-public-presentation.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-portal.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-comparison-page.php';
 require_once AUTOLEX_PLATFORM_DIR . 'includes/class-autolex-operations-center.php';
@@ -56,6 +57,7 @@ function autolex_platform()
     Autolex_Vehicle_Relations::instance();
     Autolex_Vehicle_SEO::instance();
     Autolex_Vehicle_Media::instance();
+    Autolex_Public_Presentation::instance();
     Autolex_Portal::instance();
     Autolex_Comparison_Page::instance();
     Autolex_Operations_Center::instance();
@@ -124,9 +126,13 @@ function autolex_enqueue_visual_layer()
             'path' => 'assets/css/autolex-vehicle-experience-light.css',
             'deps' => array('autolex-catalog-light'),
         ),
+        'autolex-public-presentation' => array(
+            'path' => 'assets/css/autolex-public-presentation.css',
+            'deps' => array('autolex-vehicle-experience-light'),
+        ),
         'autolex-home-41' => array(
             'path' => 'assets/css/autolex-home-41.css',
-            'deps' => array('autolex-vehicle-experience-light'),
+            'deps' => array('autolex-public-presentation'),
         ),
     );
 

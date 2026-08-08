@@ -37,6 +37,7 @@ jobs:
           php -l plugin/autolex-platform/includes/class-autolex-vehicle-relations.php
           php -l plugin/autolex-platform/includes/class-autolex-vehicle-seo.php
           php -l plugin/autolex-platform/includes/class-autolex-vehicle-media.php
+          php -l plugin/autolex-platform/includes/class-autolex-public-presentation.php
           php -l plugin/autolex-platform/includes/class-autolex-theme-data-bridge.php
           php -l tests/catalog-filter-smoke.php
           php -l tests/portal-design-smoke.php
@@ -46,6 +47,7 @@ jobs:
           php -l tests/vehicle-relations-smoke.php
           php -l tests/vehicle-seo-smoke.php
           php -l tests/vehicle-media-smoke.php
+          php -l tests/public-presentation-smoke.php
           php -l tests/visual-layer-smoke.php
           php -l tests/safety-gate-live-smoke.php
           php -l tests/safety-gate-inbox-smoke.php
@@ -57,9 +59,13 @@ jobs:
           node --check plugin/autolex-platform/assets/js/autolex-maintenance-evidence.js
           node --check plugin/autolex-platform/assets/js/autolex-vehicle-relations.js
           node --check plugin/autolex-platform/assets/js/autolex-vehicle-media.js
+          node --check plugin/autolex-platform/assets/js/autolex-public-presentation.js
 
       - name: Test data quality and free-source policy
         run: php tests/portal-smoke.php
+
+      - name: Test Hungarian public terminology and factual content
+        run: php tests/public-presentation-smoke.php
 
       - name: Test public theme data bridge
         run: php tests/theme-data-bridge-smoke.php

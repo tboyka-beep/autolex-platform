@@ -5,10 +5,12 @@ on:
     paths:
       - 'scripts/autolex-live-production-qa.sh'
       - 'scripts/autolex-vehicle-media-live-qa.sh'
+      - 'scripts/autolex-public-presentation-live-qa.sh'
       - 'scripts/recover-autolex-safety-gate.sh'
       - 'tests/live-production-qa-smoke.sh'
       - 'tests/live-home-server-workflow-contract.sh'
       - 'tests/vehicle-media-live-qa-smoke.sh'
+      - 'tests/public-presentation-live-qa-smoke.sh'
       - 'tests/safety-gate-smoke.php'
       - '.github/workflows/autolex-live-production-qa.yml'
       - '.github/workflows/autolex-live-home-server-qa.yml'
@@ -19,10 +21,12 @@ on:
     paths:
       - 'scripts/autolex-live-production-qa.sh'
       - 'scripts/autolex-vehicle-media-live-qa.sh'
+      - 'scripts/autolex-public-presentation-live-qa.sh'
       - 'scripts/recover-autolex-safety-gate.sh'
       - 'tests/live-production-qa-smoke.sh'
       - 'tests/live-home-server-workflow-contract.sh'
       - 'tests/vehicle-media-live-qa-smoke.sh'
+      - 'tests/public-presentation-live-qa-smoke.sh'
       - 'tests/safety-gate-smoke.php'
       - '.github/workflows/autolex-live-production-qa.yml'
       - '.github/workflows/autolex-live-home-server-qa.yml'
@@ -55,6 +59,7 @@ jobs:
           bash tests/live-production-qa-smoke.sh
           bash tests/live-home-server-workflow-contract.sh
           bash tests/vehicle-media-live-qa-smoke.sh
+          bash tests/public-presentation-live-qa-smoke.sh
 
   live-hosted:
     name: Verify production from GitHub-hosted runner
@@ -70,3 +75,5 @@ jobs:
         run: bash scripts/autolex-live-production-qa.sh
       - name: Prove exact verified vehicle media mappings
         run: bash scripts/autolex-vehicle-media-live-qa.sh
+      - name: Prove Hungarian public terminology and factual vehicle content
+        run: bash scripts/autolex-public-presentation-live-qa.sh
